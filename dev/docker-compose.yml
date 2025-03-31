@@ -8,11 +8,9 @@ services:
     image: pierceflare
     build:
       context: ..
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.server
       args:
         - K8S_APP__VERSION=debug-0.0.1-docker
-    profiles:
-      - with_api
     ports:
       - "80:3000"
       # - "9229:9229" # NodeJS debug port

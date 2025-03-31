@@ -1,0 +1,1 @@
+ARG K8S_APP__VERSION="[unknown-from-docker]"

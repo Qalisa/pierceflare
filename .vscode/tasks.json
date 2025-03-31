@@ -27,51 +27,6 @@
     }
   ],
 	"tasks": [
-    {
-      "label": "🗑️ Docker Compose",
-      "type": "shell",
-      "command": "docker",
-      "args": [
-        "compose", 
-        "down", 
-        // "-v" // -v also removes volumes
-      ],
-      "problemMatcher": [],
-      "options": {
-        "cwd": "${workspaceFolder}/dev",
-        "env": {
-          "COMPOSE_PROFILES": "without_api, with_api"
-        },
-        "statusbar": {"hide": true}
-      }
-    },
-    //
-    //
-    //
-    {
-      "label": "🧶 Lint",
-      "type": "shell",
-      "command": "bun",
-      "args": ["run", "lint"],
-      "problemMatcher": ["$tsc", "$eslint-stylish"],
-      "options": {
-        "cwd": "${workspaceFolder}/api",
-      }
-    },
-    {
-      "label": "Build w/ bun (dev only)",
-      "type": "shell",
-      "command": "bun",
-      "args": ["run", "build:dev"],
-      "problemMatcher": "$tsc",
-      "options": {
-        "statusbar": {"hide": true},
-        "cwd": "${workspaceFolder}/api",
-        "env": {
-          "NODE_ENV": "development"
-        }
-      },
-    },
     //
     //
     //
@@ -88,16 +43,6 @@
       "problemMatcher": []
     },
     {
-      "label": "🪖 Build helm dependencies",
-      "command": "helm",
-      "args": [
-        "dependency",
-        "build",
-        ".helm"
-      ],
-      "problemMatcher": []
-    },
-    {
       "label": "⚠️ Override branch with another",
       "type": "shell",
       "command": "if [ \"${input:confirmation}\" = \"agree\" ]; then git checkout ${input:branch-to-override} -- && git reset --hard ${input:branch-to-copy} -- && git push --force; else echo 'Did not agree explicitely'; exit 0; fi",
@@ -106,27 +51,5 @@
         "statusbar": {"hide": true}
       }
     },
-    // {
-    //   "label": "Run ESLint on project open",
-    //   "type": "shell",
-    //   "command": "bunx",
-    //   "args": ["eslint"],
-    //   "problemMatcher": ["$eslint-stylish"],
-    //   "presentation": {
-    //     "echo": true,
-    //     "revealProblems": "always",
-    //     "focus": false,
-    //     "panel": "shared",
-    //     "showReuseMessage": true,
-    //     "clear": false
-    //   },
-    //   "options": {
-    //     "cwd": "${workspaceFolder}/api",
-    //     "statusbar": { "hide": true }
-    //   },
-    //   "runOptions": {
-    //     "runOn": "folderOpen"
-    //   }
-    // }
   ]
 }
