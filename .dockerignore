@@ -1,0 +1,10 @@
+# we need .git
+# !.git
+
+api/node_modules
+api/dist
+dev/docker-compose.*.yml
+**/.env*
+
+.vscode
+Dockerfile

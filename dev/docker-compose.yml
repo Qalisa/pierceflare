@@ -1,0 +1,29 @@
+services:
+  
+  #
+  # App Stack
+  #
+
+  pierceflare:
+    image: pierceflare
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        - K8S_APP__VERSION=debug-0.0.1-docker
+    profiles:
+      - with_api
+    ports:
+      - "80:3000"
+      # - "9229:9229" # NodeJS debug port
+    command: [
+      # "--inspect-brk=0.0.0.0:9229", # debug specific, but wont work (https://github.com/oven-sh/bun/issues/7490)
+      "."
+    ]
+    volumes:
+      - pierceflare-data:/foundation/budivy_blobs:rw
+
+#
+volumes:
+  #
+  pierceflare-data:

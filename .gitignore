@@ -1,0 +1,13 @@
+node_modules
+
+.DS_Store
+
+.env
+.env.production*
+
+google-service-account.json
+
+dist
+
+api/foundations
+budivy_blobs
