@@ -1,14 +1,13 @@
-# .github/workflows/publish-cli.yml
-name: Publish CLI Docker image
+name: Publish CLI
 
 on:
   push:
     branches:
-      - main # Ou votre branche principale (ex: master)
-    # Optionally trigger only if files in cli/ or Dockerfile.cli change:
-    # paths:
-    #   - 'cli/**'
-    #   - 'Dockerfile.cli'
+     - dev
+     - main
+    paths:
+      - .helm/service/Chart.yaml # on maybe new app version
+      - .github/workflows/publish-service.yml
   workflow_dispatch: # Allows manual triggering
 
 permissions:

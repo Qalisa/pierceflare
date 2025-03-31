@@ -1,4 +1,4 @@
-name: Release
+name: Publish Service
 
 on:
   push:
@@ -6,8 +6,9 @@ on:
      - dev
      - main
     paths:
-      - .helm/Chart.yaml # on maybe new app version
-      - .github/workflows/release.yml
+      - .helm/service/Chart.yaml # on maybe new app version
+      - .github/workflows/publish-service.yml
+  workflow_dispatch: # Allows manual triggering
 
 jobs:
   build-and-push:
@@ -63,6 +64,7 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         context: .
+        file: Dockerfile.service
         push: true
         target: lean
         build-args: |

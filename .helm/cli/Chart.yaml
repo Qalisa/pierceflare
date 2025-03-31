@@ -1,6 +1,6 @@
 apiVersion: v2
-name: pierceflare
-description: Dashboard, API and CLI for secure Cloudflare DDNS
+name: pierceflare-cli
+description: CLI for secure Cloudflare DDNS
 
 # A chart can be either an 'application' or a 'library' chart.
 #
