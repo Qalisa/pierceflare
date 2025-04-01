@@ -2,5 +2,5 @@
     "editor.codeActionsOnSave": {
       "source.fixAll": "explicit"
     },
-    "terminal.integrated.cwd": "${workspaceFolder}/api"
+    "terminal.integrated.cwd": "${workspaceFolder}/service"
 }

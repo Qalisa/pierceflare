@@ -1,15 +1,89 @@
 import express from "express";
-import vike from "vike-node/express";
-import { imageVersion, imageRevision, version } from "./env";
+import {
+  imageVersion,
+  imageRevision,
+  version,
+  SERVICE_AUTH_PASSWORD,
+  SERVICE_AUTH_USERNAME,
+} from "./env";
+import compression from "compression";
+import passport from "passport";
+import PassportLocal from "passport-local";
+import bodyParser from "body-parser";
+import session from "express-session";
 
 import { telefunc } from "telefunc";
+import { AppUser, routes } from "./app";
+import { randomBytes } from "crypto";
+import { apply } from "vike-server/express";
+import { serve } from "vike-server/express/serve";
 
 const startServer = async () => {
   //
   const app = express();
 
-  express.static("public");
-  app.use(express.text());
+  ///
+  //
+  ///
+  const limit = "10mb";
+  app.use(compression()); // adds compression support
+  app.use(
+    session({
+      secret: randomBytes(20).toString(),
+      resave: false,
+      saveUninitialized: false,
+    }),
+  ); // adds session support
+  app.use(bodyParser.json({ limit })); // REQUIRED BY PASSEPORT.JS
+  app.use(
+    bodyParser.urlencoded({
+      limit,
+      extended: true,
+      parameterLimit: 50000,
+    }),
+  ); // REQUIRED BY PASSEPORT.JS
+
+  ///
+  // Passport.js - Session handling
+  ///
+  passport.serializeUser((user, done) => {
+    done(null, user.username);
+  });
+  passport.deserializeUser<string>(async (id, done) => {
+    done(null, { username: id } satisfies AppUser);
+  });
+
+  // hooks with express's session middleware
+  app.use(passport.initialize());
+  app.use(passport.session());
+  app.use(passport.authenticate("session"));
+
+  ///
+  //
+  ///
+  passport.use(
+    new PassportLocal.Strategy(
+      { usernameField: "username", passwordField: "password" },
+      async (typedUsername, password, done) => {
+        const authOK =
+          SERVICE_AUTH_USERNAME == typedUsername &&
+          SERVICE_AUTH_PASSWORD == password;
+        return done(
+          null,
+          authOK ? { username: typedUsername } : false,
+          authOK ? undefined : { message: "Invalid credentials" },
+        );
+      },
+    ),
+  );
+  app.post(
+    routes.pages.login,
+    passport.authenticate("local", {
+      failureRedirect: routes.pages.login,
+      successRedirect: routes.pages.dashboard,
+      failureMessage: true,
+    }),
+  );
 
   // Telefunc middleware
   app.all("/_telefunc", async (req, res) => {
@@ -28,36 +102,19 @@ const startServer = async () => {
   });
 
   //
-  app.use(
-    vike({
-      pageContext: (_) => {
-        return {
-          k8sApp: {
-            imageVersion,
-            imageRevision,
-            version,
-          },
-        };
+  //
+  //
+
+  apply(app, {
+    pageContext: {
+      k8sApp: {
+        imageRevision,
+        imageVersion,
+        version,
       },
-    }),
-  );
-
-  //
-  //
-  //
-
-  //
-  const port = process.env.PORT ?? 3000;
-
-  //
-  app.listen(port, () => {
-    //
-    console.log("[INFO]", "Is Production build:", import.meta.env.PROD);
-    console.log("[INFO]", "App Version:", version);
-
-    //
-    console.log(`Server running at http://localhost:${port}`);
+    },
   });
+  return serve(app, { port: parseInt(process.env.PORT ?? "3000") });
 };
 
 startServer();
