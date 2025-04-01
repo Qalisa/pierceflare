@@ -1,7 +1,7 @@
 import vikeReact from "vike-react/config";
 import type { Config } from "vike/types";
 
-import pierceflareLogo from "@/assets/images/logo.svg";
+import pierceflareLogo from "@/assets/images/logo.png";
 
 // Default config (can be overridden by pages)
 // https://vike.dev/config

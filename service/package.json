@@ -5,8 +5,8 @@
     "check": "tsc --noemit",
     "dev": "vike dev",
     "eslint": "eslint . --max-warnings 0",
-    "lint": "pnpm check && pnpm eslint",
-    "prod": "pnpm build && node dist/server/index.mjs",
+    "lint": "bun check && bun eslint",
+    "prod": "bun build && node dist/server/index.mjs",
     "sort": "npx sort-package-json"
   },
   "prettier": {
@@ -65,8 +65,8 @@
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.24.1"
   },
-  "packageManager": "pnpm@10.6.3+sha512.bb45e34d50a9a76e858a95837301bfb6bd6d35aea2c5d52094fa497a467c43f5c440103ce2511e9e0a2f89c3d6071baac3358fc68ac6fb75e2ceb3d2736065e6",
-  "pnpm": {
+  "packageManager": "bun@10.6.3+sha512.bb45e34d50a9a76e858a95837301bfb6bd6d35aea2c5d52094fa497a467c43f5c440103ce2511e9e0a2f89c3d6071baac3358fc68ac6fb75e2ceb3d2736065e6",
+  "bun": {
     "onlyBuiltDependencies": [
       "core-js",
       "esbuild",

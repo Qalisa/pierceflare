@@ -1,5 +1,79 @@
 {
   "version": "0.2.0",
   "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "name": "Launch Browser",
+      "webRoot": "${workspaceFolder}/service",
+      "presentation": {
+        "hidden": true,
+        "group": "",
+        "order": 1
+      },
+      "cascadeTerminateToConfigurations": [
+        "Debug: Vite w/ ExpressJS",
+        "Debug: Vite w/ ExpressJS (production)",
+        "Debug: Docker Compose (production)"
+      ]
+    },
+    {
+      "name": "Debug: Vite w/ ExpressJS",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "bun dev",
+      "cwd": "${workspaceFolder}/service",
+      "env": {
+        "LEGAL_CORS_BEARER_TOKEN": "testtest",
+        //
+        "K8S_APP__VERSION": "v0.vike-dev",
+        "K8S_APP__IMAGE_VERSION": "bun-dev",
+        "K8S_APP__IMAGE_REVISION": "22000000004321",
+        //
+        "CANONICAL_URL": "http://localhost"
+      },
+      "serverReadyAction": {
+        "action": "startDebugging",
+        "name": "Launch Browser",
+        "pattern": "Server running at",
+        "killOnServerStop": true
+      }
+    },
+    {
+      "name": "Debug: Vite w/ ExpressJS (production)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "bun prod",
+      "cwd": "${workspaceFolder}/service",
+      "env": {
+        "K8S_APP__VERSION": "v0.vike-prod",
+        "K8S_APP__IMAGE_VERSION": "bun-prod",
+        "K8S_APP__IMAGE_REVISION": "22000000004321",
+        //
+        "NODE_ENV": "production",
+        //
+        "CANONICAL_URL": "http://localhost"
+      },
+      "serverReadyAction": {
+        "action": "startDebugging",
+        "name": "Launch Browser",
+        "pattern": "Server running at",
+        "killOnServerStop": true
+      }
+    },
+    {
+      "name": "Debug: Docker Compose (production)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "docker compose up --build",
+      "cwd": "${workspaceFolder}/dev",
+      "serverReadyAction": {
+        "action": "startDebugging",
+        "name": "Launch Browser",
+        "pattern": "Server running at",
+        "killOnServerStop": true
+      }
+    }
   ]
 }

@@ -1,6 +1,6 @@
 // https://vike.dev/Head
 
-import logoUrl from "@/assets/images/bimi-tiny-12.svg";
+import logoUrl from "@/assets/images/logo.png";
 
 //
 const Head = () => {

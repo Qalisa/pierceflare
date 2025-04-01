@@ -3,16 +3,8 @@ import vike from "vike-node/express";
 import { imageVersion, imageRevision, version } from "./env";
 
 import { telefunc } from "telefunc";
-import { getOdooCli } from "./odooCli/utils";
-import OdooJSONRpc from "./odooCli";
-
-// @ts-ignore
-export let odooCli: OdooJSONRpc = null;
 
 const startServer = async () => {
-  //
-  odooCli = await getOdooCli();
-
   //
   const app = express();
 
