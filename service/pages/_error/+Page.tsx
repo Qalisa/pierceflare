@@ -7,15 +7,14 @@ const ErrorPage = () => {
     switch (is404) {
       case true:
         return {
-          message: "Oups, cette page n'existe pas !",
+          message: "Woops ! Page not found :(",
           description:
-            "Vous vous êtes perdu, il y a surement eu un problème de navigation. Rassurez-vous, rien de très grave.",
+            "You are trying to access a page that did or never existed.",
         };
       default:
         return {
-          message: "Il semblerait qu'il y ait eu un problème technique...",
-          description:
-            "Désolé pour cet impair, nos équipes techniques sont surement en train de corriger le problème. Merci de réessayer + tard.",
+          message: "Seems like a technical problem occured...",
+          description: "Please try later.",
         };
     }
   })();
@@ -43,7 +42,7 @@ const ErrorMessage = ({
             <p className="py-6">{description}</p>
             <a href="/">
               <button className="btn btn-primary">
-                Revenez en territoire connu
+                Go back to known territories
               </button>
             </a>
           </div>
