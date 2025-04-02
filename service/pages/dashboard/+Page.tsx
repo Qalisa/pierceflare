@@ -5,7 +5,7 @@ const DashboardPage = () => {
   return (
     <>
       <form action={routes.api.logout} method="post">
-        <input type="submit" />
+        <input type="submit" className="btn btn-primary" />
       </form>
     </>
   );
