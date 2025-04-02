@@ -1,6 +1,20 @@
+import ThemeToggler from "@/components/ThemeToggle";
+
 //
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  return <>{children}</>;
+  return (
+    <>
+      <div className="navbar bg-base-100 shadow-sm">
+        <div className="flex-1"></div>
+        <div className="flex-none">
+          <ThemeToggler />
+        </div>
+      </div>
+      <div className="flex flex-auto flex-col content-center justify-center">
+        {children}
+      </div>
+    </>
+  );
 };
 
 export default Layout;
