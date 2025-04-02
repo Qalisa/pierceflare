@@ -39,6 +39,10 @@ WORKDIR /usr/src/app
 COPY --from=prerelease /usr/src/app/dist .
 COPY --from=prerelease /usr/src/app/package.json .
 
+ENV NODE_ENV=production
+
+WORKDIR /usr/src/app/server
+
 EXPOSE 3000/tcp
 ENTRYPOINT ["bun", "run"]
 CMD ["."]
