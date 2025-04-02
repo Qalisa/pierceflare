@@ -8,7 +8,7 @@ declare global {
       readonly SERVICE_AUTH_USERNAME: string;
       readonly SERVICE_AUTH_PASSWORD: string;
       //
-      readonly SERVICE_DB_PATH: string;
+      readonly SERVICE_DATABASE_FILES_PATH: string;
     }
   }
 }

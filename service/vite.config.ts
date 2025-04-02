@@ -27,7 +27,6 @@ const copyDrizzlePlugin: Plugin = {
 
     //
     const dest = path.resolve(__dirname, "dist/server/drizzle");
-    console.log(dest);
     fs.cpSync(src, dest, { recursive: true });
     console.log("✅ Drizzle folder copied to dist/");
   },

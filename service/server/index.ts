@@ -5,6 +5,7 @@ import {
   version,
   SERVICE_AUTH_PASSWORD,
   SERVICE_AUTH_USERNAME,
+  SERVICE_DATABASE_FILES_PATH,
 } from "./env";
 import compression from "compression";
 import passport from "passport";
@@ -18,6 +19,8 @@ import { randomBytes } from "crypto";
 import { apply } from "vike-server/express";
 import { serve } from "vike-server/express/serve";
 import { awaitMigration } from "@/db";
+
+import SQLiteStore from "./express-sesssion-sqlite-bun";
 
 //
 //
@@ -38,6 +41,9 @@ const startServer = () => {
   app.use(
     session({
       secret: randomBytes(20).toString(),
+      store: new SQLiteStore({
+        dbPath: SERVICE_DATABASE_FILES_PATH + "/sessions.db",
+      }),
       resave: false,
       saveUninitialized: false,
     }),

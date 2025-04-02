@@ -35,17 +35,18 @@
       "name": "Debug: Vite w/ ExpressJS (production)",
       "type": "node-terminal",
       "request": "launch",
-      "command": "bun prod",
+      "command": "bun run run",
       "cwd": "${workspaceFolder}/service",
-      "env": {
-        "NODE_ENV": "production",
-      },
       "serverReadyAction": {
         "action": "startDebugging",
         "name": "Launch Browser",
         "pattern": "Server is ready",
         "killOnServerStop": true
-      }
+      },
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "preLaunchTask": "Generate Bundle"
     },
     {
       "name": "Debug: Docker Compose (production)",

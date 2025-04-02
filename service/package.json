@@ -2,12 +2,13 @@
   "type": "module",
   "scripts": {
     "build": "bunx --bun vike build",
+    "build:dev": "cp .env.development .env.production && bun run build",
     "check": "tsc --noemit",
     "create-migration": "drizzle-kit generate --dialect sqlite --schema ./db/schema.ts",
     "dev": "bun --bun run vike dev",
     "eslint": "eslint . --max-warnings 0",
     "lint": "bun check && bun eslint",
-    "prod": "bun build && node dist/server/index.mjs",
+    "run": "bun dist/server",
     "sort": "sort-package-json"
   },
   "prettier": {
@@ -21,6 +22,7 @@
     "@reduxjs/toolkit": "^2.6.0",
     "@vitejs/plugin-react": "^4.3.4",
     "compression": "^1.8.0",
+    "connect-sqlite3": "^0.9.15",
     "drizzle-orm": "^0.41.0",
     "env-var": "^7.5.0",
     "express": "^4.21.2",
@@ -40,6 +42,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/connect-sqlite3": "^0.9.5",
     "@alik6/bun-copy-plugin": "^0.0.10",
     "@eslint/js": "^9.20.0",
     "@tailwindcss/postcss": "^4.0.14",

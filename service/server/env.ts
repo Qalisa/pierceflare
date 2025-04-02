@@ -16,8 +16,8 @@ const env = envVar.from({
   SERVICE_AUTH_PASSWORD:
     import.meta.env.SERVICE_AUTH_PASSWORD ?? process.env.SERVICE_AUTH_PASSWORD,
   //
-  SERVICE_DB_PATH:
-    import.meta.env.SERVICE_DB_PATH ?? process.env.SERVICE_DB_PATH,
+  SERVICE_DATABASE_FILES_PATH:
+    import.meta.env.SERVICE_DATABASE_FILES_PATH ?? process.env.SERVICE_DATABASE_FILES_PATH,
 });
 
 export const imageVersion = env
@@ -45,4 +45,4 @@ export const SERVICE_AUTH_PASSWORD = env
   .required()
   .asString();
 
-export const SERVICE_DB_PATH = env.get("SERVICE_DB_PATH").required().asString();
+export const SERVICE_DATABASE_FILES_PATH = env.get("SERVICE_DATABASE_FILES_PATH").required().asString();
