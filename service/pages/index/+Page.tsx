@@ -1,4 +1,5 @@
 import appLogo from "@/assets/images/logo.webp";
+import { routes } from "@/server/app";
 
 const IndexPage = () => {
   //
@@ -8,7 +9,7 @@ const IndexPage = () => {
         <figure>
           <img alt="" src={appLogo} width="100px" />
         </figure>
-        <form className="card-body" method="POST">
+        <form className="card-body" method="POST" action={routes.pages.login}>
           <h2 className="card-title">Login</h2>
           <fieldset className="fieldset">
             <input

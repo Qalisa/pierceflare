@@ -126,12 +126,18 @@ const startServer = () => {
   //
   apply(app, {
     pageContext: (runtime) => {
-      const authFailureMessages = (runtime.req as express.Request).session
-        .messages;
-      delete (runtime.req as express.Request).session.messages;
+      const req = runtime.req as express.Request;
+
+      //
+      const authFailureMessages = req.session.messages;
+      delete req.session.messages;
+
+      //
+      const user = req.user;
 
       return {
         authFailureMessages,
+        user,
         k8sApp: {
           imageRevision,
           imageVersion,

@@ -5,6 +5,7 @@ declare global {
   namespace Vike {
     interface PageContext {
       authFailureMessages: Express.session.SessionData["messages"];
+      user?: Express.User;
 
       //
       store: ReturnType<typeof getRootStore>;

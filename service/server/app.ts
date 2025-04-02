@@ -6,6 +6,7 @@ const routes = {
   pages: {
     login: loginPageRoute,
     dashboard: "/dashboard",
+    createDDNS: "/ddns/create",
   },
   /** API specific routes */
   api: {
