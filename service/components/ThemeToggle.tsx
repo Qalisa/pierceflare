@@ -1,72 +1,22 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
-
-const key = "enforceReverseOsTheme";
-const eventKey = "storage";
-
-const getSnapshot = () => {
-  const current = localStorage.getItem(key);
-  return current === "true";
-};
-
-const getServerSnapshot = () => {
-  return false;
-};
+import { useTheme } from "@/providers/theme/useTheme";
 
 const ThemeToggler = () => {
-  const doEnforceReverseOSTheme = useSyncExternalStore(
-    (callback) => {
-      window.addEventListener(eventKey, callback);
-      return () => window.removeEventListener(eventKey, callback);
-    },
-    getSnapshot,
-    getServerSnapshot,
-  );
-
-  //
-  const toggleEnforceReverseOSTheme = () => {
-    const newValue = JSON.stringify(!doEnforceReverseOSTheme);
-    localStorage.setItem(key, newValue);
-    window.dispatchEvent(new Event(eventKey)); // 🔥 Force re-render
-  };
-
-  // Default to `null` to avoid hydration mismatch
-  const [currentOSThemeIsDark, setCurrentOSThemeIsDark] = useState<
-    boolean | null
-  >(null);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-    const handleThemeChange = (event: MediaQueryListEvent) => {
-      setCurrentOSThemeIsDark(event.matches);
-    };
-
-    // Set initial theme
-    setCurrentOSThemeIsDark(mediaQuery.matches);
-    mediaQuery.addEventListener("change", handleThemeChange);
-
-    return () => mediaQuery.removeEventListener("change", handleThemeChange);
-  }, []);
-
-  //
-  const targetThemeToogler = !currentOSThemeIsDark ? "business" : "corporate";
+  const { doesOSPreferDark, toggleTheme, doEnforceReverseOSTheme } = useTheme();
 
   return (
     <label className="flex cursor-pointer gap-2">
-      {currentOSThemeIsDark ? <Moon /> : <Sun />}
+      {doesOSPreferDark ? <Moon /> : <Sun />}
       <input
         type="checkbox"
-        value={targetThemeToogler}
         className="toggle theme-controller"
         checked={doEnforceReverseOSTheme}
-        onChange={toggleEnforceReverseOSTheme}
+        onChange={toggleTheme}
       />
-      {!currentOSThemeIsDark ? <Moon /> : <Sun />}
+      {!doesOSPreferDark ? <Moon /> : <Sun />}
     </label>
   );
 };
 
-//
 const Sun = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -84,7 +34,6 @@ const Sun = () => (
   </svg>
 );
 
-//
 const Moon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
