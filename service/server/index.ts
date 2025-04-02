@@ -17,12 +17,16 @@ import { AppUser, routes } from "./app";
 import { randomBytes } from "crypto";
 import { apply } from "vike-server/express";
 import { serve } from "vike-server/express/serve";
+import { awaitMigration } from "@/db";
 
 //
 //
 //
 
 const startServer = () => {
+  //
+  awaitMigration();
+
   //
   const app = express();
 

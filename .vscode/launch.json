@@ -24,18 +24,6 @@
       "request": "launch",
       "command": "bun dev",
       "cwd": "${workspaceFolder}/service",
-      "env": {
-        "LEGAL_CORS_BEARER_TOKEN": "testtest",
-        //
-        "K8S_APP__VERSION": "v0.vike-dev",
-        "K8S_APP__IMAGE_VERSION": "bun-dev",
-        "K8S_APP__IMAGE_REVISION": "22000000004321",
-        //
-        "CANONICAL_URL": "http://localhost",
-        //
-        "SERVICE_AUTH_USERNAME": "root",
-        "SERVICE_AUTH_PASSWORD": "root"
-      },
       "serverReadyAction": {
         "action": "startDebugging",
         "name": "Launch Browser",
@@ -50,16 +38,7 @@
       "command": "bun prod",
       "cwd": "${workspaceFolder}/service",
       "env": {
-        "K8S_APP__VERSION": "v0.vike-prod",
-        "K8S_APP__IMAGE_VERSION": "bun-prod",
-        "K8S_APP__IMAGE_REVISION": "22000000004321",
-        //
         "NODE_ENV": "production",
-        //
-        "CANONICAL_URL": "http://localhost",
-        //
-        "SERVICE_AUTH_USERNAME": "root",
-        "SERVICE_AUTH_PASSWORD": "root"
       },
       "serverReadyAction": {
         "action": "startDebugging",

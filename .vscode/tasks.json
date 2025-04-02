@@ -52,6 +52,17 @@
       "problemMatcher": []
     },
     {
+      "label": "Generate Migration",
+      "command": "bun",
+      "args": [
+        "create-migration",
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/service"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "⚠️ Override branch with another",
       "type": "shell",
       "command": "if [ \"${input:confirmation}\" = \"agree\" ]; then git checkout ${input:branch-to-override} -- && git reset --hard ${input:branch-to-copy} -- && git push --force; else echo 'Did not agree explicitely'; exit 0; fi",

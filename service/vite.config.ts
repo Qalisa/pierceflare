@@ -1,11 +1,41 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig } from "vite";
+import { defineConfig, Plugin } from "vite";
 import vike from "vike/plugin";
 import { fileURLToPath, URL } from "url";
 import { telefunc } from "telefunc/vite";
+import fs from "fs";
+import path from "path";
 
+//
+//
+//
+
+// Custom plugin to copy the drizzle folder
+const copyDrizzlePlugin: Plugin = {
+  name: "copy-drizzle",
+  apply: "build",
+  writeBundle() {
+    //
+    if (this.environment.config.consumer != "server") return;
+
+    //
+    const src = path.resolve(__dirname, "drizzle");
+    if (!fs.existsSync(src)) {
+      console.warn("⚠️ Drizzle folder not found, skipping copy.");
+      return;
+    }
+
+    //
+    const dest = path.resolve(__dirname, "dist/server/drizzle");
+    console.log(dest);
+    fs.cpSync(src, dest, { recursive: true });
+    console.log("✅ Drizzle folder copied to dist/");
+  },
+};
+
+//
 export default defineConfig({
-  plugins: [vike(), react(), telefunc()],
+  plugins: [copyDrizzlePlugin, vike(), react(), telefunc()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./", import.meta.url)),
