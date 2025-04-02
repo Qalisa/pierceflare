@@ -9,12 +9,12 @@ WORKDIR /usr/src/app
 # this will cache them and speed up future builds
 FROM base AS install
 RUN mkdir -p /temp/dev
-COPY server/package.json server/bun.lock /temp/dev/
+COPY service/package.json service/bun.lock /temp/dev/
 RUN cd /temp/dev && bun install --frozen-lockfile
 
 # install with --production (exclude devDependencies)
 RUN mkdir -p /temp/prod
-COPY server/package.json server/bun.lock /temp/prod/
+COPY service/package.json service/bun.lock /temp/prod/
 RUN cd /temp/prod && bun install --frozen-lockfile --production
 
 # copy node_modules from temp directory
@@ -25,11 +25,11 @@ ARG K8S_APP__VERSION
 ENV K8S_APP__VERSION=$K8S_APP__VERSION
 
 COPY --from=install /temp/dev/node_modules node_modules
-COPY server/. .
+COPY service/. .
 
 # [optional] tests & build
 ENV NODE_ENV=production
-RUN bun run build
+RUN bunx --bun vike build
 
 # copy production dependencies and source code into final image
 FROM oven/bun:1-alpine AS lean
@@ -40,6 +40,5 @@ COPY --from=prerelease /usr/src/app/dist .
 COPY --from=prerelease /usr/src/app/package.json .
 
 EXPOSE 3000/tcp
-# TODO: hard-specifying env file should not be necessary !
-ENTRYPOINT ["bun", "run", "--env-file=.env.production"]
+ENTRYPOINT ["bun", "run"]
 CMD ["."]

@@ -5,7 +5,7 @@
     "build:dev": "cp .env.development .env.production && bun run build",
     "check": "tsc --noemit",
     "create-migration": "drizzle-kit generate --dialect sqlite --schema ./db/schema.ts",
-    "dev": "bun --bun run vike dev",
+    "dev": "bunx --bun vike dev",
     "eslint": "eslint . --max-warnings 0",
     "lint": "bun check && bun eslint",
     "run": "bun dist/server",
@@ -22,10 +22,9 @@
     "@reduxjs/toolkit": "^2.6.0",
     "@vitejs/plugin-react": "^4.3.4",
     "compression": "^1.8.0",
-    "connect-sqlite3": "^0.9.15",
     "drizzle-orm": "^0.41.0",
     "env-var": "^7.5.0",
-    "express": "^4.21.2",
+    "express": "4.21.2",
     "express-session": "^1.18.1",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
@@ -42,7 +41,6 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/connect-sqlite3": "^0.9.5",
     "@alik6/bun-copy-plugin": "^0.0.10",
     "@eslint/js": "^9.20.0",
     "@tailwindcss/postcss": "^4.0.14",

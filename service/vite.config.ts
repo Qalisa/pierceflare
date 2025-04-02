@@ -4,7 +4,7 @@ import vike from "vike/plugin";
 import { fileURLToPath, URL } from "url";
 import { telefunc } from "telefunc/vite";
 import fs from "fs";
-import path from "path";
+import { resolve } from "path";
 
 //
 //
@@ -19,14 +19,14 @@ const copyDrizzlePlugin: Plugin = {
     if (this.environment.config.consumer != "server") return;
 
     //
-    const src = path.resolve(__dirname, "drizzle");
+    const src = resolve(__dirname, "drizzle");
     if (!fs.existsSync(src)) {
       console.warn("⚠️ Drizzle folder not found, skipping copy.");
       return;
     }
 
     //
-    const dest = path.resolve(__dirname, "dist/server/drizzle");
+    const dest = resolve(__dirname, "dist/server/drizzle");
     fs.cpSync(src, dest, { recursive: true });
     console.log("✅ Drizzle folder copied to dist/");
   },

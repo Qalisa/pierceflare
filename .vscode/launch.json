@@ -22,7 +22,7 @@
       "name": "Debug: Vite w/ ExpressJS",
       "type": "node-terminal",
       "request": "launch",
-      "command": "bun dev",
+      "command": "bun run dev",
       "cwd": "${workspaceFolder}/service",
       "serverReadyAction": {
         "action": "startDebugging",

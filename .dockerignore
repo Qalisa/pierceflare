@@ -1,10 +1,11 @@
 # we need .git
 # !.git
 
-api/node_modules
-api/dist
-dev/docker-compose.*.yml
+service/node_modules
+service/dist
+dev/docker-compose*
 **/.env*
+**/*.db
 
 .vscode
 Dockerfile

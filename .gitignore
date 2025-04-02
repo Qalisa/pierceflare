@@ -5,9 +5,4 @@ node_modules
 .env
 .env.production*
 
-google-service-account.json
-
 dist
-
-api/foundations
-budivy_blobs

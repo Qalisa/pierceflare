@@ -8,7 +8,7 @@ services:
     image: pierceflare
     build:
       context: ..
-      dockerfile: Dockerfile.server
+      dockerfile: Dockerfile.service
       args:
         - K8S_APP__VERSION=debug-0.0.1-docker
     ports:
@@ -16,8 +16,9 @@ services:
     environment:
       SERVICE_AUTH_USERNAME: root
       SERVICE_AUTH_PASSWORD: root
+      SERVICE_DATABASE_FILES_PATH: /db
     volumes:
-      - pierceflare-data:/foundation/budivy_blobs:rw
+      - pierceflare-data:/db:rw
 
 #
 volumes:

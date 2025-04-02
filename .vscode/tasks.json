@@ -1,5 +1,5 @@
 {
-	"version": "2.0.0",
+  "version": "2.0.0",
   "inputs": [
     {
       "description": ".helm/<Project>",
@@ -32,16 +32,14 @@
       "default": ""
     }
   ],
-	"tasks": [
+  "tasks": [
     //
     //
     //
     {
       "label": "Generate Bundle",
       "command": "bun",
-      "args": [
-        "build:dev",
-      ],
+      "args": ["run", "build:dev"],
       "options": {
         "cwd": "${workspaceFolder}/service"
       },
@@ -51,9 +49,7 @@
     {
       "label": "Generate Migration",
       "command": "bun",
-      "args": [
-        "create-migration",
-      ],
+      "args": ["run", "create-migration"],
       "options": {
         "cwd": "${workspaceFolder}/service"
       },
@@ -78,13 +74,23 @@
       "problemMatcher": []
     },
     {
+      "label": "🧶 Lint",
+      "type": "shell",
+      "command": "bun",
+      "args": ["run", "lint"],
+      "problemMatcher": ["$tsc", "$eslint-stylish"],
+      "options": {
+        "cwd": "${workspaceFolder}/service"
+      }
+    },
+    {
       "label": "⚠️ Override branch with another",
       "type": "shell",
       "command": "if [ \"${input:confirmation}\" = \"agree\" ]; then git checkout ${input:branch-to-override} -- && git reset --hard ${input:branch-to-copy} -- && git push --force; else echo 'Did not agree explicitely'; exit 0; fi",
       "problemMatcher": [],
       "options": {
-        "statusbar": {"hide": true}
+        "statusbar": { "hide": true }
       }
-    },
+    }
   ]
 }
