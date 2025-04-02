@@ -18,7 +18,11 @@ import { randomBytes } from "crypto";
 import { apply } from "vike-server/express";
 import { serve } from "vike-server/express/serve";
 
-const startServer = async () => {
+//
+//
+//
+
+const startServer = () => {
   //
   const app = express();
 
@@ -64,13 +68,16 @@ const startServer = async () => {
   passport.use(
     new PassportLocal.Strategy(
       { usernameField: "username", passwordField: "password" },
-      async (typedUsername, password, done) => {
+      (username, password, done) => {
+        //
         const authOK =
-          SERVICE_AUTH_USERNAME == typedUsername &&
+          SERVICE_AUTH_USERNAME == username &&
           SERVICE_AUTH_PASSWORD == password;
+
+        //
         return done(
           null,
-          authOK ? { username: typedUsername } : false,
+          authOK ? { username } : false,
           authOK ? undefined : { message: "Invalid credentials" },
         );
       },
@@ -84,6 +91,17 @@ const startServer = async () => {
       failureMessage: true,
     }),
   );
+
+  app.post(routes.api.logout, (req, res, next) => {
+    req.logout((err) => {
+      if (err) return next(err);
+
+      // Optional: Destroy session completely
+      req.session.destroy(() => {
+        res.redirect(routes.default); // Redirect user after logout
+      });
+    });
+  });
 
   // Telefunc middleware
   app.all("/_telefunc", async (req, res) => {
@@ -105,16 +123,31 @@ const startServer = async () => {
   //
   //
 
+  //
   apply(app, {
-    pageContext: {
-      k8sApp: {
-        imageRevision,
-        imageVersion,
-        version,
-      },
+    pageContext: (runtime) => {
+      const authFailureMessages = (runtime.req as express.Request).session
+        .messages;
+      delete (runtime.req as express.Request).session.messages;
+
+      return {
+        authFailureMessages,
+        k8sApp: {
+          imageRevision,
+          imageVersion,
+          version,
+        },
+      };
     },
   });
-  return serve(app, { port: parseInt(process.env.PORT ?? "3000") });
+
+  //
+  return serve(app, {
+    port: parseInt(process.env.PORT ?? "3000"),
+    onReady() {
+      console.log("Server is ready.");
+    },
+  });
 };
 
-startServer();
+export default startServer();

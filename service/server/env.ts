@@ -28,8 +28,10 @@ export const version = env
 
 export const SERVICE_AUTH_USERNAME = env
   .get("SERVICE_AUTH_USERNAME")
+  .required()
   .asString();
 
 export const SERVICE_AUTH_PASSWORD = env
   .get("SERVICE_AUTH_PASSWORD")
+  .required()
   .asString();

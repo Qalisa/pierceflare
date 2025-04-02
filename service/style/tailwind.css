@@ -1,51 +1,20 @@
 @import 'tailwindcss';
-@plugin "daisyui";
-@plugin "daisyui/theme" {
-  name: "dark";
-  default: true;
-  --color-primary: #1a1c36;
-  --color-base-content: #333;
-  --color-secondary: #efb00d;
-  --color-secondary-content: #333;
-  --color-accent: #2e263d;
-  --color-neutral: #22223B;
-  --color-accent-content: #70a894;
-  --color-base-100: #F2E9E4;
-  --color-base-200: #E6DCD4;
-  --color-base-300: #D9CFC4;
-  --color-info: #3ABFF8;
-  --color-success: #36D399;
-  --color-warning: #FBBD23;
-  --color-error: #F87272;
+@plugin "daisyui" {
+  themes: light --default, dark --prefersdark;
 }
 
-@theme {
-  --text-xxs: 0.6rem;
+form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
-}
-
-/**/
-.revert-tailwind{ all: initial;}
-.revert-tailwind > * { all: revert;}
-
-/**/
-:root {
-  background-color: #1a1c36;
+:root, body, #root, #app {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }

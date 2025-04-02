@@ -1,6 +1,6 @@
 // https://vike.dev/Head
 
-import logoUrl from "@/assets/images/logo.png";
+import logoUrl from "@/assets/images/logo.webp";
 
 //
 const Head = () => {

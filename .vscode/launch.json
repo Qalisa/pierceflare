@@ -31,12 +31,15 @@
         "K8S_APP__IMAGE_VERSION": "bun-dev",
         "K8S_APP__IMAGE_REVISION": "22000000004321",
         //
-        "CANONICAL_URL": "http://localhost"
+        "CANONICAL_URL": "http://localhost",
+        //
+        "SERVICE_AUTH_USERNAME": "root",
+        "SERVICE_AUTH_PASSWORD": "root"
       },
       "serverReadyAction": {
         "action": "startDebugging",
         "name": "Launch Browser",
-        "pattern": "Server running at",
+        "pattern": "Server is ready",
         "killOnServerStop": true
       }
     },
@@ -53,12 +56,15 @@
         //
         "NODE_ENV": "production",
         //
-        "CANONICAL_URL": "http://localhost"
+        "CANONICAL_URL": "http://localhost",
+        //
+        "SERVICE_AUTH_USERNAME": "root",
+        "SERVICE_AUTH_PASSWORD": "root"
       },
       "serverReadyAction": {
         "action": "startDebugging",
         "name": "Launch Browser",
-        "pattern": "Server running at",
+        "pattern": "Server is ready",
         "killOnServerStop": true
       }
     },
@@ -71,7 +77,7 @@
       "serverReadyAction": {
         "action": "startDebugging",
         "name": "Launch Browser",
-        "pattern": "Server running at",
+        "pattern": "Server is ready",
         "killOnServerStop": true
       }
     }

@@ -6,9 +6,11 @@ declare global {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
     interface User extends AppUser {}
     namespace session {
-      interface Session {
+      interface SessionData {
         messages?: string[];
       }
     }
   }
 }
+
+export {};
