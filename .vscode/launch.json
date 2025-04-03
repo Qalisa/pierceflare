@@ -7,11 +7,6 @@
       "url": "http://localhost:3000",
       "name": "Launch Browser",
       "webRoot": "${workspaceFolder}/service",
-      "presentation": {
-        "hidden": true,
-        "group": "",
-        "order": 1
-      },
       "cascadeTerminateToConfigurations": [
         "Debug: Vite w/ Hono",
         "Debug: Vite w/ Hono (production)",

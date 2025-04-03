@@ -19,6 +19,7 @@ import { sessionMiddleware, Session } from "hono-sessions";
 import { BunSqliteStore } from "hono-sessions/bun-sqlite-store";
 import { Database } from "bun:sqlite";
 import { type PageContextInjection, type SessionDataTypes } from "@/_vike";
+import { title } from "./static";
 
 //
 //
@@ -156,7 +157,7 @@ const startServer = () => {
   return serve(app, {
     port: parseInt(process.env.PORT ?? "3000"),
     onReady() {
-      console.log("Server is ready.");
+      console.log(`Hono ${title} Server is ready.`);
     },
   });
 };
