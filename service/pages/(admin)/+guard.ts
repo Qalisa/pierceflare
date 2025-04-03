@@ -3,8 +3,9 @@ import { redirect } from "vike/abort";
 import { PageContext } from "vike/types";
 
 export const guard = (pageContext: PageContext) => {
-  const { user } = pageContext;
-  if (user?.username == null) {
+  const { injected } = pageContext;
+  const { user } = injected;
+  if (!user) {
     throw redirect(routes.pages.login);
   }
 };

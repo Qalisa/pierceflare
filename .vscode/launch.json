@@ -13,13 +13,13 @@
         "order": 1
       },
       "cascadeTerminateToConfigurations": [
-        "Debug: Vite w/ ExpressJS",
-        "Debug: Vite w/ ExpressJS (production)",
+        "Debug: Vite w/ Hono",
+        "Debug: Vite w/ Hono (production)",
         "Debug: Docker Compose (production)"
       ]
     },
     {
-      "name": "Debug: Vite w/ ExpressJS",
+      "name": "Debug: Vite w/ Hono",
       "type": "node-terminal",
       "request": "launch",
       "command": "bun run dev",
@@ -32,7 +32,7 @@
       }
     },
     {
-      "name": "Debug: Vite w/ ExpressJS (production)",
+      "name": "Debug: Vite w/ Hono (production)",
       "type": "node-terminal",
       "request": "launch",
       "command": "bun run run",

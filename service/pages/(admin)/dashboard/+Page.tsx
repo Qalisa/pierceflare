@@ -2,7 +2,8 @@ import { usePageContext } from "vike-react/usePageContext";
 
 const DashboardPage = () => {
   //
-  const { user } = usePageContext();
+  const { injected } = usePageContext();
+  const { user } = injected;
 
   //
   return (

@@ -18,7 +18,7 @@ export default {
   hydrationCanBeAborted: true,
   clientRouting: true,
 
-  passToClient: ["k8sApp", "storeInitialState", "authFailureMessages", "user"],
+  passToClient: ["storeInitialState", "injected"],
 
   extends: [vikeReact, vikeServer],
   // Points to your server entry

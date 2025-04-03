@@ -1,4 +1,3 @@
-import express from "express";
 import {
   imageVersion,
   imageRevision,
@@ -7,20 +6,19 @@ import {
   SERVICE_AUTH_USERNAME,
   SERVICE_DATABASE_FILES_PATH,
 } from "./env";
-import compression from "compression";
-import passport from "passport";
-import PassportLocal from "passport-local";
-import bodyParser from "body-parser";
-import session from "express-session";
 
 import { telefunc } from "telefunc";
-import { AppUser, routes } from "./app";
-import { randomBytes } from "crypto";
-import { apply } from "vike-server/express";
-import { serve } from "vike-server/express/serve";
+import { routes } from "./app";
+import { apply } from "vike-server/hono";
+import { serve } from "vike-server/hono/serve";
 import { awaitMigration } from "@/db";
 
-import SQLiteStore from "./express-sesssion-sqlite-bun";
+import { Hono } from "hono";
+// import { compress } from "hono/compress";
+import { sessionMiddleware, Session } from "hono-sessions";
+import { BunSqliteStore } from "hono-sessions/bun-sqlite-store";
+import { Database } from "bun:sqlite";
+import { PageContextInjection, SessionDataTypes } from "@/_vike";
 
 //
 //
@@ -29,104 +27,103 @@ import SQLiteStore from "./express-sesssion-sqlite-bun";
 const startServer = () => {
   //
   awaitMigration();
+  console.log("DB Schema Migration Done.");
 
   //
-  const app = express();
+  const app = new Hono<{
+    Variables: {
+      session: Session<SessionDataTypes>;
+      session_key_rotation: boolean;
+    };
+  }>();
 
-  ///
   //
-  ///
-  const limit = "10mb";
-  app.use(compression()); // adds compression support
+  //
+  //
+
+  // app.use(compress()); // NO AVAILABLE FOR BUN (https://hono.dev/docs/middleware/builtin/compress)
+
+  //
+  //
+  //
+
+  const sessionDb = new Database(SERVICE_DATABASE_FILES_PATH + "/sessions.db");
+  const store = new BunSqliteStore(sessionDb);
   app.use(
-    session({
-      secret: randomBytes(20).toString(),
-      store: new SQLiteStore({
-        dbPath: SERVICE_DATABASE_FILES_PATH + "/sessions.db",
-      }),
-      resave: false,
-      saveUninitialized: false,
-    }),
-  ); // adds session support
-  app.use(bodyParser.json({ limit })); // REQUIRED BY PASSEPORT.JS
-  app.use(
-    bodyParser.urlencoded({
-      limit,
-      extended: true,
-      parameterLimit: 50000,
-    }),
-  ); // REQUIRED BY PASSEPORT.JS
-
-  ///
-  // Passport.js - Session handling
-  ///
-  passport.serializeUser((user, done) => {
-    done(null, user.username);
-  });
-  passport.deserializeUser<string>(async (id, done) => {
-    done(null, { username: id } satisfies AppUser);
-  });
-
-  // hooks with express's session middleware
-  app.use(passport.initialize());
-  app.use(passport.session());
-  app.use(passport.authenticate("session"));
-
-  ///
-  //
-  ///
-  passport.use(
-    new PassportLocal.Strategy(
-      { usernameField: "username", passwordField: "password" },
-      (username, password, done) => {
-        //
-        const authOK =
-          SERVICE_AUTH_USERNAME == username &&
-          SERVICE_AUTH_PASSWORD == password;
-
-        //
-        return done(
-          null,
-          authOK ? { username } : false,
-          authOK ? undefined : { message: "Invalid credentials" },
-        );
-      },
-    ),
-  );
-  app.post(
-    routes.pages.login,
-    passport.authenticate("local", {
-      failureRedirect: routes.pages.login,
-      successRedirect: routes.pages.dashboard,
-      failureMessage: true,
+    sessionMiddleware({
+      store,
     }),
   );
 
-  app.post(routes.api.logout, (req, res, next) => {
-    req.logout((err) => {
-      if (err) return next(err);
+  //
+  // AUTH
+  //
 
-      // Optional: Destroy session completely
-      req.session.destroy(() => {
-        res.redirect(routes.default); // Redirect user after logout
-      });
-    });
+  // Login
+  app.post(routes.pages.login, async ({ req, get, redirect }) => {
+    //
+    const session = get("session");
+    const loginFailed = async (message: string, username?: string) => {
+      session.flash("authFailure", { message, username });
+      return redirect(routes.pages.login);
+    };
+
+    //
+    //
+    //
+
+    const body = await req.parseBody();
+    const { password, username } = body;
+    console.log(body);
+
+    //
+    if (typeof password !== "string" || typeof username !== "string") {
+      return loginFailed("Unexpected values for credentials");
+    }
+    if (!password || !username) {
+      return loginFailed("Missing username or password");
+    }
+
+    const authOK =
+      SERVICE_AUTH_USERNAME == username && SERVICE_AUTH_PASSWORD == password;
+    if (!authOK) {
+      return loginFailed("Invalid credentials", username);
+    }
+
+    //
+    session.set("user", { username: username });
+    return redirect(routes.pages.dashboard);
   });
+
+  // Logout
+  app.post(routes.api.logout, async ({ get, redirect }) => {
+    const session = get("session");
+    session.deleteSession();
+    return redirect(routes.default);
+  });
+
+  //
+  //
+  //
 
   // Telefunc middleware
-  app.all("/_telefunc", async (req, res) => {
+  app.all("/_telefunc", async ({ req, status, body, header }) => {
     const httpResponse = await telefunc({
       // HTTP Request URL, which is '/_telefunc' if we didn't modify config.telefuncUrl
       url: req.url,
       // HTTP Request Method (GET, POST, ...)
       method: req.method,
       // HTTP Request Body, which can be a string, buffer, or stream
-      body: req.body,
+      body: await req.text(),
       // Optional
       context: {},
     });
-    const { body, statusCode, contentType } = httpResponse;
-    res.status(statusCode).type(contentType).send(body);
+
+    //
+    const { body: bodystr, statusCode, contentType } = httpResponse;
+    status(statusCode);
+    header("Content-Type", contentType);
+    return body(bodystr);
   });
 
   //
@@ -135,25 +132,24 @@ const startServer = () => {
 
   //
   apply(app, {
-    pageContext: (runtime) => {
-      const req = runtime.req as express.Request;
+    pageContext: ({ hono: { get } }) => {
+      const session = get("session") as Session<SessionDataTypes>;
+      const user = session.get("user");
+      const authFailure = session.get("authFailure");
 
-      //
-      const authFailureMessages = req.session.messages;
-      delete req.session.messages;
-
-      //
-      const user = req.user;
-
-      return {
-        authFailureMessages,
-        user,
-        k8sApp: {
-          imageRevision,
-          imageVersion,
-          version,
+      const injecting: PageContextInjection = {
+        injected: {
+          ...(authFailure ? { authFailure } : {}),
+          ...(user ? { user } : {}),
+          k8sApp: {
+            imageRevision,
+            imageVersion,
+            version,
+          },
         },
       };
+
+      return injecting;
     },
   });
 
