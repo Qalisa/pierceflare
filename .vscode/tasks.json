@@ -38,8 +38,8 @@
     //
     {
       "label": "Generate Bundle",
-      "command": "bun",
-      "args": ["run", "build:dev"],
+      "command": "bunx",
+      "args": ["--bun", "run", "build:dev"],
       "options": {
         "cwd": "${workspaceFolder}/service"
       },
@@ -48,8 +48,8 @@
     },
     {
       "label": "Generate Migration",
-      "command": "bun",
-      "args": ["run", "create-migration"],
+      "command": "bunx",
+      "args": ["--bun", "run", "create-migration"],
       "options": {
         "cwd": "${workspaceFolder}/service"
       },

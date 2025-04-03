@@ -18,7 +18,7 @@ import { Hono } from "hono";
 import { sessionMiddleware, Session } from "hono-sessions";
 import { BunSqliteStore } from "hono-sessions/bun-sqlite-store";
 import { Database } from "bun:sqlite";
-import { PageContextInjection, SessionDataTypes } from "@/_vike";
+import { type PageContextInjection, type SessionDataTypes } from "@/_vike";
 
 //
 //
@@ -74,7 +74,6 @@ const startServer = () => {
 
     const body = await req.parseBody();
     const { password, username } = body;
-    console.log(body);
 
     //
     if (typeof password !== "string" || typeof username !== "string") {

@@ -33,4 +33,4 @@ declare global {
   }
 }
 
-export { PageContextInjection, SessionDataTypes };
+export { type PageContextInjection, type SessionDataTypes };

@@ -1,6 +1,6 @@
 import appLogo from "@/assets/images/logo.webp";
 import { routes } from "@/server/app";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { usePageContext } from "vike-react/usePageContext";
 
 const IndexPage = () => {

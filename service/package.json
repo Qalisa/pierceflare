@@ -1,11 +1,11 @@
 {
   "type": "module",
   "scripts": {
-    "build": "bun --inspect --bun vike build",
+    "build": "vike build",
     "build:dev": "cp .env.development .env.production && bun run build",
     "check": "tsc --noemit",
     "create-migration": "drizzle-kit generate --dialect sqlite --schema ./db/schema.ts",
-    "dev": "bun --inspect --bun vike dev",
+    "dev": "vike dev",
     "eslint": "eslint . --max-warnings 0",
     "lint": "bun check && bun eslint",
     "run": "bun dist/server",

@@ -1,7 +1,4 @@
-import { ContactTypesEnum } from "@/utils/contactHelper";
-import { defaultEuropeanPhoneCode } from "@/utils/countriesPhoneCodes";
 import { createSlice } from "@reduxjs/toolkit";
-import type { PayloadAction } from "@reduxjs/toolkit";
 import validator from "validator";
 import { z } from "zod";
 
@@ -11,11 +8,9 @@ import { z } from "zod";
 
 export const $contactFormInputs = z
   .object({
-    thematic: ContactTypesEnum,
     firstName: z.string().min(1, { message: "Merci de saisir un prénom" }),
     lastName: z.string().min(1, { message: "Merci de saisir un nom" }),
     email: z.string().email({ message: "Merci de saisir un e-mail valide" }),
-    countryCode: z.string().default(defaultEuropeanPhoneCode.code),
     phone: z
       .string()
       .refine(
@@ -30,7 +25,6 @@ export const $contactFormInputs = z
     }),
   })
   .required({
-    thematic: true,
     firstName: true,
     lastName: true,
     email: true,
@@ -46,7 +40,6 @@ export type ContactForm_Inputs = z.infer<typeof $contactFormInputs>;
 
 const initialState: Partial<ContactForm_Inputs> = {
   consent: false,
-  countryCode: defaultEuropeanPhoneCode.code,
   // @ts-ignore
   thematic: null,
   email: "",
@@ -60,18 +53,11 @@ const contactFormSlice = createSlice({
   name: "contactFormState",
   initialState,
   reducers: {
-    setContactThematic(
-      state,
-      action: PayloadAction<NonNullable<typeof initialState.thematic>>,
-    ) {
-      state.thematic = action.payload;
-    },
     resetContactThematic(state) {
-      state.thematic = undefined;
+      state.consent = undefined;
     },
   },
 });
 
-export const { setContactThematic, resetContactThematic } =
-  contactFormSlice.actions;
+export const { resetContactThematic } = contactFormSlice.actions;
 export default contactFormSlice.reducer;
