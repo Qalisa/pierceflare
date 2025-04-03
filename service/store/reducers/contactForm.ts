@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import validator from "validator";
 import { z } from "zod";
 
 //
@@ -11,12 +10,7 @@ export const $contactFormInputs = z
     firstName: z.string().min(1, { message: "Merci de saisir un prénom" }),
     lastName: z.string().min(1, { message: "Merci de saisir un nom" }),
     email: z.string().email({ message: "Merci de saisir un e-mail valide" }),
-    phone: z
-      .string()
-      .refine(
-        (value) => (value == "" ? true : validator.isMobilePhone(value)),
-        "Merci de saisir un numéro de téléphone portable valide",
-      ),
+    phone: z.string(),
     message: z.string().min(1, { message: "Merci de saisir un court message" }),
     consent: z.literal<boolean>(true, {
       errorMap: (_, __) => {
