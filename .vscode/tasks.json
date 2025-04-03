@@ -38,8 +38,8 @@
     //
     {
       "label": "Generate Bundle",
-      "command": "bunx",
-      "args": ["--bun", "run", "build:dev"],
+      "command": "bun",
+      "args": ["--bun", "build:dev"],
       "options": {
         "cwd": "${workspaceFolder}/service"
       },

@@ -30,7 +30,7 @@
       "name": "Debug: Vite w/ Hono (production)",
       "type": "node-terminal",
       "request": "launch",
-      "command": "bunx --bun run run",
+      "command": "bun --bun prod",
       "cwd": "${workspaceFolder}/service",
       "serverReadyAction": {
         "action": "startDebugging",

@@ -1,14 +1,14 @@
 {
   "type": "module",
   "scripts": {
-    "build": "vike build",
+    "build": "vite build",
     "build:dev": "cp .env.development .env.production && bun run build",
     "check": "tsc --noemit",
     "create-migration": "drizzle-kit generate --dialect sqlite --schema ./db/schema.ts",
     "dev": "vike dev",
     "eslint": "eslint . --max-warnings 0",
     "lint": "bun check && bun eslint",
-    "run": "bun dist/server",
+    "prod": "bun dist/server/entry.mjs",
     "sort": "sort-package-json"
   },
   "prettier": {

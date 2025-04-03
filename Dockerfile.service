@@ -29,7 +29,8 @@ COPY service/. .
 
 # [optional] tests & build
 ENV NODE_ENV=production
-RUN bunx --bun vike build
+# TODO: RUN bunx --bun vike build does not work (03/04/25) !
+RUN bunx --bun vite build
 
 # copy production dependencies and source code into final image
 FROM oven/bun:1-alpine AS lean
