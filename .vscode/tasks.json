@@ -48,8 +48,8 @@
     },
     {
       "label": "Generate Migration",
-      "command": "bunx",
-      "args": ["--bun", "run", "create-migration"],
+      "command": "bun",
+      "args": ["create-migration"],
       "options": {
         "cwd": "${workspaceFolder}/service"
       },

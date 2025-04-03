@@ -10,7 +10,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
           <ThemeToggler />
         </div>
       </div>
-      <div className="flex flex-auto flex-col content-center justify-center">
+      <div className="flex flex-auto flex-col items-center justify-center">
         {children}
       </div>
     </>

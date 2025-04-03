@@ -1,9 +1,14 @@
 import { usePageContext } from "vike-react/usePageContext";
+import { useData } from "vike-react/useData";
+import { data } from "./+data";
 
 const DashboardPage = () => {
   //
   const { injected } = usePageContext();
   const { user } = injected;
+
+  //
+  const { domains } = useData<Awaited<ReturnType<typeof data>>>();
 
   //
   return (

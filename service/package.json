@@ -18,13 +18,18 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
-    "@hookform/resolvers": "^4.1.2",
+    "@hookform/resolvers": "^5.0.1",
     "@reduxjs/toolkit": "^2.6.1",
     "@vitejs/plugin-react": "^4.3.4",
     "drizzle-orm": "^0.41.0",
+    "drizzle-zod": "^0.7.1",
     "env-var": "^7.5.0",
+    "hono": "^4.7.5",
+    "hono-sessions": "^0.7.2",
+    "motion": "^12.6.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-hook-form": "^7.55.0",
     "react-redux": "^9.2.0",
     "telefunc": "^0.2.2",
     "usehooks-ts": "^3.1.1",
@@ -33,10 +38,7 @@
     "vike-react": "^0.6.1",
     "vike-server": "^1.0.12",
     "vite": "^6.2.4",
-    "zod": "^3.24.2",
-    "hono": "^4.7.5",
-    "hono-sessions": "^0.7.2",
-    "motion": "^12.6.3"
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@alik6/bun-copy-plugin": "^0.0.10",
