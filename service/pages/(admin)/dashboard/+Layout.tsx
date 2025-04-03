@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/solid";
 import { title } from "@/server/static";
 import { usePageContext } from "vike-react/usePageContext";
+import { useState, useRef } from "react";
 
 //
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -72,13 +73,35 @@ const RightPart = () => {
   return (
     <div className="join join-vertical sm:join-horizontal items-center gap-2">
       <ThemeToggler />
-      <form action={routes.api.logout} method="post">
-        <button type="submit" className="btn btn-xs btn-primary" title="">
-          Logout
-          <PowerIcon className="size-3" />
-        </button>
-      </form>
+      <LogoutButton />
     </div>
+  );
+};
+
+const LogoutButton = () => {
+  const [sent, setSent] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  return (
+    <form action={routes.api.logout} method="post" ref={formRef}>
+      <button
+        type="submit"
+        className="btn btn-xs btn-primary"
+        disabled={sent}
+        onClick={(e) => {
+          e.preventDefault();
+          setSent(true);
+          formRef.current?.submit();
+        }}
+      >
+        Logout
+        {sent ? (
+          <span className="loading loading-spinner loading-xs"></span>
+        ) : (
+          <PowerIcon className="size-3" />
+        )}
+      </button>
+    </form>
   );
 };
 
