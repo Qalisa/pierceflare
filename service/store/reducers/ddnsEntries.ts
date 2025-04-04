@@ -8,6 +8,8 @@ import { z } from "zod";
 export const $ddnsEntries = z.object({
   selected: z.array(z.string()),
   selectedForDeletion: z.array(z.string()),
+  //
+  generateApiKeyFor: z.string().optional(),
 });
 
 export type DDNSEntries = z.infer<typeof $ddnsEntries>;
@@ -16,7 +18,10 @@ export type DDNSEntries = z.infer<typeof $ddnsEntries>;
 //
 //
 
-const initialState: DDNSEntries = { selected: [], selectedForDeletion: [] };
+const initialState: DDNSEntries = {
+  selected: [],
+  selectedForDeletion: [],
+};
 
 const ddnsEntriesSlice = createSlice({
   name: "ddnsEntriesState",
@@ -38,6 +43,13 @@ const ddnsEntriesSlice = createSlice({
     clearSelected(state) {
       state.selected = [];
     },
+    //
+    manageAPIKeyOf(state, { payload: apiKey }: PayloadAction<string>) {
+      state.generateApiKeyFor = apiKey;
+    },
+    stopManagingAPIKey(state) {
+      state.generateApiKeyFor = undefined;
+    },
   },
 });
 
@@ -46,6 +58,8 @@ export const {
   defineSelected,
   defineSelectedAsToBeDeleted,
   clearSelectedForDeletion,
+  manageAPIKeyOf,
+  stopManagingAPIKey,
 } = ddnsEntriesSlice.actions;
 const ddnsEntriesReducer = ddnsEntriesSlice.reducer;
 export default ddnsEntriesReducer;

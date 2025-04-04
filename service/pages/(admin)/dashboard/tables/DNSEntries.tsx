@@ -1,7 +1,11 @@
 import { useData } from "vike-react/useData";
 import { type DataType } from "../+data";
 import type { RowSelectionState } from "@tanstack/react-table";
-import { ArrowPathIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
+import {
+  ArrowPathIcon,
+  KeyIcon,
+  PlusCircleIcon,
+} from "@heroicons/react/24/solid";
 import { reload } from "vike/client/router";
 
 import {
@@ -17,8 +21,10 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   defineSelected,
   defineSelectedAsToBeDeleted,
+  manageAPIKeyOf,
 } from "@/store/reducers/ddnsEntries";
 import type { RootState } from "@/store/reducers";
+import { AnimatePresence, motion } from "motion/react";
 
 type OfDomain = DataType["domains"] extends undefined
   ? never
@@ -85,6 +91,21 @@ const DNSEntriesTable = () => {
       header: "Latest Update",
       cell: dateFormatter,
     }),
+    columnHelper.display({
+      id: "createKey",
+      cell: ({ row }) => (
+        <button
+          className="btn btn-xs"
+          onClick={() => {
+            dispatch(manageAPIKeyOf(row.original.ddnsForDomain));
+            getModal(modalIds.manageAPIKeys).openModal();
+          }}
+        >
+          Generate API Key
+          <KeyIcon className="size-3" />
+        </button>
+      ),
+    }),
   ];
 
   const table = useReactTable({
@@ -147,7 +168,7 @@ const DNSEntriesTable = () => {
       </div>
       <div className="divider"></div>
       <div className="overflow-x-auto">
-        <table className="table-zebra table w-full">
+        <table className="table w-full">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
@@ -163,18 +184,28 @@ const DNSEntriesTable = () => {
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                className={row.getIsSelected() ? "bg-base-200" : undefined}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
+            <AnimatePresence>
+              {table.getRowModel().rows.map((row) => (
+                <motion.tr
+                  key={row.id}
+                  className={row.getIsSelected() ? "bg-base-200" : undefined}
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  layout
+                  transition={{ duration: 0.6 }}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </td>
+                  ))}
+                </motion.tr>
+              ))}
+            </AnimatePresence>
           </tbody>
         </table>
       </div>

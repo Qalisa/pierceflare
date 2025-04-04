@@ -27,7 +27,7 @@ const DDNSCreateForm = ({
     register,
     handleSubmit,
     formState: { isSubmitting },
-    reset,
+    resetField,
   } = useForm({
     resolver: zodResolver(expectedInput$),
     shouldFocusError: true,
@@ -70,7 +70,12 @@ const DDNSCreateForm = ({
           async ({ subdomain, cloudFlareDomain, description }) => {
             await onSubmitDDNSEntry(subdomain, cloudFlareDomain, description)
               .then(async () => {
-                getModal(modalIds.createDDNS).closeModal(reset);
+                getModal(modalIds.createDDNS).closeModal({
+                  onAnimationEnded() {
+                    resetField("subdomain");
+                    resetField("description");
+                  },
+                });
                 dispatch(
                   addSuccessMessage(
                     `DDNS Entry "${subdomain}.${cloudFlareDomain}" created`,

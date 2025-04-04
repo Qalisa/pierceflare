@@ -6,14 +6,14 @@ const ThemeToggler = () => {
 
   return (
     <label className="flex cursor-pointer gap-2">
-      <Icon showSun={doesOSPreferDark} />
+      <Icon showSun={!doesOSPreferDark} />
       <input
         type="checkbox"
         className="toggle toggle-xs theme-controller"
         checked={doEnforceReverseOSTheme}
         onChange={toggleTheme}
       />
-      <Icon showSun={!doesOSPreferDark} />
+      <Icon showSun={doesOSPreferDark} />
     </label>
   );
 };

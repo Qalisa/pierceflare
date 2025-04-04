@@ -79,7 +79,7 @@ const DDNSDeleteForm = ({
               dispatch(clearSelected());
               dispatch(
                 addSuccessMessage(
-                  `${selectedForDeletion.length} DDNS Entries deleted`,
+                  `${selectedForDeletion.length} DDNS Entr${selectedForDeletion.length > 1 ? "ies" : "y"} removed.`,
                 ),
               );
               await reload();

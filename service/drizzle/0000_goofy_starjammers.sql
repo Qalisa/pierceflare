@@ -8,7 +8,7 @@ CREATE TABLE `flare_domains` (
 --> statement-breakpoint
 CREATE TABLE `flare_keys` (
 	`apiKey` text PRIMARY KEY NOT NULL,
-	`ddnsForDomain` text,
+	`ddnsForDomain` text NOT NULL,
 	`createdAt` integer NOT NULL,
 	FOREIGN KEY (`ddnsForDomain`) REFERENCES `flare_domains`(`ddnsForDomain`) ON UPDATE no action ON DELETE no action
 );

@@ -18,7 +18,9 @@ export const flareDomains$ = createInsertSchema(flareDomains);
 
 export const flareKeys = sqliteTable("flare_keys", {
   apiKey: text().primaryKey(),
-  ddnsForDomain: text().references(() => flareDomains.ddnsForDomain),
+  ddnsForDomain: text()
+    .references(() => flareDomains.ddnsForDomain)
+    .notNull(),
   createdAt: integer({ mode: "timestamp_ms" }).notNull(),
 });
 

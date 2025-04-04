@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "bc21264c-e257-4dd2-804d-406ad4dbc494",
+  "id": "41ea800a-dd93-474c-8bca-25fe7ed802e2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "flare_domains": {
@@ -63,7 +63,7 @@
           "name": "ddnsForDomain",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "createdAt": {
