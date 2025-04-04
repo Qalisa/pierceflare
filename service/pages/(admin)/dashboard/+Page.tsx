@@ -1,23 +1,32 @@
 import { usePageContext } from "vike-react/usePageContext";
-import DNSEntriesTable from "./DNSEntries";
+import DNSEntriesTable from "./tables/DNSEntries";
 import { useData } from "vike-react/useData";
-import type { DataType } from "./+data.shared";
+import type { DataType } from "./+data.client";
 import { title } from "@/helpers/static";
 import CreateDDNSEntryModal, { openModal } from "./modals/CreateDDNSEntry";
+import TableSkeleton from "@/components/TableSkeleton";
 
 //
 const DashboardPage = () => {
   //
   const { injected } = usePageContext();
   const { user } = injected;
-  const { noEntries } = useData<DataType>();
+  const data = useData<DataType>();
 
   //
   return (
     <>
       <DashboardModals />
       <h1>Hello {user!.username} !</h1>
-      {noEntries ? <HeroNoDDNS /> : <DNSEntriesTable />}
+      {data ? (
+        data.noEntries ? (
+          <HeroNoDDNS />
+        ) : (
+          <DNSEntriesTable />
+        )
+      ) : (
+        <TableSkeleton />
+      )}
     </>
   );
 };

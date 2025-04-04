@@ -4,7 +4,7 @@ import { type PageContext } from "vike/types";
 import {
   onGettingFlareDomains,
   onHasAnyFlareDomains,
-} from "./DNSEntries.telefunc";
+} from "./tables/DNSEntries.telefunc";
 
 const data = async (_pageContext: PageContext) => {
   //

@@ -1,4 +1,5 @@
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { RootState } from "@/store/reducers";
@@ -6,7 +7,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearFlashMessages } from "@/store/reducers/flashMessages";
 import { onlyUniqueStr } from "@/helpers/onlyUnique";
 
-const lingerDurationMs = 2000;
+const lingerDurationMs = 2_000; // 2 secs
+const iconSize = "size-6"; // 1.5rem
 
 //
 const FlashMessages = () => {
@@ -53,23 +55,36 @@ const FlashMessages = () => {
   return (
     <>
       {flashMessages && (
-        <div className="absolute top-2 flex w-full flex-col gap-1">
+        <div className="absolute top-2 z-10 flex w-full flex-col gap-1">
           <AnimatePresence>
-            {flashMessages.map(({ message, id }) => (
-              <motion.div
-                key={id}
-                layout
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3, ease: "easeOut" }}
-                role="alert"
-                className="alert alert-error mx-4"
-              >
-                <ExclamationTriangleIcon className="size-6" />
-                <span>{message}</span>
-              </motion.div>
-            ))}
+            {flashMessages.map(({ message, id, msgType }) => {
+              //
+              const icon = (() => {
+                switch (msgType) {
+                  case "error":
+                    return <ExclamationTriangleIcon className={iconSize} />;
+                  case "success":
+                    return <CheckCircleIcon className={iconSize} />;
+                }
+              })();
+
+              //
+              return (
+                <motion.div
+                  key={id}
+                  layout
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeOut" }}
+                  role="alert"
+                  className={`alert alert-${msgType} mx-4`}
+                >
+                  {icon}
+                  <span>{message}</span>
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </div>
       )}

@@ -143,7 +143,9 @@ const startServer = () => {
       // HTTP Request Body, which can be a string, buffer, or stream
       body: await req.text(),
       // Optional
-      context: injectedFromHono(c) satisfies Telefunc.Context,
+      context: {
+        ...(c.get("session").get("user") != null ? { userLogged: true } : {}),
+      } satisfies Telefunc.Context,
     });
 
     //

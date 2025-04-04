@@ -1,12 +1,12 @@
 import { useData } from "vike-react/useData";
-import { type DataType } from "./+data.shared";
+import { type DataType } from "../+data.client";
 import type { ColumnDef, CellContext } from "@tanstack/react-table";
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { openModal } from "./modals/CreateDDNSEntry";
+import { openModal } from "../modals/CreateDDNSEntry";
 
 //
 type OfDomain = DataType["domains"] extends undefined

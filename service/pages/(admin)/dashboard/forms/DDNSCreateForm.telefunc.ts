@@ -3,7 +3,8 @@ import db from "@/db";
 import { SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS } from "@/server/env";
 import { withLinger } from "@/helpers/withLinger";
 import { SQLiteError } from "bun:sqlite";
-import { Abort, getContext } from "telefunc";
+import { Abort } from "telefunc";
+import { onlyLoggedUser } from "@/helpers/telefunc";
 
 export const onSubmitDDNSEntry = (
   ...args: Parameters<typeof _onSubmitDDNSEntry>
@@ -15,21 +16,17 @@ const _onSubmitDDNSEntry = async (
   cloudFlareDomain: string,
   description: string,
 ) => {
-  const {
-    injected: { user },
-  } = getContext();
-
-  // Only admins are allowed to run this telefunction
-  if (!user) throw Abort();
+  //
+  onlyLoggedUser();
 
   //
   if (!SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS.includes(cloudFlareDomain)) {
-    throw new Error(`Chosen "${cloudFlareDomain}" domain is not allowed`);
+    throw Abort(`Chosen "${cloudFlareDomain}" domain is not allowed`);
   }
 
   //
   if (subdomain.includes(".")) {
-    throw new Error(`Subdomain "${subdomain}" should not contain "."`);
+    throw Abort(`Subdomain "${subdomain}" should not contain "."`);
   }
 
   //
@@ -42,8 +39,7 @@ const _onSubmitDDNSEntry = async (
     })
     .catch((e) => {
       if (e instanceof SQLiteError) {
-        console.log(e);
-        throw new Error(e.message);
+        throw Abort(e.message);
       }
     });
 };

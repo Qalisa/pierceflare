@@ -68,7 +68,7 @@ const flashMessagesSlice = createSlice({
   },
 });
 
-export const { addErrorMessage, clearFlashMessages } =
+export const { addErrorMessage, clearFlashMessages, addSuccessMessage } =
   flashMessagesSlice.actions;
 const flashMessagesReducer = flashMessagesSlice.reducer;
 export default flashMessagesReducer;
