@@ -24,6 +24,8 @@ export const $flashMessages = z.object({
 });
 
 export type FlashMessages = z.infer<typeof $flashMessages>;
+export type FlashMessageType =
+  FlashMessages["flashMessages"][number]["msgType"];
 
 //
 //

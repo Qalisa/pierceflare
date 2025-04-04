@@ -4,14 +4,21 @@ import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import type { RootState } from "@/store/reducers";
 import { useDispatch, useSelector } from "react-redux";
+import type { FlashMessageType } from "@/store/reducers/flashMessages";
 import { clearFlashMessages } from "@/store/reducers/flashMessages";
 import { onlyUniqueStr } from "@/helpers/onlyUnique";
 
-const lingerDurationMs = 2_000; // 2 secs
+const lingerDurationMs = 20_000; // 2 secs
 const iconSize = "size-6"; // 1.5rem
 
 //
 const FlashMessages = () => {
+  // https://tailwindcss.com/docs/detecting-classes-in-source-files
+  const availableAlertTypes: Record<FlashMessageType, string> = {
+    error: "alert-error",
+    success: "alert-success",
+  };
+
   const dispatch = useDispatch();
   const { flashMessages } = useSelector(
     (state: RootState) => state.flashMessages,
@@ -78,7 +85,7 @@ const FlashMessages = () => {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
                   role="alert"
-                  className={`alert alert-${msgType} mx-4`}
+                  className={`alert ${availableAlertTypes[msgType]} mx-4`}
                 >
                   {icon}
                   <span>{message}</span>
