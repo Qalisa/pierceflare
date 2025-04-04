@@ -11,13 +11,14 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 import { dateFormatter } from "@/helpers/table";
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { getModal, modalIds } from "@/helpers/modals";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   defineSelected,
   defineSelectedAsToBeDeleted,
 } from "@/store/reducers/ddnsEntries";
+import type { RootState } from "@/store/reducers";
 
 type OfDomain = DataType["domains"] extends undefined
   ? never
@@ -25,10 +26,27 @@ type OfDomain = DataType["domains"] extends undefined
 
 const DNSEntriesTable = () => {
   const { domains } = useData<DataType>();
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const dispatch = useDispatch();
+
+  // Get selected domains from Redux store
+  const selectedDomains = useSelector(
+    (state: RootState) => state.ddnsEntries.selected,
+  );
+
+  // Convert selectedDomains to rowSelection format required by tanstack/react-table
+  const rowSelection = useMemo(() => {
+    if (!domains || !selectedDomains || selectedDomains.length === 0) return {};
+
+    const selection: RowSelectionState = {};
+    domains.forEach((domain, index) => {
+      if (selectedDomains.includes(domain.ddnsForDomain)) {
+        selection[index] = true;
+      }
+    });
+    return selection;
+  }, [domains, selectedDomains]);
 
   const columnHelper = createColumnHelper<OfDomain>();
-  const dispatch = useDispatch();
 
   const columns = [
     columnHelper.display({
@@ -76,20 +94,29 @@ const DNSEntriesTable = () => {
       rowSelection,
     },
     enableRowSelection: true,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: (updater) => {
+      // Create a new selection state based on the updater
+      let newSelection: RowSelectionState;
+
+      // Handle both function updater and direct object assignment
+      if (typeof updater === "function") {
+        newSelection = updater(rowSelection);
+      } else {
+        newSelection = updater;
+      }
+
+      // Convert the selection state to an array of domain names
+      const selectedIds = Object.entries(newSelection)
+        .filter(([_, isSelected]) => isSelected)
+        .map(([index, _]) => domains![parseInt(index)].ddnsForDomain);
+
+      dispatch(defineSelected(selectedIds));
+    },
     getCoreRowModel: getCoreRowModel(),
   });
 
-  useEffect(() => {
-    const selectedIds = Object.keys(rowSelection).map(
-      (index) => domains![parseInt(index)].ddnsForDomain,
-    );
-    dispatch(defineSelected(selectedIds));
-    //
-  }, [rowSelection]);
-
   // Get the count of selected rows
-  const selectedCount = Object.keys(rowSelection).length;
+  const selectedCount = selectedDomains?.length || 0;
 
   return (
     <div className="w-11/12">
