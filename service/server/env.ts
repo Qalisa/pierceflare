@@ -1,3 +1,4 @@
+import { onlyUniqueStr } from "@/helpers/onlyUnique";
 import envVar from "env-var";
 
 const env = envVar.from({
@@ -54,15 +55,6 @@ export const SERVICE_DATABASE_FILES_PATH = env
   .get("SERVICE_DATABASE_FILES_PATH")
   .required()
   .asString();
-
-//
-const onlyUniqueStr = (
-  value: string,
-  index: number,
-  array: string | string[],
-) => {
-  return array.indexOf(value) === index;
-};
 
 export const SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS = env
   .get("SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS")

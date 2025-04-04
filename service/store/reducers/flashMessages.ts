@@ -5,20 +5,23 @@ import { z } from "zod";
 //
 //
 
-export const $flashMessages = z.array(
-  z
-    .object({
-      msgType: z.enum(["error", "success"]),
-      message: z.string(),
-      id: z.date(),
-      schedueledForDeletionAt: z.date().optional(),
-    })
-    .required({
-      message: true,
-      msgType: true,
-      id: true,
-    }),
-);
+export const ISO_DATE_REGEX = /\d{4}-[01]\d-[0-3]\d/;
+
+export const $flashMessages = z.object({
+  flashMessages: z.array(
+    z
+      .object({
+        msgType: z.enum(["error", "success"]),
+        message: z.string(),
+        id: z.string().regex(ISO_DATE_REGEX),
+      })
+      .required({
+        message: true,
+        msgType: true,
+        id: true,
+      }),
+  ),
+});
 
 export type FlashMessages = z.infer<typeof $flashMessages>;
 
@@ -26,65 +29,46 @@ export type FlashMessages = z.infer<typeof $flashMessages>;
 //
 //
 
-const initialState: FlashMessages = [];
+const initialState: FlashMessages = { flashMessages: [] };
 
 const flashMessagesSlice = createSlice({
   name: "flashMessagesState",
   initialState,
   reducers: {
-    addSuccessMessage(state, action: PayloadAction<string>) {
-      state = [
-        ...state,
+    addSuccessMessage(state, { payload: message }: PayloadAction<string>) {
+      state.flashMessages = [
+        ...state.flashMessages,
         {
           msgType: "success",
-          message: JSON.stringify(action.payload),
-          id: new Date(),
+          message: message,
+          id: new Date().toISOString(),
         },
       ];
     },
-    addErrorMessage(state, action: PayloadAction<unknown>) {
-      state = [
-        ...state,
+    addErrorMessage(state, { payload: errorString }: PayloadAction<string>) {
+      state.flashMessages = [
+        ...state.flashMessages,
         {
           msgType: "error",
-          message: JSON.stringify(action.payload),
-          id: new Date(),
+          message: errorString,
+          id: new Date().toISOString(),
         },
       ];
-    },
-    schedueleForDeletion(
-      state,
-      {
-        payload: { idsToDeleteLater },
-      }: PayloadAction<{ idsToDeleteLater: Date[] }>,
-    ) {
-      const now = new Date();
-      state = state.map((e) => {
-        if (!idsToDeleteLater.includes(e.id)) return e;
-        e.schedueledForDeletionAt = now;
-        return e;
-      });
-    },
-    resetSchedueler(_state) {
-      _state = _state.map((e) => {
-        delete e.schedueledForDeletionAt;
-        return e;
-      });
     },
     clearFlashMessages(
       state,
-      { payload: { idsToDelete } }: PayloadAction<{ idsToDelete: Date[] }>,
+      { payload: { idsToDelete } }: PayloadAction<{ idsToDelete: string[] }>,
     ) {
-      state = state.filter(({ id }) => !idsToDelete.includes(id));
+      //
+      if (idsToDelete.length === 0) return;
+      state.flashMessages = state.flashMessages.filter(
+        ({ id }) => !idsToDelete.includes(id),
+      );
     },
   },
 });
 
-export const {
-  resetSchedueler,
-  schedueleForDeletion,
-  addErrorMessage,
-  clearFlashMessages,
-} = flashMessagesSlice.actions;
+export const { addErrorMessage, clearFlashMessages } =
+  flashMessagesSlice.actions;
 const flashMessagesReducer = flashMessagesSlice.reducer;
 export default flashMessagesReducer;

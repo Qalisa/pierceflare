@@ -2,7 +2,7 @@ import { usePageContext } from "vike-react/usePageContext";
 import DNSEntriesTable from "./DNSEntries";
 import { useData } from "vike-react/useData";
 import type { DataType } from "./+data.shared";
-import { title } from "@/server/static";
+import { title } from "@/helpers/static";
 import CreateDDNSEntryModal, { openModal } from "./modals/CreateDDNSEntry";
 
 //

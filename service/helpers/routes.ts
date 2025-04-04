@@ -16,14 +16,7 @@ const routes = {
   default: loginPageRoute,
 } as const;
 
-interface AppUser {
-  username: string;
-}
-
-type AppAdminUser = AppUser;
-
 // If you define Vike.PageContext in a .d.ts file then
 // make sure there is at least one export/import statement.
 // Tell TypeScript this file isn't an ambient module:
 export { routes };
-export type { AppUser, AppAdminUser };

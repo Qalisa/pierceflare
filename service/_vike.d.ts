@@ -1,24 +1,6 @@
 import type { getRootStore } from "@/store/index";
 import { type RootState } from "@/store/reducers/index";
-import type { AppUser } from "./server/app";
-
-type SessionDataTypes = {
-  user?: AppUser;
-  authFailure?: { username?: string; message: string };
-};
-
-type InjectingPageContext = SessionDataTypes & {
-  k8sApp: {
-    imageVersion: string;
-    imageRevision: string;
-    version: string;
-  };
-  availableCloudflareDomains: string[];
-};
-
-type PageContextInjection = {
-  injected: InjectingPageContext;
-};
+import type { PageContextInjection } from "@/helpers/types";
 
 declare global {
   namespace Vike {
@@ -34,4 +16,4 @@ declare global {
   }
 }
 
-export { type PageContextInjection, type SessionDataTypes };
+export {};

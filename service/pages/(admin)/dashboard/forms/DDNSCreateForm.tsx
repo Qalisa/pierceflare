@@ -65,7 +65,9 @@ const DDNSCreateForm = ({
           async ({ subdomain, cloudFlareDomain, description }) => {
             await onSubmitDDNSEntry(subdomain, cloudFlareDomain, description)
               .then(closeModal)
-              .catch((e) => dispatch(addErrorMessage(JSON.stringify(e))));
+              .catch((e: Error) => {
+                dispatch(addErrorMessage(e.message));
+              });
           },
         )}
       >

@@ -8,20 +8,22 @@ import {
   SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS,
 } from "./env";
 
+import type { Telefunc } from "telefunc";
 import { telefunc } from "telefunc";
-import { routes } from "./app";
+import { routes } from "../helpers/routes";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import { awaitMigration } from "@/db";
 
+import type { Context } from "hono";
 import { Hono } from "hono";
 // import { compress } from "hono/compress";
 import type { Session } from "hono-sessions";
 import { sessionMiddleware } from "hono-sessions";
 import { BunSqliteStore } from "hono-sessions/bun-sqlite-store";
 import { Database } from "bun:sqlite";
-import { type PageContextInjection, type SessionDataTypes } from "@/_vike";
-import { title } from "./static";
+import { title } from "../helpers/static";
+import type { PageContextInjection, SessionDataTypes } from "@/helpers/types";
 
 //
 //
@@ -108,8 +110,31 @@ const startServer = () => {
   //
   //
 
+  //
+  const injectedFromHono = ({ get }: Context) => {
+    const session = get("session") as Session<SessionDataTypes>;
+    const user = session.get("user");
+    const authFailure = session.get("authFailure");
+
+    const injecting: PageContextInjection = {
+      injected: {
+        ...(authFailure ? { authFailure } : {}),
+        ...(user ? { user } : {}),
+        availableCloudflareDomains: SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS,
+        k8sApp: {
+          imageRevision,
+          imageVersion,
+          version,
+        },
+      },
+    };
+
+    return injecting;
+  };
+
   // Telefunc middleware
-  app.all("/_telefunc", async ({ req, status, body, header }) => {
+  app.all("/_telefunc", async (c) => {
+    const { req, status, header, body } = c;
     const httpResponse = await telefunc({
       // HTTP Request URL, which is '/_telefunc' if we didn't modify config.telefuncUrl
       url: req.url,
@@ -118,7 +143,7 @@ const startServer = () => {
       // HTTP Request Body, which can be a string, buffer, or stream
       body: await req.text(),
       // Optional
-      context: {},
+      context: injectedFromHono(c) satisfies Telefunc.Context,
     });
 
     //
@@ -134,26 +159,7 @@ const startServer = () => {
 
   //
   apply(app, {
-    pageContext: ({ hono: { get } }) => {
-      const session = get("session") as Session<SessionDataTypes>;
-      const user = session.get("user");
-      const authFailure = session.get("authFailure");
-
-      const injecting: PageContextInjection = {
-        injected: {
-          ...(authFailure ? { authFailure } : {}),
-          ...(user ? { user } : {}),
-          availableCloudflareDomains: SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS,
-          k8sApp: {
-            imageRevision,
-            imageVersion,
-            version,
-          },
-        },
-      };
-
-      return injecting;
-    },
+    pageContext: ({ hono: context }) => injectedFromHono(context),
   });
 
   //

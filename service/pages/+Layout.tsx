@@ -5,7 +5,7 @@ import { usePageContext } from "vike-react/usePageContext";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 
 import appLogo from "@/assets/images/logo.webp";
-import { githubRepoUrl, title } from "@/server/static";
+import { githubRepoUrl, title } from "@/helpers/static";
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
