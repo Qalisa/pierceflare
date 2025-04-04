@@ -5,13 +5,14 @@ import { expectedInput$ } from "./DDNSCreateForm.schemas";
 
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import { usePageContext } from "vike-react/usePageContext";
-import { closeModal } from "../modals/CreateDDNSEntry";
 
 import { useDispatch } from "react-redux";
 import {
   addErrorMessage,
   addSuccessMessage,
 } from "@/store/reducers/flashMessages";
+import { getModal, modalIds } from "@/helpers/modals";
+import { reload } from "vike/client/router";
 
 const formId = "ddns-create";
 
@@ -67,13 +68,14 @@ const DDNSCreateForm = ({
         onSubmit={handleSubmit(
           async ({ subdomain, cloudFlareDomain, description }) => {
             await onSubmitDDNSEntry(subdomain, cloudFlareDomain, description)
-              .then(() => {
-                closeModal();
+              .then(async () => {
+                getModal(modalIds.createDDNS).closeModal();
                 dispatch(
                   addSuccessMessage(
                     `DDNS Entry "${subdomain}.${cloudFlareDomain}" created`,
                   ),
                 );
+                await reload();
               })
               .catch((e: Error) => {
                 dispatch(

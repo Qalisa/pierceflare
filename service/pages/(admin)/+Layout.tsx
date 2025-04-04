@@ -23,7 +23,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <CenterPart />
         <RightPart />
       </div>
-      <div className="flex w-full flex-auto flex-col items-center justify-center">
+      <div className="flex w-full flex-auto flex-col items-center pt-8">
         {children}
       </div>
     </>

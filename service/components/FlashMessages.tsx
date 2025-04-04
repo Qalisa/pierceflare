@@ -8,7 +8,7 @@ import type { FlashMessageType } from "@/store/reducers/flashMessages";
 import { clearFlashMessages } from "@/store/reducers/flashMessages";
 import { onlyUniqueStr } from "@/helpers/onlyUnique";
 
-const lingerDurationMs = 20_000; // 2 secs
+const lingerDurationMs = 2_000; // 2 secs
 const iconSize = "size-6"; // 1.5rem
 
 //

@@ -10,9 +10,14 @@ import {
   flexRender,
   createColumnHelper,
 } from "@tanstack/react-table";
-import { openModal } from "../modals/CreateDDNSEntry";
 import { dateFormatter } from "@/helpers/table";
-import { useState, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { getModal, modalIds } from "@/helpers/modals";
+import { useDispatch } from "react-redux";
+import {
+  defineSelected,
+  defineSelectedAsToBeDeleted,
+} from "@/store/reducers/ddnsEntries";
 
 type OfDomain = DataType["domains"] extends undefined
   ? never
@@ -23,6 +28,7 @@ const DNSEntriesTable = () => {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
 
   const columnHelper = createColumnHelper<OfDomain>();
+  const dispatch = useDispatch();
 
   const columns = [
     columnHelper.display({
@@ -74,13 +80,13 @@ const DNSEntriesTable = () => {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const handleDelete = useCallback(() => {
+  useEffect(() => {
     const selectedIds = Object.keys(rowSelection).map(
       (index) => domains![parseInt(index)].ddnsForDomain,
     );
-    console.log("Deleting entries with IDs:", selectedIds);
-    // Here you would call your delete function/API
-  }, [rowSelection, domains]);
+    dispatch(defineSelected(selectedIds));
+    //
+  }, [rowSelection]);
 
   // Get the count of selected rows
   const selectedCount = Object.keys(rowSelection).length;
@@ -88,14 +94,20 @@ const DNSEntriesTable = () => {
   return (
     <div className="w-11/12">
       <div className="mx-4 flex gap-4">
-        <button onClick={() => openModal()} className="btn btn-primary btn-sm">
+        <button
+          onClick={() => getModal(modalIds.createDDNS).openModal()}
+          className="btn btn-primary btn-sm"
+        >
           <PlusCircleIcon className="size-4" />
           Create DDNS Entry
         </button>
 
         {selectedCount > 0 && (
           <button
-            onClick={handleDelete}
+            onClick={() => {
+              dispatch(defineSelectedAsToBeDeleted());
+              getModal(modalIds.deleteDDNS).openModal();
+            }}
             className="btn btn-outline btn-error btn-sm"
           >
             Delete Selected ({selectedCount})
