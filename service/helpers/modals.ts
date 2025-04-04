@@ -10,5 +10,16 @@ export const getModal = (id: Values) => ({
   openModal: () =>
     (document.getElementById(id) as HTMLDialogElement)?.showModal(),
 
-  closeModal: () => (document.getElementById(id) as HTMLDialogElement)?.close(),
+  closeModal: (onAnimationEnded?: () => void) => {
+    const modal = document.getElementById(id) as HTMLDialogElement;
+    if (modal == null) return;
+
+    //
+    if (onAnimationEnded) {
+      modal.addEventListener("transitionend", onAnimationEnded, { once: true });
+    }
+
+    //
+    return modal.close();
+  },
 });
