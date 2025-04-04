@@ -6,16 +6,26 @@ import { navigate } from "vike/client/router";
 import {
   PowerIcon,
   ClipboardDocumentListIcon,
-  PlusCircleIcon,
+  ArrowsUpDownIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/solid";
 import { title } from "@/server/static";
 import { usePageContext } from "vike-react/usePageContext";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import type { RootState } from "@/store/reducers";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  clearFlashMessages,
+  resetSchedueler,
+  schedueleForDeletion,
+} from "@/store/reducers/flashMessages";
 
 //
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
+      <FlashMessages />
       <div className="navbar bg-base-100 gap-8 shadow-sm">
         <LeftPart />
         <CenterPart />
@@ -24,6 +34,69 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       <div className="flex w-full flex-auto flex-col items-center justify-center">
         {children}
       </div>
+    </>
+  );
+};
+
+//
+//
+//
+const FlashMessages = () => {
+  const flashMessages = useSelector((state: RootState) => state.flashMessages);
+  const dispatch = useDispatch();
+
+  // always reset the schedueler at first mount, so that they can re-scheduled for deletion
+  useEffect(() => {
+    dispatch(resetSchedueler());
+  }, []);
+
+  useEffect(() => {
+    //
+    const idsToDeleteLater = flashMessages
+      .filter((fMsg) => fMsg.schedueledForDeletionAt != null)
+      .map(({ id }) => id);
+
+    //
+    const cleanupFunctions = idsToDeleteLater.map((id) => {
+      //
+      const timer = setTimeout(() => {
+        dispatch(clearFlashMessages({ idsToDelete: [id] }));
+      }, 2000);
+
+      //
+      return () => clearTimeout(timer); // Cleanup on unmount
+    });
+
+    // may retrigger this effect, so do it the latest possible
+    dispatch(schedueleForDeletion({ idsToDeleteLater }));
+
+    return () => {
+      cleanupFunctions.forEach((cleanup) => cleanup());
+    };
+  }, [flashMessages]);
+
+  return (
+    <>
+      {flashMessages && (
+        <div className="absolute top-0 flex w-full flex-col gap-1">
+          <AnimatePresence>
+            {flashMessages.map(({ message, msgType: _ }, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                role="alert"
+                className="alert alert-error m-4"
+              >
+                <ExclamationTriangleIcon className="size-6" />
+                <span>{message}</span>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
     </>
   );
 };
@@ -58,11 +131,11 @@ const CenterPart = () => {
         Dashboard
       </button>
       <button
-        className={`join-item btn ${urlPathname === routes.pages.createDDNS ? "btn-active" : ""}`}
-        onClick={() => navigate(routes.pages.createDDNS)}
+        className={`join-item btn ${urlPathname === routes.pages.flaresFeed ? "btn-active" : ""}`}
+        onClick={() => navigate(routes.pages.flaresFeed)}
       >
-        Create DDNS
-        <PlusCircleIcon className="size-4" />
+        Feed
+        <ArrowsUpDownIcon className="size-4" />
       </button>
     </div>
   );

@@ -9,6 +9,8 @@ declare global {
       readonly SERVICE_AUTH_PASSWORD: string;
       //
       readonly SERVICE_DATABASE_FILES_PATH: string;
+      //
+      readonly SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS: string;
     }
   }
 }

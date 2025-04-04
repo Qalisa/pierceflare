@@ -72,6 +72,7 @@ export default tseslint.config(
       "@typescript-eslint/no-namespace": "off",
       "@typescript-eslint/ban-ts-comment": "off",
       "no-unused-vars": "off",
+      "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-unused-vars": [
         "warn", // or "error"
         {

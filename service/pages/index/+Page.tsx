@@ -22,7 +22,6 @@ const IndexPage = () => {
           action={routes.pages.login}
           ref={formRef}
         >
-          <h2 className="card-title">Dashboard</h2>
           <fieldset className="fieldset">
             <input
               name="username"
@@ -48,7 +47,7 @@ const IndexPage = () => {
           </fieldset>
           <button
             type="submit"
-            className="btn btn-block"
+            className="btn btn-block btn-primary mt-1"
             disabled={sent}
             onClick={(e) => {
               e.preventDefault();

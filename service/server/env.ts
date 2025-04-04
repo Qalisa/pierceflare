@@ -19,6 +19,10 @@ const env = envVar.from({
   SERVICE_DATABASE_FILES_PATH:
     import.meta.env.SERVICE_DATABASE_FILES_PATH ??
     process.env.SERVICE_DATABASE_FILES_PATH,
+  //
+  SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS:
+    import.meta.env.SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS ??
+    process.env.SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS,
 });
 
 export const imageVersion = env
@@ -50,3 +54,21 @@ export const SERVICE_DATABASE_FILES_PATH = env
   .get("SERVICE_DATABASE_FILES_PATH")
   .required()
   .asString();
+
+//
+const onlyUniqueStr = (
+  value: string,
+  index: number,
+  array: string | string[],
+) => {
+  return array.indexOf(value) === index;
+};
+
+export const SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS = env
+  .get("SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS")
+  .required()
+  .asArray(",")
+  .map((e) => {
+    return e.replace(/\s/g, ""); // remove whitespaces
+  })
+  .filter(onlyUniqueStr); // prevents duplicates

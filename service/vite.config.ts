@@ -1,5 +1,6 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig, Plugin } from "vite";
+import type { Plugin } from "vite";
+import { defineConfig } from "vite";
 import vike from "vike/plugin";
 import { fileURLToPath, URL } from "url";
 import { telefunc } from "telefunc/vite";

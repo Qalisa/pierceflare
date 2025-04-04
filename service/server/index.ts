@@ -5,6 +5,7 @@ import {
   SERVICE_AUTH_PASSWORD,
   SERVICE_AUTH_USERNAME,
   SERVICE_DATABASE_FILES_PATH,
+  SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS,
 } from "./env";
 
 import { telefunc } from "telefunc";
@@ -15,7 +16,8 @@ import { awaitMigration } from "@/db";
 
 import { Hono } from "hono";
 // import { compress } from "hono/compress";
-import { sessionMiddleware, Session } from "hono-sessions";
+import type { Session } from "hono-sessions";
+import { sessionMiddleware } from "hono-sessions";
 import { BunSqliteStore } from "hono-sessions/bun-sqlite-store";
 import { Database } from "bun:sqlite";
 import { type PageContextInjection, type SessionDataTypes } from "@/_vike";
@@ -141,6 +143,7 @@ const startServer = () => {
         injected: {
           ...(authFailure ? { authFailure } : {}),
           ...(user ? { user } : {}),
+          availableCloudflareDomains: SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS,
           k8sApp: {
             imageRevision,
             imageVersion,

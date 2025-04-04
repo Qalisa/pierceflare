@@ -17,6 +17,7 @@ services:
       SERVICE_AUTH_USERNAME: root
       SERVICE_AUTH_PASSWORD: root
       SERVICE_DATABASE_FILES_PATH: /db
+      SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS: ivy.community,qalisa.fr
     volumes:
       - pierceflare-data:/db:rw
 

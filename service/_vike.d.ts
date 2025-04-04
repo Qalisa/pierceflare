@@ -1,6 +1,6 @@
-import { getRootStore } from "@/store/index";
+import type { getRootStore } from "@/store/index";
 import { type RootState } from "@/store/reducers/index";
-import { AppUser } from "./server/app";
+import type { AppUser } from "./server/app";
 
 type SessionDataTypes = {
   user?: AppUser;
@@ -13,6 +13,7 @@ type InjectingPageContext = SessionDataTypes & {
     imageRevision: string;
     version: string;
   };
+  availableCloudflareDomains: string[];
 };
 
 type PageContextInjection = {

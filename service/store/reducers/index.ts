@@ -1,9 +1,9 @@
 // store/index.ts
 import { combineReducers } from "@reduxjs/toolkit";
-import contactFormReducer from "./contactForm";
+import flashMessagesReducer from "./flashMessages";
 
 const rootReducer = combineReducers({
-  contactForm: contactFormReducer,
+  flashMessages: flashMessagesReducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;
