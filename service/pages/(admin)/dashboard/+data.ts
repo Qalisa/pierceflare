@@ -14,3 +14,5 @@ export const data = async (_pageContext: PageContext) => {
   const domains = await getFlareDomains();
   return { domains };
 };
+
+export type DataType = Awaited<ReturnType<typeof data>>;

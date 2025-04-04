@@ -73,7 +73,7 @@ const CenterPart = () => {
 //
 const RightPart = () => {
   return (
-    <div className="join join-vertical sm:join-horizontal items-center gap-2">
+    <div className="join join-vertical sm:join-horizontal mr-0 items-center gap-2 sm:mr-4">
       <ThemeToggler />
       <LogoutButton />
     </div>
