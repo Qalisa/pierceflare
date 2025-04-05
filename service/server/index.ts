@@ -27,8 +27,8 @@ import { eq } from "drizzle-orm";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { rateLimiter } from "hono-rate-limiter";
 import { CloudflareDNSWorker, getZones } from "./cloudflareWorker";
-
 import { createNodeWebSocket } from "@hono/node-ws";
+
 import EventEmitter from "events";
 
 //
@@ -333,7 +333,7 @@ const startServer = async () => {
   });
 
   //
-  return serve(app, {
+  const server = serve(app, {
     port: parseInt(PORT),
     onCreate(server) {
       injectWebSocket(server!);
@@ -342,6 +342,11 @@ const startServer = async () => {
       console.log(`[${title}]`, `Server is ready.`);
     },
   });
+
+  return server;
+
+  //
+  // injectWebSocket(serveWs({ fetch: server.fetch, port: 3001 }));
 };
 
 export default startServer();

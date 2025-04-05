@@ -22,5 +22,7 @@ export default {
 
   extends: [vikeReact, vikeServer],
   // Points to your server entry
-  server: "server/index.ts",
+  server: {
+    entry: "server/index.ts",
+  },
 } satisfies Config;
