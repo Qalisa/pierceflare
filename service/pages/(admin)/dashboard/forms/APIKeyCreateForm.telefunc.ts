@@ -1,7 +1,6 @@
 import { flareKeys } from "@/db/schema";
 import db from "@/db";
 import { withLinger } from "@/helpers/withLinger";
-import { SQLiteError } from "bun:sqlite";
 import { Abort } from "telefunc";
 import { onlyLoggedUser } from "@/helpers/telefunc";
 import { count, eq } from "drizzle-orm";
@@ -58,9 +57,7 @@ const _onSubmitAPIKeyCreation = async (ddnsForDomain: string) => {
       createdAt: new Date(),
     })
     .catch((e) => {
-      if (e instanceof SQLiteError) {
-        throw Abort(e.message);
-      }
+      throw Abort(e.message);
     });
 
   //

@@ -1,7 +1,6 @@
 import { flareDomains, flareKeys } from "@/db/schema";
 import db from "@/db";
 import { withLinger } from "@/helpers/withLinger";
-import { SQLiteError } from "bun:sqlite";
 import { Abort } from "telefunc";
 import { onlyLoggedUser } from "@/helpers/telefunc";
 import { inArray } from "drizzle-orm";
@@ -20,9 +19,7 @@ const _onSubmitDeleteDDNSEntries = async (subdomains: string[]) => {
     .delete(flareDomains)
     .where(inArray(flareDomains.ddnsForDomain, subdomains))
     .catch((e) => {
-      if (e instanceof SQLiteError) {
-        throw Abort(e.message);
-      }
+      throw Abort(e.message);
     });
 
   // TODO: make cascading delete work and remove below
@@ -30,8 +27,6 @@ const _onSubmitDeleteDDNSEntries = async (subdomains: string[]) => {
     .delete(flareKeys)
     .where(inArray(flareKeys.ddnsForDomain, subdomains))
     .catch((e) => {
-      if (e instanceof SQLiteError) {
-        throw Abort(e.message);
-      }
+      throw Abort(e.message);
     });
 };
