@@ -2,7 +2,6 @@ import {
   CLOUDFLARE_API_TOKEN,
   SERVICE_AUTH_PASSWORD,
   SERVICE_AUTH_USERNAME,
-  SERVICE_DATABASE_FILES_PATH,
   imageRevision,
   imageVersion,
   version,
@@ -19,19 +18,28 @@ import { flareKeys, flares } from "@/db/schema";
 
 import type { Context } from "hono";
 import { Hono } from "hono";
-// import { compress } from "hono/compress";
+import { compress } from "hono/compress";
 import type { Session } from "hono-sessions";
-import { sessionMiddleware } from "hono-sessions";
-import { BunSqliteStore } from "hono-sessions/bun-sqlite-store";
-import { Database } from "bun:sqlite";
+import { MemoryStore, sessionMiddleware } from "hono-sessions";
 import { title } from "../helpers/static";
 import type { PageContextInjection, SessionDataTypes } from "@/helpers/types";
 import { eq } from "drizzle-orm";
-import { getConnInfo } from "hono/bun";
+import { getConnInfo } from "@hono/node-server/conninfo";
 import { rateLimiter } from "hono-rate-limiter";
 import { CloudflareDNSWorker, getZones } from "./cloudflareWorker";
 
-import { wsBroadcaster, prewarmWS } from "./ws";
+import { createNodeWebSocket } from "@hono/node-ws";
+import EventEmitter from "events";
+
+//
+//
+//
+
+const wsBroadcaster = new EventEmitter();
+
+export const broadcastToWSClients = (message: string) => {
+  wsBroadcaster.emit("all", message);
+};
 
 //
 //
@@ -61,7 +69,7 @@ const startServer = async () => {
   });
 
   const zones = await getZones(cfWorker);
-  const availableCloudflareDomains = Object.keys(zones);
+  const availableCloudflareDomains = zones.map(([_id, name]) => name);
   cfWorker.initializeWorker(zones);
 
   //
@@ -83,17 +91,15 @@ const startServer = async () => {
   // COMPRESSION
   //
 
-  // app.use(compress()); // NO AVAILABLE FOR BUN (https://hono.dev/docs/middleware/builtin/compress)
+  app.use(compress());
 
   //
   // SESSION
   //
 
-  const sessionDb = new Database(SERVICE_DATABASE_FILES_PATH + "/sessions.db");
-  const store = new BunSqliteStore(sessionDb);
   app.use(
     sessionMiddleware({
-      store,
+      store: new MemoryStore(),
     }),
   );
 
@@ -144,8 +150,7 @@ const startServer = async () => {
   //
   //
 
-  //
-  const { upgradeWebSocket } = prewarmWS();
+  const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
 
   //
   app.get(
@@ -176,6 +181,8 @@ const startServer = async () => {
       };
     }),
   );
+
+  // injectWebSocket(app);
 
   //
   // API

@@ -39,7 +39,7 @@
     {
       "label": "Generate Bundle",
       "command": "bun",
-      "args": ["--bun", "build:dev"],
+      "args": ["build:dev"],
       "options": {
         "cwd": "${workspaceFolder}/service"
       },

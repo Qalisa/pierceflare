@@ -1,16 +1,15 @@
-import { migrate } from "drizzle-orm/bun-sqlite/migrator";
-import { drizzle } from "drizzle-orm/bun-sqlite";
-
-import { Database } from "bun:sqlite";
+import { migrate } from "drizzle-orm/libsql/migrator";
+import { drizzle } from "drizzle-orm/libsql/node";
+import { createClient } from "@libsql/client/node";
 import { SERVICE_DATABASE_FILES_PATH } from "@/server/env";
 import { title } from "@/helpers/static";
 
-const appDbName = title.toLowerCase();
-const sqlite = new Database(SERVICE_DATABASE_FILES_PATH + `/${appDbName}.db`);
-
-//
-
 const db = (() => {
+  const appDbName = title.toLowerCase();
+  const sqlite = createClient({
+    url: `file:${SERVICE_DATABASE_FILES_PATH}/${appDbName}.db`,
+  });
+
   console.log(`[${title}]`, "Starting DB Schema Migration...");
   const db = drizzle(sqlite);
   migrate(db, { migrationsFolder: "./drizzle" });
