@@ -1,19 +1,21 @@
 import {
-  imageVersion,
-  imageRevision,
-  version,
+  CLOUDFLARE_API_TOKEN,
   SERVICE_AUTH_PASSWORD,
   SERVICE_AUTH_USERNAME,
   SERVICE_DATABASE_FILES_PATH,
-  SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS,
+  imageRevision,
+  imageVersion,
+  version,
 } from "./env";
+import { bearerAuth } from "hono/bearer-auth";
 
 import type { Telefunc } from "telefunc";
 import { telefunc } from "telefunc";
 import { routes } from "../helpers/routes";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
-import { awaitMigration } from "@/db";
+import db, { prewarmDb } from "@/db";
+import { flareKeys, flares } from "@/db/schema";
 
 import type { Context } from "hono";
 import { Hono } from "hono";
@@ -24,32 +26,67 @@ import { BunSqliteStore } from "hono-sessions/bun-sqlite-store";
 import { Database } from "bun:sqlite";
 import { title } from "../helpers/static";
 import type { PageContextInjection, SessionDataTypes } from "@/helpers/types";
+import { eq } from "drizzle-orm";
+import { getConnInfo } from "hono/bun";
+import { rateLimiter } from "hono-rate-limiter";
+import { CloudflareDNSWorker, getZones } from "./cloudflareWorker";
+
+import { wsBroadcaster, prewarmWS } from "./ws";
 
 //
 //
 //
 
-const startServer = () => {
+export const PORT = process.env.PORT ?? "3000";
+
+const startServer = async () => {
   //
-  awaitMigration();
-  console.log("DB Schema Migration Done.");
+  // DB SETUP (AUTO CREATION, MIGRATIONS...)
+  //
+
+  prewarmDb();
+
+  //
+  // Cloudflare WORKER
+  //
+
+  //
+  const cfWorker = new CloudflareDNSWorker({
+    apiToken: CLOUDFLARE_API_TOKEN,
+    rateLimit: 1200, // Cloudflare's rate limit is 1200 requests per 5 minutes
+    maxConcurrent: 1,
+    timeout: 10000,
+    retryDelay: 2000,
+    maxRetries: 3,
+  });
+
+  const zones = await getZones(cfWorker);
+  const availableCloudflareDomains = Object.keys(zones);
+  cfWorker.initializeWorker(zones);
+
+  //
+  // WEB SERVER
+  //
 
   //
   const app = new Hono<{
     Variables: {
       session: Session<SessionDataTypes>;
       session_key_rotation: boolean;
+      apiContext: {
+        ddnsForDomain: string;
+      };
     };
   }>();
 
   //
-  //
+  // COMPRESSION
   //
 
   // app.use(compress()); // NO AVAILABLE FOR BUN (https://hono.dev/docs/middleware/builtin/compress)
 
   //
-  //
+  // SESSION
   //
 
   const sessionDb = new Database(SERVICE_DATABASE_FILES_PATH + "/sessions.db");
@@ -64,7 +101,7 @@ const startServer = () => {
   // AUTH
   //
 
-  // Login
+  // Login //
   app.post(routes.pages.login, async ({ req, get, redirect }) => {
     //
     const session = get("session");
@@ -72,10 +109,6 @@ const startServer = () => {
       session.flash("authFailure", { message, username });
       return redirect(routes.pages.login);
     };
-
-    //
-    //
-    //
 
     const body = await req.parseBody();
     const { password, username } = body;
@@ -99,15 +132,139 @@ const startServer = () => {
     return redirect(routes.pages.dashboard);
   });
 
-  // Logout
-  app.post(routes.api.logout, async ({ get, redirect }) => {
+  // Logout //
+  app.post(routes.appApi.logout, async ({ get, redirect }) => {
     const session = get("session");
     session.deleteSession();
     return redirect(routes.default);
   });
 
   //
+  // WEBSOCKETS (RPC)
   //
+  //
+
+  //
+  const { upgradeWebSocket } = prewarmWS();
+
+  //
+  app.get(
+    "/ws",
+    upgradeWebSocket(({ get, status, body }) => {
+      //
+      const session = get("session") as Session<SessionDataTypes>;
+      const user = session.get("user");
+      if (!user) {
+        status(403);
+        body("Unauthorized");
+        return {};
+      }
+
+      let onBroadcast: (message: string) => void;
+
+      //
+      return {
+        onOpen(_evt, ws) {
+          onBroadcast = (message: string) => {
+            ws.send(message);
+          };
+          wsBroadcaster.on("all", onBroadcast);
+        },
+        onClose() {
+          wsBroadcaster.removeListener("all", onBroadcast);
+        },
+      };
+    }),
+  );
+
+  //
+  // API
+  //
+
+  app.use(
+    `${routes.api.root}/*`,
+    rateLimiter({
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+      standardHeaders: "draft-6", // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+      keyGenerator: (c) => {
+        const {
+          remote: { address },
+        } = getConnInfo(c);
+
+        // Default: use IP address from request
+        // const ip =
+        //   c.req.header("cf-connecting-ip") ||
+        //   c.req.header("x-forwarded-for") ||
+        //   c.req.raw.headers.get("x-real-ip");
+        return address || "unknown";
+      },
+      // store: ... , // Redis, MemoryStore, etc. See below.
+    }),
+    bearerAuth({
+      verifyToken: async (token, { status, set }) => {
+        //
+        const [{ ddnsForDomain }] = await db
+          .select({ ddnsForDomain: flareKeys.ddnsForDomain })
+          .from(flareKeys)
+          .where(eq(flareKeys.apiKey, token))
+          .limit(1);
+
+        //
+        if (ddnsForDomain == null) {
+          status(403);
+          return false;
+        }
+
+        //
+        set("apiContext", { ddnsForDomain });
+
+        //
+        return true;
+      },
+    }),
+  );
+
+  //
+  app.put(routes.api.flare, async (c) => {
+    //
+    const { ddnsForDomain } = c.get("apiContext");
+    const {
+      remote: { addressType, address },
+    } = getConnInfo(c);
+
+    //
+    if (!address) {
+      c.status(500);
+      return c.text("No address found");
+    }
+
+    //
+    await db.insert(flares).values({
+      flaredIPv6: addressType === "IPv6" ? address : null,
+      flaredIPv4: addressType === "IPv4" ? address : null,
+      ofDomain: ddnsForDomain,
+      receivedAt: new Date(),
+    });
+
+    //
+    cfWorker.queueDNSUpdate({
+      operation: "update",
+      record: {
+        type: addressType === "IPv6" ? "AAAA" : "A",
+        proxied: true,
+        fullName: ddnsForDomain,
+        content: address,
+      },
+    });
+
+    //
+    c.status(200);
+    return c.text("OK");
+  });
+
+  //
+  // VIKE
   //
 
   //
@@ -120,7 +277,7 @@ const startServer = () => {
       injected: {
         ...(authFailure ? { authFailure } : {}),
         ...(user ? { user } : {}),
-        availableCloudflareDomains: SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS,
+        availableCloudflareDomains,
         k8sApp: {
           imageRevision,
           imageVersion,
@@ -132,7 +289,10 @@ const startServer = () => {
     return injecting;
   };
 
+  //
   // Telefunc middleware
+  //
+
   app.all("/_telefunc", async (c) => {
     const { req, status, header, body } = c;
     const httpResponse = await telefunc({
@@ -145,6 +305,7 @@ const startServer = () => {
       // Optional
       context: {
         ...(c.get("session").get("user") != null ? { userLogged: true } : {}),
+        availableCloudflareDomains,
       } satisfies Telefunc.Context,
     });
 
@@ -156,7 +317,7 @@ const startServer = () => {
   });
 
   //
-  //
+  // VIKE-SERVER
   //
 
   //
@@ -166,9 +327,9 @@ const startServer = () => {
 
   //
   return serve(app, {
-    port: parseInt(process.env.PORT ?? "3000"),
+    port: parseInt(PORT),
     onReady() {
-      console.log(`Hono ${title} Server is ready.`);
+      console.log(`[${title}]`, `Server is ready.`);
     },
   });
 };

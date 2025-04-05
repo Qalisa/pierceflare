@@ -8,13 +8,13 @@
       "name": "Launch Browser",
       "webRoot": "${workspaceFolder}/service",
       "cascadeTerminateToConfigurations": [
-        "Debug: Vite w/ Hono",
-        "Debug: Vite w/ Hono (production)",
+        "Debug: Vike /w Hono",
+        "Debug: Vike /w Hono (production)",
         "Debug: Docker Compose (production)"
       ]
     },
     {
-      "name": "Debug: Vite w/ Hono",
+      "name": "Debug: Vike /w Hono",
       "type": "node-terminal",
       "request": "launch",
       "command": "bun --bun dev",
@@ -27,7 +27,7 @@
       }
     },
     {
-      "name": "Debug: Vite w/ Hono (production)",
+      "name": "Debug: Vike /w Hono (production)",
       "type": "node-terminal",
       "request": "launch",
       "command": "bun --bun prod",

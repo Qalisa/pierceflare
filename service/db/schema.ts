@@ -12,14 +12,15 @@ export const flareDomains = sqliteTable("flare_domains", {
   description: text().notNull(),
   //
   syncedIpAt: integer({ mode: "timestamp_ms" }),
-  latestSyncedIp: text(),
+  latestSyncedIPv6: text(),
+  latestSyncedIPv4: text(),
 });
 export const flareDomains$ = createInsertSchema(flareDomains);
 
 export const flareKeys = sqliteTable("flare_keys", {
   apiKey: text().primaryKey(),
   ddnsForDomain: text()
-    .references(() => flareDomains.ddnsForDomain)
+    .references(() => flareDomains.ddnsForDomain, { onDelete: "cascade" })
     .notNull(),
   createdAt: integer({ mode: "timestamp_ms" }).notNull(),
 });
@@ -27,9 +28,12 @@ export const flareKeys = sqliteTable("flare_keys", {
 export const flares = sqliteTable(
   "flares_send",
   {
-    ofDomain: text().references(() => flareDomains.ddnsForDomain),
+    ofDomain: text()
+      .references(() => flareDomains.ddnsForDomain)
+      .notNull(),
     receivedAt: integer({ mode: "timestamp_ms" }).notNull(),
-    flaredIp: text().notNull(),
+    flaredIPv4: text(),
+    flaredIPv6: text(),
     syncStatus: text().notNull().default("waiting"),
     statusAt: integer({ mode: "timestamp_ms" }),
     statusDescr: text(),

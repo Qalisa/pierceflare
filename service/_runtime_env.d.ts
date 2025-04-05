@@ -10,7 +10,7 @@ declare global {
       //
       readonly SERVICE_DATABASE_FILES_PATH: string;
       //
-      readonly SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS: string;
+      readonly CLOUDFLARE_API_TOKEN: string;
     }
   }
 }

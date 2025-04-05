@@ -4,13 +4,13 @@ import { routes } from "@/helpers/routes";
 import { navigate } from "vike/client/router";
 
 import {
-  PowerIcon,
-  ClipboardDocumentListIcon,
   ArrowsUpDownIcon,
+  ClipboardDocumentListIcon,
+  PowerIcon,
 } from "@heroicons/react/24/solid";
 import { title } from "@/helpers/static";
 import { usePageContext } from "vike-react/usePageContext";
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import FlashMessages from "@/components/FlashMessages";
 
 //
@@ -23,7 +23,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         <CenterPart />
         <RightPart />
       </div>
-      <div className="flex w-full flex-auto flex-col items-center pt-8">
+      <div
+        id="page-content"
+        className="flex w-full flex-auto flex-col items-center pt-8"
+      >
         {children}
       </div>
     </>
@@ -85,7 +88,7 @@ const LogoutButton = () => {
   const formRef = useRef<HTMLFormElement>(null);
 
   return (
-    <form action={routes.api.logout} method="post" ref={formRef}>
+    <form action={routes.appApi.logout} method="post" ref={formRef}>
       <button
         type="submit"
         className="btn btn-xs btn-primary"

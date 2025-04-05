@@ -1,5 +1,7 @@
 const loginPageRoute = "/";
 
+const apiRoot = "/api";
+
 /** ALL URL Routes / paths handled by the app */
 const routes = {
   /** page specific routes */
@@ -9,8 +11,12 @@ const routes = {
     flaresFeed: "/feed",
   },
   /** API specific routes */
-  api: {
+  appApi: {
     logout: "/logout",
+  },
+  api: {
+    root: apiRoot,
+    flare: `${apiRoot}/flare`,
   },
   /** default route to redirect, most probably root url, aka "/" */
   default: loginPageRoute,

@@ -5,7 +5,8 @@ export const expectedInput$ = flareDomains$
   .omit({
     createdAt: true,
     syncedIpAt: true,
-    latestSyncedIp: true,
+    latestSyncedIPv4: true,
+    latestSyncedIPv6: true,
     ddnsForDomain: true,
   })
   .merge(

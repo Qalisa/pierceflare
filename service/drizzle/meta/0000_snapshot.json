@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "41ea800a-dd93-474c-8bca-25fe7ed802e2",
+  "id": "978cc4e1-3b17-4e7c-8fc4-49b3bf804301",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "flare_domains": {
@@ -86,7 +86,7 @@
           "columnsTo": [
             "ddnsForDomain"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },

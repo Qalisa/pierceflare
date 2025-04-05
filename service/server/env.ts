@@ -1,4 +1,3 @@
-import { onlyUniqueStr } from "@/helpers/onlyUnique";
 import envVar from "env-var";
 
 const env = envVar.from({
@@ -21,9 +20,8 @@ const env = envVar.from({
     import.meta.env.SERVICE_DATABASE_FILES_PATH ??
     process.env.SERVICE_DATABASE_FILES_PATH,
   //
-  SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS:
-    import.meta.env.SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS ??
-    process.env.SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS,
+  CLOUDFLARE_API_TOKEN:
+    import.meta.env.CLOUDFLARE_API_TOKEN ?? process.env.CLOUDFLARE_API_TOKEN,
 });
 
 export const imageVersion = env
@@ -56,11 +54,7 @@ export const SERVICE_DATABASE_FILES_PATH = env
   .required()
   .asString();
 
-export const SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS = env
-  .get("SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS")
+export const CLOUDFLARE_API_TOKEN = env
+  .get("CLOUDFLARE_API_TOKEN")
   .required()
-  .asArray(",")
-  .map((e) => {
-    return e.replace(/\s/g, ""); // remove whitespaces
-  })
-  .filter(onlyUniqueStr); // prevents duplicates
+  .asString();

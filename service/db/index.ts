@@ -9,12 +9,17 @@ const appDbName = title.toLowerCase();
 const sqlite = new Database(SERVICE_DATABASE_FILES_PATH + `/${appDbName}.db`);
 
 //
-const db = drizzle(sqlite);
-migrate(db, { migrationsFolder: "./drizzle" });
+
+const db = (() => {
+  console.log(`[${title}]`, "Starting DB Schema Migration...");
+  const db = drizzle(sqlite);
+  migrate(db, { migrationsFolder: "./drizzle" });
+  console.log(`[${title}]`, "DB Schema Migration Done.");
+  return db;
+})();
 
 //
-export const awaitMigration = () => {
-  console.log("Starting DB Schema Migration...");
+export const prewarmDb = () => {
   return db;
 };
 

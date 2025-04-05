@@ -1,18 +1,13 @@
 import { useData } from "vike-react/useData";
 import { type DataType } from "../+data";
 import type { RowSelectionState } from "@tanstack/react-table";
-import {
-  ArrowPathIcon,
-  KeyIcon,
-  PlusCircleIcon,
-} from "@heroicons/react/24/solid";
-import { reload } from "vike/client/router";
+import { KeyIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
 
 import {
-  useReactTable,
-  getCoreRowModel,
-  flexRender,
   createColumnHelper,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
 import { dateFormatter } from "@/helpers/table";
 import { useMemo } from "react";
@@ -25,6 +20,7 @@ import {
 } from "@/store/reducers/ddnsEntries";
 import type { RootState } from "@/store/reducers";
 import { AnimatePresence, motion } from "motion/react";
+import ReloadButton from "@/components/ReloadButton";
 
 type OfDomain = DataType["domains"] extends undefined
   ? never
@@ -84,8 +80,16 @@ const DNSEntriesTable = () => {
     columnHelper.accessor("description", {
       header: "Description",
     }),
-    columnHelper.accessor("latestSyncedIp", {
-      header: "IP",
+    columnHelper.group({
+      header: "IPs",
+      columns: [
+        columnHelper.accessor("latestSyncedIPv4", {
+          header: "v4",
+        }),
+        columnHelper.accessor("latestSyncedIPv6", {
+          header: "v6",
+        }),
+      ],
     }),
     columnHelper.accessor("syncedIpAt", {
       header: "Latest Update",
@@ -161,10 +165,7 @@ const DNSEntriesTable = () => {
             Delete Selected ({selectedCount})
           </button>
         )}
-        <button onClick={reload} className="btn btn-sm ml-auto">
-          <ArrowPathIcon className="size-4" />
-          Reload
-        </button>
+        <ReloadButton />
       </div>
       <div className="divider"></div>
       <div className="overflow-x-auto">

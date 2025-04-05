@@ -1,6 +1,5 @@
 import { flareDomains } from "@/db/schema";
 import db from "@/db";
-import { SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS } from "@/server/env";
 import { withLinger } from "@/helpers/withLinger";
 import { SQLiteError } from "bun:sqlite";
 import { Abort } from "telefunc";
@@ -17,10 +16,10 @@ const _onSubmitDDNSEntry = async (
   description: string,
 ) => {
   //
-  onlyLoggedUser();
+  const { availableCloudflareDomains } = onlyLoggedUser();
 
   //
-  if (!SERVICE_CLOUDFLARE_AVAILABLE_DOMAINS.includes(cloudFlareDomain)) {
+  if (!availableCloudflareDomains.includes(cloudFlareDomain)) {
     throw Abort(`Chosen "${cloudFlareDomain}" domain is not allowed`);
   }
 
