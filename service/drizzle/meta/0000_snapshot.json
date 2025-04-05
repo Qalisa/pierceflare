@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "978cc4e1-3b17-4e7c-8fc4-49b3bf804301",
+  "id": "eafbf475-c260-4370-93ee-a21e3792ddcb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "flare_domains": {
@@ -35,8 +35,15 @@
           "notNull": false,
           "autoincrement": false
         },
-        "latestSyncedIp": {
-          "name": "latestSyncedIp",
+        "latestSyncedIPv6": {
+          "name": "latestSyncedIPv6",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "latestSyncedIPv4": {
+          "name": "latestSyncedIPv4",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -101,7 +108,7 @@
           "name": "ofDomain",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "autoincrement": false
         },
         "receivedAt": {
@@ -111,11 +118,18 @@
           "notNull": true,
           "autoincrement": false
         },
-        "flaredIp": {
-          "name": "flaredIp",
+        "flaredIPv4": {
+          "name": "flaredIPv4",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "flaredIPv6": {
+          "name": "flaredIPv6",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
           "autoincrement": false
         },
         "syncStatus": {

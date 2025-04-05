@@ -3,7 +3,8 @@ CREATE TABLE `flare_domains` (
 	`createdAt` integer NOT NULL,
 	`description` text NOT NULL,
 	`syncedIpAt` integer,
-	`latestSyncedIp` text
+	`latestSyncedIPv6` text,
+	`latestSyncedIPv4` text
 );
 --> statement-breakpoint
 CREATE TABLE `flare_keys` (
@@ -14,9 +15,10 @@ CREATE TABLE `flare_keys` (
 );
 --> statement-breakpoint
 CREATE TABLE `flares_send` (
-	`ofDomain` text,
+	`ofDomain` text NOT NULL,
 	`receivedAt` integer NOT NULL,
-	`flaredIp` text NOT NULL,
+	`flaredIPv4` text,
+	`flaredIPv6` text,
 	`syncStatus` text DEFAULT 'waiting' NOT NULL,
 	`statusAt` integer,
 	`statusDescr` text,

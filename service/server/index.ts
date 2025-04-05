@@ -335,6 +335,9 @@ const startServer = async () => {
   //
   return serve(app, {
     port: parseInt(PORT),
+    onCreate(server) {
+      injectWebSocket(server!);
+    },
     onReady() {
       console.log(`[${title}]`, `Server is ready.`);
     },
