@@ -1,5 +1,4 @@
 import {
-  CLOUDFLARE_API_TOKEN,
   SERVICE_AUTH_PASSWORD,
   SERVICE_AUTH_USERNAME,
   imageRevision,
@@ -26,9 +25,13 @@ import type { PageContextInjection, SessionDataTypes } from "@/helpers/types";
 import { eq } from "drizzle-orm";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { rateLimiter } from "hono-rate-limiter";
-import { CloudflareDNSWorker, getZones } from "./cloudflareWorker";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { wsBroadcaster } from "./ws";
+import {
+  availableCloudflareDomains,
+  cfWorker,
+  prewarmCfWorker,
+} from "./cfWorker";
 
 //
 //
@@ -47,19 +50,7 @@ const startServer = async () => {
   // Cloudflare WORKER
   //
 
-  //
-  const cfWorker = new CloudflareDNSWorker({
-    apiToken: CLOUDFLARE_API_TOKEN,
-    rateLimit: 1200, // Cloudflare's rate limit is 1200 requests per 5 minutes
-    maxConcurrent: 1,
-    timeout: 10000,
-    retryDelay: 2000,
-    maxRetries: 3,
-  });
-
-  const zones = await getZones(cfWorker);
-  const availableCloudflareDomains = zones.map(([_id, name]) => name);
-  cfWorker.initializeWorker(zones);
+  await prewarmCfWorker();
 
   //
   // WEB SERVER
@@ -325,7 +316,7 @@ const startServer = async () => {
   return serve(app, {
     port: parseInt(PORT),
     onCreate(server) {
-      injectWebSocket(server!);
+      // injectWebSocket(server!);
     },
     onReady() {
       console.log(`[${title}]`, `Server is ready.`);

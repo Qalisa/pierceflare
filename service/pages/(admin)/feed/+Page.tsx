@@ -18,7 +18,7 @@ const FlaresFeedPage = () => {
 
   return (
     <div className="w-11/12">
-      <div className="mx-4 flex gap-4">
+      <div className="mx-4 flex items-center gap-4">
         <ReloadButton />
         <WebSocketIndicator />
         <button
