@@ -28,18 +28,7 @@ import { getConnInfo } from "@hono/node-server/conninfo";
 import { rateLimiter } from "hono-rate-limiter";
 import { CloudflareDNSWorker, getZones } from "./cloudflareWorker";
 import { createNodeWebSocket } from "@hono/node-ws";
-
-import EventEmitter from "events";
-
-//
-//
-//
-
-const wsBroadcaster = new EventEmitter();
-
-export const broadcastToWSClients = (message: string) => {
-  wsBroadcaster.emit("all", message);
-};
+import { wsBroadcaster } from "./ws";
 
 //
 //
@@ -333,7 +322,7 @@ const startServer = async () => {
   });
 
   //
-  const server = serve(app, {
+  return serve(app, {
     port: parseInt(PORT),
     onCreate(server) {
       injectWebSocket(server!);
@@ -342,11 +331,6 @@ const startServer = async () => {
       console.log(`[${title}]`, `Server is ready.`);
     },
   });
-
-  return server;
-
-  //
-  // injectWebSocket(serveWs({ fetch: server.fetch, port: 3001 }));
 };
 
 export default startServer();

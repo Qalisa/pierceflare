@@ -19,11 +19,11 @@ const WebSocketIndicator = () => {
   //
   return (
     <div className="flex items-center gap-2">
+      <span className="text-xs">Live Updates</span>
       <div className="inline-grid *:[grid-area:1/1]">
         <div className={"status animate-ping " + status}></div>
         <div className={"status " + status}></div>
       </div>
-      <span className="text-sm">Server is Down</span>
     </div>
   );
 };

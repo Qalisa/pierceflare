@@ -97,6 +97,7 @@ const DNSEntriesTable = () => {
     }),
     columnHelper.display({
       id: "createKey",
+      header: "", // Empty header for action column
       cell: ({ row }) => (
         <button
           className="btn btn-xs"
@@ -174,11 +175,21 @@ const DNSEntriesTable = () => {
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <th key={header.id}>
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext(),
-                    )}
+                  <th
+                    key={header.id}
+                    colSpan={header.colSpan}
+                    className={
+                      header.column.getCanSort()
+                        ? "cursor-pointer select-none"
+                        : ""
+                    }
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </th>
                 ))}
               </tr>

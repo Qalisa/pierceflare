@@ -44,11 +44,6 @@ export default defineConfig({
   css: {
     postcss: "./postcss.config.cjs",
   },
-  server: {
-    hmr: {
-      port: 3001,
-    },
-  },
   build: {
     target: "es2022",
   },
