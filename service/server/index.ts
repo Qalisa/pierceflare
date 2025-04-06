@@ -1,4 +1,5 @@
 import {
+  CLOUDFLARE_API_TOKEN,
   SERVICE_AUTH_PASSWORD,
   SERVICE_AUTH_USERNAME,
   imageRevision,
@@ -27,11 +28,11 @@ import { getConnInfo } from "@hono/node-server/conninfo";
 import { rateLimiter } from "hono-rate-limiter";
 import { createNodeWebSocket } from "@hono/node-ws";
 import { wsBroadcaster } from "./ws";
-import {
-  availableCloudflareDomains,
-  cfWorker,
-  prewarmCfWorker,
-} from "./cfWorker";
+import { lastValueFrom } from "rxjs";
+import Cloudflare from "cloudflare";
+import { CloudflareDNSWorker } from "./cloudflare/cloudflareWorker";
+import { getZones } from "./cloudflare/zones";
+import { cfEmitter } from "./cloudflare/cfOrders";
 
 //
 //
@@ -50,7 +51,30 @@ const startServer = async () => {
   // Cloudflare WORKER
   //
 
-  await prewarmCfWorker();
+  const orderer = cfEmitter;
+
+  //
+  const cloudflareCli = new Cloudflare({
+    apiToken: CLOUDFLARE_API_TOKEN,
+  });
+
+  //
+  const zones = await getZones(cloudflareCli);
+  const availableCloudflareDomains = zones.map(([_id, name]) => name);
+
+  //
+  const cfWorker = new CloudflareDNSWorker(orderer, {
+    zones,
+    cloudflareCli,
+    rateLimit: 1200, // Cloudflare's rate limit is 1200 requests per 5 minutes
+    maxConcurrent: 1,
+    timeout: 10000,
+    retryDelay: 2000,
+    maxRetries: 0,
+  });
+
+  const cfWorkerFlow = cfWorker.flow;
+  lastValueFrom(cfWorkerFlow);
 
   //
   // WEB SERVER
@@ -130,7 +154,7 @@ const startServer = async () => {
   //
   //
 
-  const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
+  const { upgradeWebSocket } = createNodeWebSocket({ app });
 
   //
   app.get(
@@ -235,7 +259,7 @@ const startServer = async () => {
     });
 
     //
-    cfWorker.queueDNSUpdate({
+    cfEmitter.next({
       operation: "update",
       record: {
         type: addressType === "IPv6" ? "AAAA" : "A",
@@ -315,7 +339,7 @@ const startServer = async () => {
   //
   return serve(app, {
     port: parseInt(PORT),
-    onCreate(server) {
+    onCreate() {
       // injectWebSocket(server!);
     },
     onReady() {

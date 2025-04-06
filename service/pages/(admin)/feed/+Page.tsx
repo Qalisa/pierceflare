@@ -9,7 +9,7 @@ import { onTestPushMessage } from "./Page.telefunc";
 //
 const FlaresFeedPage = () => {
   const { apiKeys, flares } = useData<DataType>();
-  const { connectionState, websocket } = useWebSocket();
+  const { websocket } = useWebSocket();
   if (websocket) {
     websocket.onmessage = () => {
       reload();
