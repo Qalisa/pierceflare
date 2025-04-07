@@ -1,6 +1,7 @@
 import {
   CANONICAL_URL,
   CLOUDFLARE_API_TOKEN,
+  PORT,
   SERVICE_AUTH_PASSWORD,
   SERVICE_AUTH_USERNAME,
   imageRevision,
@@ -38,9 +39,6 @@ import { appRouter } from "./trpc/router";
 //
 //
 //
-
-//
-export const PORT = process.env.PORT ?? "3000";
 
 //
 const startServer = async () => {
@@ -282,7 +280,7 @@ const startServer = async () => {
   //
 
   app.use(
-    "/trpc/*",
+    `${routes.trpc.root}/*`,
     trpcServer({
       router: appRouter,
       createContext: (opts, c) =>
@@ -303,12 +301,15 @@ const startServer = async () => {
       const session = get("session") as Session<SessionDataTypes>;
       const user = session.get("user");
       const authFailure = session.get("authFailure");
+      const tRPCUrl = `${CANONICAL_URL.origin}${routes.trpc.root}`;
+
+      //
       const injecting: PageContextInjection = {
         injected: {
           ...(authFailure ? { authFailure } : {}),
           ...(user ? { user } : {}),
           availableCloudflareDomains,
-          wsUrl: `${CANONICAL_URL}:${PORT}`,
+          tRPCUrl,
           k8sApp: {
             imageRevision,
             imageVersion,
@@ -322,7 +323,7 @@ const startServer = async () => {
 
   //
   return serve(app, {
-    port: parseInt(PORT),
+    port: PORT,
     onCreate() {
       // injectWebSocket(server!);
     },

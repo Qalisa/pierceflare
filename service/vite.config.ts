@@ -40,6 +40,9 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./", import.meta.url)),
     },
   },
+  server: {
+    hmr: false,
+  },
   css: {
     postcss: "./postcss.config.cjs",
   },

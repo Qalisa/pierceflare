@@ -8,7 +8,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { dateFormatter } from "@/helpers/table";
-import { useMemo } from "react";
+import type { JSX } from "react";
+import { useEffect, useMemo } from "react";
 import { getModal, modalIds } from "@/helpers/modals";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -22,19 +23,44 @@ import ReloadButton from "@/components/ReloadButton";
 import { useTRPC } from "@/helpers/trpc";
 import { useQuery } from "@tanstack/react-query";
 import type { inferOutput } from "@trpc/tanstack-react-query";
+import {
+  notifyTableStaleness,
+  unsetStaleness,
+} from "@/store/reducers/staleness";
 
 //
-const DNSEntriesTable = () => {
+const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
+  //
+  //
+  //
+
   const trpc = useTRPC();
-  const { data: domains } = useQuery(trpc.getFlareDomains.queryOptions());
-  type OfDomains = inferOutput<typeof trpc.getFlareDomains>[number];
+  const { data: domains, refetch } = useQuery(
+    trpc.getFlareDomains.queryOptions(),
+  );
+  const isStale = useSelector(
+    (state: RootState) => state.staleness.tableStaleness.flareDomains,
+  );
 
+  useEffect(() => {
+    if (isStale) {
+      refetch().then(() => dispatch(unsetStaleness("flareDomains")));
+    }
+  }, [isStale]);
+
+  const useSkeleton = domains == undefined;
+  const data = useSkeleton ? Array(10).fill({}) : domains;
+
+  //
+  //
+  //
+
+  //
   const dispatch = useDispatch();
-
-  // Get selected domains from Redux store
   const selectedDomains = useSelector(
     (state: RootState) => state.ddnsEntries.selected,
   );
+  const selectedCount = selectedDomains?.length || 0;
 
   // Convert selectedDomains to rowSelection format required by tanstack/react-table
   const rowSelection = useMemo(() => {
@@ -49,8 +75,12 @@ const DNSEntriesTable = () => {
     return selection;
   }, [domains, selectedDomains]);
 
-  const columnHelper = createColumnHelper<OfDomains>();
+  //
+  //
+  //
 
+  type OfDomains = inferOutput<typeof trpc.getFlareDomains>[number];
+  const columnHelper = createColumnHelper<OfDomains>();
   const columns = [
     columnHelper.display({
       id: "select",
@@ -114,8 +144,12 @@ const DNSEntriesTable = () => {
     }),
   ];
 
+  //
+  //
+  //
+
   const table = useReactTable({
-    data: domains || [],
+    data,
     columns,
     state: {
       rowSelection,
@@ -137,14 +171,22 @@ const DNSEntriesTable = () => {
         .filter(([_, isSelected]) => isSelected)
         .map(([index, _]) => domains![parseInt(index)].ddnsForDomain);
 
+      //
       dispatch(defineSelected(selectedIds));
     },
     getCoreRowModel: getCoreRowModel(),
   });
 
-  // Get the count of selected rows
-  const selectedCount = selectedDomains?.length || 0;
+  //
+  //
+  //
 
+  //
+  if (domains && domains.length == 0) {
+    return noData;
+  }
+
+  //
   return (
     <div className="w-11/12">
       <div className="mx-4 flex gap-4">
@@ -167,7 +209,9 @@ const DNSEntriesTable = () => {
             Delete Selected ({selectedCount})
           </button>
         )}
-        <ReloadButton />
+        <ReloadButton
+          action={() => dispatch(notifyTableStaleness("flareDomains"))}
+        />
       </div>
       <div className="divider"></div>
       <div className="overflow-x-auto">
@@ -197,28 +241,51 @@ const DNSEntriesTable = () => {
             ))}
           </thead>
           <tbody>
-            <AnimatePresence>
-              {table.getRowModel().rows.map((row) => (
-                <motion.tr
-                  key={row.id}
-                  className={row.getIsSelected() ? "bg-base-200" : undefined}
-                  initial={{ opacity: 1 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  layout
-                  transition={{ duration: 0.6 }}
-                >
-                  {row.getVisibleCells().map((cell) => (
+            {useSkeleton ? (
+              table.getRowModel().rows.map((row) => (
+                <tr key={row.id}>
+                  {row.getAllCells().map((cell) => (
                     <td key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
+                      {cell.column.accessorFn ? (
+                        <div className="skeleton h-4 w-20"></div>
+                      ) : (
+                        flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )
                       )}
                     </td>
                   ))}
-                </motion.tr>
-              ))}
-            </AnimatePresence>
+                </tr>
+              ))
+            ) : (
+              <AnimatePresence>
+                {table.getRowModel().rows.map((row) => {
+                  return (
+                    <motion.tr
+                      key={row.id}
+                      className={
+                        row.getIsSelected() ? "bg-base-200" : undefined
+                      }
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      layout
+                      transition={{ duration: 0.6 }}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <td key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </td>
+                      ))}
+                    </motion.tr>
+                  );
+                })}
+              </AnimatePresence>
+            )}
           </tbody>
         </table>
       </div>

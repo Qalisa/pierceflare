@@ -14,6 +14,9 @@ const routes = {
   appApi: {
     logout: "/logout",
   },
+  trpc: {
+    root: "/trpc",
+  },
   api: {
     root: apiRoot,
     flare: `${apiRoot}/flare`,

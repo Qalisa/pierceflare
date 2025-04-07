@@ -6,7 +6,7 @@ import { cfEmitter } from "@/server/cloudflare/cfOrders";
 import { broadcastToWSClients } from "@/server/ws";
 import { flareDomains } from "@/db/schema";
 import { TRPCError } from "@trpc/server";
-import { protectedProcedure } from "./_base";
+import { addLinger, protectedProcedure } from "./_base";
 import { z } from "zod";
 
 //
@@ -34,6 +34,7 @@ export const produceUnusedAPIKey = async () => {
 const apiProtected = {
   //
   createAPIKeyFor: protectedProcedure
+    .use(addLinger())
     .input(z.object({ ddnsForDomain: z.string().nonempty() }))
     .query(async ({ input: { ddnsForDomain } }) => {
       //
@@ -51,6 +52,7 @@ const apiProtected = {
     }),
   //
   submitDDNSEntry: protectedProcedure
+    .use(addLinger())
     .input(
       z.object({
         subdomain: z.string().nonempty(),
@@ -86,6 +88,7 @@ const apiProtected = {
     ),
   //
   deleteDDNSEntries: protectedProcedure
+    .use(addLinger())
     .input(z.object({ subdomains: z.string().array() }))
     .query(async ({ input: { subdomains } }) => {
       //
@@ -101,27 +104,19 @@ const apiProtected = {
   //
   sendTestFlare: protectedProcedure.query(() => {
     broadcastToWSClients("ok");
-    console.log(cfEmitter);
-    // cfEmitter.next({
-    //   operation: "update",
-    //   record: {
-    //     fullName: "test.ivy.community",
-    //     type: "A",
-    //     proxied: true,
-    //     content: "1.1.1.1",
-    //   },
-    // });
+    cfEmitter.next({
+      operation: "update",
+      record: {
+        fullName: "test.ivy.community",
+        type: "A",
+        proxied: true,
+        content: "1.1.1.1",
+      },
+    });
   }),
   //
   getFlareDomains: protectedProcedure.query(() =>
     db.select().from(flareDomains),
-  ),
-  //
-  hasAnyFlareDomains: protectedProcedure.query(() =>
-    db
-      .select({ count: count() })
-      .from(flareDomains)
-      .then((e) => ({ hasEntries: e[0].count != 0 })),
   ),
   //
   getApiKeys: protectedProcedure.query(() => db.select().from(flareKeys)),

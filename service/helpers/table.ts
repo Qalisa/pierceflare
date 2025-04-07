@@ -4,7 +4,18 @@ import type { CellContext } from "@tanstack/react-table";
 export const dateFormatter = <OfDomain>({
   getValue,
 }: CellContext<OfDomain, unknown>) => {
-  const date = getValue();
+  let date = getValue();
+
+  if (date == null || date == undefined) {
+    return "[NO DATA]";
+  }
+
+  //
+  if (typeof date === "string") {
+    date = new Date(date);
+  }
+
+  //
   if (date instanceof Date) {
     return date.toLocaleDateString("en-US", {
       year: "numeric",
@@ -12,5 +23,6 @@ export const dateFormatter = <OfDomain>({
       day: "numeric",
     });
   }
-  return "NO DATA";
+
+  return "[ERROR]";
 };

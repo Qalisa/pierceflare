@@ -12,8 +12,8 @@ import { getModal, modalIds } from "@/helpers/modals";
 import type { RootState } from "@/store/reducers";
 
 import { Bars3BottomRightIcon } from "@heroicons/react/24/solid";
-import { reload } from "vike/client/router";
 import { useTRPCClient } from "@/helpers/trpc";
+import { notifyTableStaleness } from "@/store/reducers/staleness";
 
 const formId = "ddns-delete";
 
@@ -85,7 +85,7 @@ const DDNSDeleteForm = ({
                   `${selectedForDeletion.length} DDNS Entr${selectedForDeletion.length > 1 ? "ies" : "y"} removed.`,
                 ),
               );
-              await reload();
+              dispatch(notifyTableStaleness("flareDomains"));
             })
             .catch((e: Error) => {
               dispatch(

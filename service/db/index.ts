@@ -4,8 +4,6 @@ import { createClient } from "@libsql/client/node";
 import { SERVICE_DATABASE_FILES_PATH } from "@/server/env";
 import { title } from "@/helpers/static";
 
-console.log("LOADED WS DATABASE");
-
 const db = (() => {
   const appDbName = title.toLowerCase();
   const sqlite = createClient({

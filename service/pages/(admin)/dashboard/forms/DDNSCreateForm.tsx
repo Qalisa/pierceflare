@@ -11,8 +11,8 @@ import {
   addSuccessMessage,
 } from "@/store/reducers/flashMessages";
 import { getModal, modalIds } from "@/helpers/modals";
-import { reload } from "vike/client/router";
 import { useTRPCClient } from "@/helpers/trpc";
+import { notifyTableStaleness } from "@/store/reducers/staleness";
 
 const formId = "ddns-create";
 
@@ -71,22 +71,26 @@ const DDNSCreateForm = ({
         className="card-body"
         onSubmit={handleSubmit(
           async ({ subdomain, cloudFlareDomain, description }) => {
+            //
+            const onSuccess = () => {
+              getModal(modalIds.createDDNS).closeModal({
+                onAnimationEnded() {
+                  resetField("subdomain");
+                  resetField("description");
+                },
+              });
+              dispatch(
+                addSuccessMessage(
+                  `DDNS Entry "${subdomain}.${cloudFlareDomain}" created`,
+                ),
+              );
+              dispatch(notifyTableStaleness("flareDomains"));
+            };
+
+            //
             await trpc.submitDDNSEntry
               .query({ subdomain, cloudFlareDomain, description })
-              .then(async () => {
-                getModal(modalIds.createDDNS).closeModal({
-                  onAnimationEnded() {
-                    resetField("subdomain");
-                    resetField("description");
-                  },
-                });
-                dispatch(
-                  addSuccessMessage(
-                    `DDNS Entry "${subdomain}.${cloudFlareDomain}" created`,
-                  ),
-                );
-                await reload();
-              })
+              .then(onSuccess)
               .catch((e: Error) => {
                 dispatch(
                   addErrorMessage(

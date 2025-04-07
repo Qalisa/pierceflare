@@ -40,14 +40,14 @@ const WebSocketProvider = clientOnly(
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
   //
   const {
-    injected: { wsUrl },
+    injected: { tRPCUrl },
   } = usePageContext();
   const queryClient = getQueryClient();
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
       links: [
         httpBatchLink({
-          url: wsUrl,
+          url: tRPCUrl,
         }),
       ],
     }),

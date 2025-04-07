@@ -23,6 +23,8 @@ const env = envVar.from({
   //
   CLOUDFLARE_API_TOKEN:
     import.meta.env.CLOUDFLARE_API_TOKEN ?? process.env.CLOUDFLARE_API_TOKEN,
+  //
+  PORT: process.env.PORT,
 });
 
 export const imageVersion = env
@@ -60,4 +62,7 @@ export const CLOUDFLARE_API_TOKEN = env
   .required()
   .asString();
 
-export const CANONICAL_URL = env.get("CANONICAL_URL").required().asUrlString();
+//
+const _PORT = env.get("PORT").default("3000");
+export const PORT = _PORT.asInt();
+export const CANONICAL_URL = env.get("CANONICAL_URL").required().asUrlObject();

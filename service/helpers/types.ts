@@ -22,7 +22,7 @@ type InjectingPageContext = SessionDataTypes & {
     version: string;
   };
   availableCloudflareDomains: string[];
-  wsUrl: string;
+  tRPCUrl: string;
 };
 
 export type PageContextInjection = {

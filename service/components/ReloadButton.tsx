@@ -1,9 +1,8 @@
 import { ArrowPathIcon } from "@heroicons/react/24/solid";
-import { reload } from "vike/client/router";
 
-const ReloadButton = () => {
+const ReloadButton = ({ action }: { action: () => void }) => {
   return (
-    <button onClick={reload} className="btn btn-sm ml-auto">
+    <button onClick={action} className="btn btn-sm ml-auto">
       <ArrowPathIcon className="size-4" />
       Reload
     </button>
