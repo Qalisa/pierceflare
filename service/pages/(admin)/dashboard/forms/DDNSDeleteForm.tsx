@@ -12,8 +12,8 @@ import { getModal, modalIds } from "@/helpers/modals";
 import type { RootState } from "@/store/reducers";
 
 import { Bars3BottomRightIcon } from "@heroicons/react/24/solid";
-import { useTRPCClient } from "@/helpers/trpc";
-import { notifyTableStaleness } from "@/store/reducers/staleness";
+import { useTRPCClient, useTRPC } from "@/helpers/trpc";
+import { useQueryClient } from "@tanstack/react-query";
 
 const formId = "ddns-delete";
 
@@ -24,7 +24,10 @@ const DDNSDeleteForm = ({
   submitButtonOutside: boolean;
 }) => {
   //
-  const trpc = useTRPCClient();
+  const trpc = useTRPC();
+  const trpcCli = useTRPCClient();
+  const queryClient = useQueryClient();
+
   //
   const {
     handleSubmit,
@@ -76,7 +79,7 @@ const DDNSDeleteForm = ({
         id={formId}
         className="card"
         onSubmit={handleSubmit(async () =>
-          trpc.deleteDDNSEntries
+          trpcCli.deleteDDNSEntries
             .query({ subdomains: selectedForDeletion })
             .then(async () => {
               dispatch(clearSelected());
@@ -85,7 +88,9 @@ const DDNSDeleteForm = ({
                   `${selectedForDeletion.length} DDNS Entr${selectedForDeletion.length > 1 ? "ies" : "y"} removed.`,
                 ),
               );
-              dispatch(notifyTableStaleness("flareDomains"));
+              queryClient.invalidateQueries({
+                queryKey: trpc.getFlareDomains.queryKey(),
+              });
             })
             .catch((e: Error) => {
               dispatch(

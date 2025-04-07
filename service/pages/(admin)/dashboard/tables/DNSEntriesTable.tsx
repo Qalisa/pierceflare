@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { dateFormatter } from "@/helpers/table";
 import type { JSX } from "react";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { getModal, modalIds } from "@/helpers/modals";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -21,12 +21,13 @@ import type { RootState } from "@/store/reducers";
 import { AnimatePresence, motion } from "motion/react";
 import ReloadButton from "@/components/ReloadButton";
 import { useTRPC } from "@/helpers/trpc";
-import { useQuery } from "@tanstack/react-query";
+import type { QueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { inferOutput } from "@trpc/tanstack-react-query";
-import {
-  notifyTableStaleness,
-  unsetStaleness,
-} from "@/store/reducers/staleness";
+
+//
+//
+//
 
 //
 const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
@@ -35,18 +36,17 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
   //
 
   const trpc = useTRPC();
-  const { data: domains, refetch } = useQuery(
-    trpc.getFlareDomains.queryOptions(),
-  );
-  const isStale = useSelector(
-    (state: RootState) => state.staleness.tableStaleness.flareDomains,
-  );
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (isStale) {
-      refetch().then(() => dispatch(unsetStaleness("flareDomains")));
-    }
-  }, [isStale]);
+  const invalidateFlareDomains = (
+    trpc: ReturnType<typeof useTRPC>,
+    queryClient: QueryClient,
+  ) =>
+    queryClient.invalidateQueries({
+      queryKey: trpc.getFlareDomains.queryKey(),
+    });
+
+  const { data: domains } = useQuery(trpc.getFlareDomains.queryOptions());
 
   const useSkeleton = domains == undefined;
   const data = useSkeleton ? Array(10).fill({}) : domains;
@@ -210,7 +210,7 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
           </button>
         )}
         <ReloadButton
-          action={() => dispatch(notifyTableStaleness("flareDomains"))}
+          action={() => invalidateFlareDomains(trpc, queryClient)}
         />
       </div>
       <div className="divider"></div>

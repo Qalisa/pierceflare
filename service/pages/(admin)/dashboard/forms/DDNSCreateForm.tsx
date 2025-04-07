@@ -11,8 +11,8 @@ import {
   addSuccessMessage,
 } from "@/store/reducers/flashMessages";
 import { getModal, modalIds } from "@/helpers/modals";
-import { useTRPCClient } from "@/helpers/trpc";
-import { notifyTableStaleness } from "@/store/reducers/staleness";
+import { useTRPC, useTRPCClient } from "@/helpers/trpc";
+import { useQueryClient } from "@tanstack/react-query";
 
 const formId = "ddns-create";
 
@@ -23,7 +23,9 @@ const DDNSCreateForm = ({
   submitButtonOutside: boolean;
 }) => {
   //
-  const trpc = useTRPCClient();
+  const trpc = useTRPC();
+  const trpcCli = useTRPCClient();
+  const queryClient = useQueryClient();
 
   //
   const {
@@ -84,11 +86,15 @@ const DDNSCreateForm = ({
                   `DDNS Entry "${subdomain}.${cloudFlareDomain}" created`,
                 ),
               );
-              dispatch(notifyTableStaleness("flareDomains"));
+
+              //
+              queryClient.invalidateQueries({
+                queryKey: trpc.getFlareDomains.queryKey(),
+              });
             };
 
             //
-            await trpc.submitDDNSEntry
+            await trpcCli.submitDDNSEntry
               .query({ subdomain, cloudFlareDomain, description })
               .then(onSuccess)
               .catch((e: Error) => {
