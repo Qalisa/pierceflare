@@ -3,6 +3,7 @@ import envVar from "env-var";
 const env = envVar.from({
   //
   K8S_APP__VERSION: import.meta.env.K8S_APP__VERSION,
+  CANONICAL_URL: import.meta.env.CANONICAL_URL,
   //
   K8S_APP__IMAGE_VERSION:
     import.meta.env.K8S_APP__IMAGE_VERSION ??
@@ -58,3 +59,5 @@ export const CLOUDFLARE_API_TOKEN = env
   .get("CLOUDFLARE_API_TOKEN")
   .required()
   .asString();
+
+export const CANONICAL_URL = env.get("CANONICAL_URL").required().asUrlString();

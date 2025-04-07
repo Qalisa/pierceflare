@@ -1,5 +1,3 @@
-import { useData } from "vike-react/useData";
-import { type DataType } from "../+data";
 import type { RowSelectionState } from "@tanstack/react-table";
 import { KeyIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
 
@@ -21,13 +19,16 @@ import {
 import type { RootState } from "@/store/reducers";
 import { AnimatePresence, motion } from "motion/react";
 import ReloadButton from "@/components/ReloadButton";
+import { useTRPC } from "@/helpers/trpc";
+import { useQuery } from "@tanstack/react-query";
+import type { inferOutput } from "@trpc/tanstack-react-query";
 
-type OfDomain = DataType["domains"] extends undefined
-  ? never
-  : NonNullable<DataType["domains"]>[number];
-
+//
 const DNSEntriesTable = () => {
-  const { domains } = useData<DataType>();
+  const trpc = useTRPC();
+  const { data: domains } = useQuery(trpc.getFlareDomains.queryOptions());
+  type OfDomains = inferOutput<typeof trpc.getFlareDomains>[number];
+
   const dispatch = useDispatch();
 
   // Get selected domains from Redux store
@@ -48,7 +49,7 @@ const DNSEntriesTable = () => {
     return selection;
   }, [domains, selectedDomains]);
 
-  const columnHelper = createColumnHelper<OfDomain>();
+  const columnHelper = createColumnHelper<OfDomains>();
 
   const columns = [
     columnHelper.display({

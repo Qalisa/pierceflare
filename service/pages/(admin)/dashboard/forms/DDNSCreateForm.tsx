@@ -1,6 +1,5 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { onSubmitDDNSEntry } from "./DDNSCreateForm.telefunc";
 import { expectedInput$ } from "./DDNSCreateForm.schemas";
 
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
@@ -13,6 +12,7 @@ import {
 } from "@/store/reducers/flashMessages";
 import { getModal, modalIds } from "@/helpers/modals";
 import { reload } from "vike/client/router";
+import { useTRPCClient } from "@/helpers/trpc";
 
 const formId = "ddns-create";
 
@@ -22,6 +22,9 @@ const DDNSCreateForm = ({
 }: {
   submitButtonOutside: boolean;
 }) => {
+  //
+  const trpc = useTRPCClient();
+
   //
   const {
     register,
@@ -68,7 +71,8 @@ const DDNSCreateForm = ({
         className="card-body"
         onSubmit={handleSubmit(
           async ({ subdomain, cloudFlareDomain, description }) => {
-            await onSubmitDDNSEntry(subdomain, cloudFlareDomain, description)
+            await trpc.submitDDNSEntry
+              .query({ subdomain, cloudFlareDomain, description })
               .then(async () => {
                 getModal(modalIds.createDDNS).closeModal({
                   onAnimationEnded() {

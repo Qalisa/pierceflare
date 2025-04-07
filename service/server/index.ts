@@ -1,4 +1,5 @@
 import {
+  CANONICAL_URL,
   CLOUDFLARE_API_TOKEN,
   SERVICE_AUTH_PASSWORD,
   SERVICE_AUTH_USERNAME,
@@ -8,15 +9,13 @@ import {
 } from "./env";
 import { bearerAuth } from "hono/bearer-auth";
 
-import type { Telefunc } from "telefunc";
-import { telefunc } from "telefunc";
+import { trpcServer } from "@hono/trpc-server";
 import { routes } from "../helpers/routes";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import db, { prewarmDb } from "@/db";
 import { flareKeys, flares } from "@/db/schema";
 
-import type { Context } from "hono";
 import { Hono } from "hono";
 import { compress } from "hono/compress";
 import type { Session } from "hono-sessions";
@@ -33,13 +32,17 @@ import Cloudflare from "cloudflare";
 import { CloudflareDNSWorker } from "./cloudflare/cloudflareWorker";
 import { getZones } from "./cloudflare/zones";
 import { cfEmitter } from "./cloudflare/cfOrders";
+import type { HonoContext } from "./trpc/_base";
+import { appRouter } from "./trpc/router";
 
 //
 //
 //
 
+//
 export const PORT = process.env.PORT ?? "3000";
 
+//
 const startServer = async () => {
   //
   // DB SETUP (AUTO CREATION, MIGRATIONS...)
@@ -275,57 +278,20 @@ const startServer = async () => {
   });
 
   //
-  // VIKE
+  // tRPC middleware
   //
 
-  //
-  const injectedFromHono = ({ get }: Context) => {
-    const session = get("session") as Session<SessionDataTypes>;
-    const user = session.get("user");
-    const authFailure = session.get("authFailure");
-
-    const injecting: PageContextInjection = {
-      injected: {
-        ...(authFailure ? { authFailure } : {}),
-        ...(user ? { user } : {}),
-        availableCloudflareDomains,
-        k8sApp: {
-          imageRevision,
-          imageVersion,
-          version,
-        },
-      },
-    };
-
-    return injecting;
-  };
-
-  //
-  // Telefunc middleware
-  //
-
-  app.all("/_telefunc", async (c) => {
-    const { req, status, header, body } = c;
-    const httpResponse = await telefunc({
-      // HTTP Request URL, which is '/_telefunc' if we didn't modify config.telefuncUrl
-      url: req.url,
-      // HTTP Request Method (GET, POST, ...)
-      method: req.method,
-      // HTTP Request Body, which can be a string, buffer, or stream
-      body: await req.text(),
-      // Optional
-      context: {
-        ...(c.get("session").get("user") != null ? { userLogged: true } : {}),
-        availableCloudflareDomains,
-      } satisfies Telefunc.Context,
-    });
-
-    //
-    const { body: bodystr, statusCode, contentType } = httpResponse;
-    status(statusCode);
-    header("Content-Type", contentType);
-    return body(bodystr);
-  });
+  app.use(
+    "/trpc/*",
+    trpcServer({
+      router: appRouter,
+      createContext: (opts, c) =>
+        ({
+          ...(c.get("session").get("user") != null ? { userLogged: true } : {}),
+          availableCloudflareDomains,
+        }) satisfies HonoContext,
+    }),
+  );
 
   //
   // VIKE-SERVER
@@ -333,7 +299,25 @@ const startServer = async () => {
 
   //
   apply(app, {
-    pageContext: ({ hono: context }) => injectedFromHono(context),
+    pageContext: ({ hono: { get } }) => {
+      const session = get("session") as Session<SessionDataTypes>;
+      const user = session.get("user");
+      const authFailure = session.get("authFailure");
+      const injecting: PageContextInjection = {
+        injected: {
+          ...(authFailure ? { authFailure } : {}),
+          ...(user ? { user } : {}),
+          availableCloudflareDomains,
+          wsUrl: `${CANONICAL_URL}:${PORT}`,
+          k8sApp: {
+            imageRevision,
+            imageVersion,
+            version,
+          },
+        },
+      };
+      return injecting;
+    },
   });
 
   //

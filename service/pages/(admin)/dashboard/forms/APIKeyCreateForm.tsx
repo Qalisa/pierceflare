@@ -16,10 +16,10 @@ import { getModal, modalIds } from "@/helpers/modals";
 import type { RootState } from "@/store/reducers";
 
 import { Bars3BottomRightIcon } from "@heroicons/react/24/solid";
-import { onSubmitAPIKeyCreation } from "./APIKeyCreateForm.telefunc";
 import { useState } from "react";
 import { wait } from "@/helpers/withLinger";
 import { apiKeyCliEnvVariableName, cliTitle } from "@/helpers/static";
+import { useTRPCClient } from "@/helpers/trpc";
 
 const formId = "api-key-creation";
 
@@ -29,6 +29,8 @@ const APIKeyCreateForm = ({
 }: {
   submitButtonOutside: boolean;
 }) => {
+  //
+  const trpc = useTRPCClient();
   //
   const {
     handleSubmit,
@@ -91,7 +93,8 @@ const APIKeyCreateForm = ({
       id={formId}
       className="card"
       onSubmit={handleSubmit(async () =>
-        onSubmitAPIKeyCreation(generateApiKeyFor!)
+        trpc.createAPIKeyFor
+          .query({ ddnsForDomain: generateApiKeyFor! })
           .then(setGeneratedKey)
           .catch((e: Error) => {
             dispatch(

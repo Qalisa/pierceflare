@@ -10,10 +10,10 @@ import {
 import { clearSelected } from "@/store/reducers/ddnsEntries";
 import { getModal, modalIds } from "@/helpers/modals";
 import type { RootState } from "@/store/reducers";
-import { onSubmitDeleteDDNSEntries } from "./DDNSDeleteForm.telefunc";
 
 import { Bars3BottomRightIcon } from "@heroicons/react/24/solid";
 import { reload } from "vike/client/router";
+import { useTRPCClient } from "@/helpers/trpc";
 
 const formId = "ddns-delete";
 
@@ -23,6 +23,8 @@ const DDNSDeleteForm = ({
 }: {
   submitButtonOutside: boolean;
 }) => {
+  //
+  const trpc = useTRPCClient();
   //
   const {
     handleSubmit,
@@ -74,7 +76,8 @@ const DDNSDeleteForm = ({
         id={formId}
         className="card"
         onSubmit={handleSubmit(async () =>
-          onSubmitDeleteDDNSEntries(selectedForDeletion)
+          trpc.deleteDDNSEntries
+            .query({ subdomains: selectedForDeletion })
             .then(async () => {
               dispatch(clearSelected());
               dispatch(

@@ -1,6 +1,4 @@
 import DNSEntriesTable from "./tables/DNSEntries";
-import { useData } from "vike-react/useData";
-import type { DataType } from "./+data";
 import { title } from "@/helpers/static";
 import CreateDDNSEntryModal from "./modals/CreateDDNSEntry";
 import TableSkeleton from "@/components/TableSkeleton";
@@ -9,21 +7,22 @@ import { getModal, modalIds } from "@/helpers/modals";
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import appLogo from "@/assets/images/logo.webp";
 import ManageAPIKeysModal from "./modals/ManageAPIKeys";
+import { useTRPC } from "@/helpers/trpc";
+import { useQuery } from "@tanstack/react-query";
 
 //
 const DashboardPage = () => {
-  //
-  const data = useData<DataType>();
-
+  const trpc = useTRPC();
+  const { data } = useQuery(trpc.hasAnyFlareDomains.queryOptions());
   //
   return (
     <>
       <DashboardModals />
       {data ? (
-        data.noEntries ? (
-          <HeroNoDDNS />
-        ) : (
+        data.hasEntries ? (
           <DNSEntriesTable />
+        ) : (
+          <HeroNoDDNS />
         )
       ) : (
         <TableSkeleton />

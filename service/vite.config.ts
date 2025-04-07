@@ -3,7 +3,6 @@ import type { Plugin } from "vite";
 import { defineConfig } from "vite";
 import vike from "vike/plugin";
 import { URL, fileURLToPath } from "url";
-import { telefunc } from "telefunc/vite";
 import { cpSync, existsSync } from "fs";
 import { resolve } from "path";
 
@@ -35,7 +34,7 @@ const copyDrizzlePlugin: Plugin = {
 
 //
 export default defineConfig({
-  plugins: [copyDrizzlePlugin, vike(), react(), telefunc()],
+  plugins: [copyDrizzlePlugin, vike(), react()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./", import.meta.url)),

@@ -1,14 +1,17 @@
-import { useData } from "vike-react/useData";
-import type { DataType } from "./+data";
 import ReloadButton from "@/components/ReloadButton";
 import { useWebSocket } from "@/providers/websocket/useWebSocket";
 import WebSocketIndicator from "@/components/WebSocketIndicator";
 import { reload } from "vike/client/router";
-import { onTestPushMessage } from "./Page.telefunc";
+import { useTRPC, useTRPCClient } from "@/helpers/trpc";
+import { useQuery } from "@tanstack/react-query";
 
 //
 const FlaresFeedPage = () => {
-  const { apiKeys, flares } = useData<DataType>();
+  const trpc = useTRPC();
+  const trpcCli = useTRPCClient();
+  const { data: flares } = useQuery(trpc.getFlares.queryOptions());
+  const { data: apiKeys } = useQuery(trpc.getApiKeys.queryOptions());
+
   const { websocket } = useWebSocket();
   if (websocket) {
     websocket.onmessage = () => {
@@ -24,20 +27,16 @@ const FlaresFeedPage = () => {
         <button
           className="btn"
           onClick={() => {
-            onTestPushMessage();
+            trpcCli.sendTestFlare.query();
           }}
         >
           test
         </button>
       </div>
       <div className="divider"></div>
-      {apiKeys.map((e) => (
-        <span key={e.createdAt.toISOString()}>{JSON.stringify(e)}</span>
-      ))}
+      {apiKeys?.map((e) => <span key={e.createdAt}>{JSON.stringify(e)}</span>)}
       <div className="divider"></div>
-      {flares.map((e) => (
-        <span key={e.receivedAt.toISOString()}>{JSON.stringify(e)}</span>
-      ))}
+      {flares?.map((e) => <span key={e.receivedAt}>{JSON.stringify(e)}</span>)}
     </div>
   );
 };
