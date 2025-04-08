@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-table";
 import type { JSX } from "react";
 import { useCallback, useEffect } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useIsPresent } from "motion/react";
 import { useTRPC } from "@/helpers/trpc";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSubscription, type inferOutput } from "@trpc/tanstack-react-query";
@@ -44,7 +44,7 @@ const FlaresTable = ({
   );
 
   //
-  const { data: flares } = useQuery(trpc.getFlares.queryOptions());
+  const { data: flares } = useQuery(trpc.getFlares.queryOptions({ limit: 10 }));
   const { status, data: wsData } = useSubscription(
     trpc.onFlaresUpdates.subscriptionOptions(),
   );
@@ -179,17 +179,11 @@ const FlaresTable = ({
             ) : (
               <AnimatePresence>
                 {table.getRowModel().rows.map((row) => {
+                  //
                   return (
-                    <motion.tr
-                      key={row.id}
-                      className={
-                        row.getIsSelected() ? "bg-base-200" : undefined
-                      }
-                      initial={{ opacity: 1 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      layout
-                      transition={{ duration: 0.6 }}
+                    <TR
+                      isSelected={row.getIsSelected()}
+                      key={row.getValue("receivedAt")}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <td key={cell.id}>
@@ -199,7 +193,7 @@ const FlaresTable = ({
                           )}
                         </td>
                       ))}
-                    </motion.tr>
+                    </TR>
                   );
                 })}
               </AnimatePresence>
@@ -208,6 +202,37 @@ const FlaresTable = ({
         </table>
       </div>
     </div>
+  );
+};
+
+//
+const TR = ({
+  isSelected,
+  children,
+}: {
+  children: React.ReactNode;
+  isSelected: boolean;
+}) => {
+  //
+  const isPresent = useIsPresent();
+
+  //
+  return (
+    <motion.tr
+      className={isSelected ? "bg-base-200" : undefined}
+      layout
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      style={{
+        position: isPresent ? "relative" : "absolute",
+        display: isPresent ? "table-row" : "flex",
+        alignItems: isPresent ? "" : "center",
+      }}
+    >
+      {children}
+    </motion.tr>
   );
 };
 

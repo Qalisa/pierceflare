@@ -129,9 +129,19 @@ const apiProtected = {
   //
   getApiKeys: protectedProcedure.query(() => getDb().select().from(flareKeys)),
   //
-  getFlares: protectedProcedure.query(() =>
-    getDb().select().from(flares).orderBy(desc(flares.receivedAt)),
-  ),
+  getFlares: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().default(10),
+      }),
+    )
+    .query(({ input }) =>
+      getDb()
+        .select()
+        .from(flares)
+        .orderBy(desc(flares.receivedAt))
+        .limit(input.limit),
+    ),
   //
   //
   //
