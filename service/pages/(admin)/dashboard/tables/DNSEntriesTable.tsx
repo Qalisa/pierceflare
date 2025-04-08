@@ -210,6 +210,7 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
           </button>
         )}
         <ReloadButton
+          className="ml-auto"
           action={() => invalidateFlareDomains(trpc, queryClient)}
         />
       </div>

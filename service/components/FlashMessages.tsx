@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { FlashMessageType } from "@/store/reducers/flashMessages";
 import { clearFlashMessages } from "@/store/reducers/flashMessages";
 import { onlyUniqueStr } from "@/helpers/onlyUnique";
+import CopyToClipboardButton from "./CopyToClipboardButton";
 
 const lingerDurationMs = 2_000; // 2 secs
 const iconSize = "size-6"; // 1.5rem
@@ -89,6 +90,10 @@ const FlashMessages = () => {
                 >
                   {icon}
                   <span>{message}</span>
+                  <CopyToClipboardButton
+                    tobeCopied={message}
+                    flashForSuccess={false}
+                  />
                 </motion.div>
               );
             })}

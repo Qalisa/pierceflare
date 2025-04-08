@@ -1,7 +1,13 @@
 import type { TRPCSubscriptionStatus } from "@trpc/tanstack-react-query";
 
 //
-const WebSocketIndicator = ({ status }: { status: TRPCSubscriptionStatus }) => {
+const WebSocketIndicator = ({
+  status,
+  className,
+}: {
+  status: TRPCSubscriptionStatus;
+  className?: string;
+}) => {
   //
   const statusCss = (() => {
     switch (status) {
@@ -17,7 +23,7 @@ const WebSocketIndicator = ({ status }: { status: TRPCSubscriptionStatus }) => {
 
   //
   return (
-    <div className="flex items-center gap-2">
+    <div className={["flex items-center gap-2", className].join(" ")}>
       <span className="text-xs">Live Updates</span>
       <div className="inline-grid *:[grid-area:1/1]">
         <div className={"status animate-ping " + statusCss}></div>

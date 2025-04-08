@@ -1,25 +1,17 @@
 import { useForm } from "react-hook-form";
 
-import {
-  CheckCircleIcon,
-  CheckIcon,
-  ClipboardIcon,
-  PlusIcon,
-} from "@heroicons/react/24/solid";
+import { CheckCircleIcon, PlusIcon } from "@heroicons/react/24/solid";
 
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addErrorMessage,
-  addSuccessMessage,
-} from "@/store/reducers/flashMessages";
+import { addErrorMessage } from "@/store/reducers/flashMessages";
 import { getModal, modalIds } from "@/helpers/modals";
 import type { RootState } from "@/store/reducers";
 
 import { Bars3BottomRightIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
-import { wait } from "@/helpers/withLinger";
 import { apiKeyCliEnvVariableName, cliTitle } from "@/helpers/static";
 import { useTRPCClient } from "@/helpers/trpc";
+import CopyToClipboardButton from "@/components/CopyToClipboardButton";
 
 const formId = "api-key-creation";
 
@@ -55,7 +47,14 @@ const APIKeyCreateForm = ({
   //
   const buttons = (
     <>
-      {keyCreated && <CopyButton tobeCopied={generatedKey} />}
+      {keyCreated && (
+        <CopyToClipboardButton
+          flashForSuccess={true}
+          tobeCopied={generatedKey}
+          btnText="Copy key"
+          lingerWaitMs={300}
+        />
+      )}
       <button
         className="btn"
         disabled={isSubmitting}
@@ -127,44 +126,6 @@ const APIKeyCreateForm = ({
     ...(submitButtonOutside ? { buttons } : {}),
     form: keyCreated ? <HeroKeyCreated apiKey={generatedKey!} /> : form,
   };
-};
-
-//
-//
-const CopyButton = ({ tobeCopied }: { tobeCopied: string }) => {
-  //
-  const dispatch = useDispatch();
-  const [copied, setCopied] = useState<"no" | "yes" | "ongoing">("no");
-
-  //
-  return (
-    <button
-      onClick={async () => {
-        //
-        setCopied("ongoing");
-        await wait(600);
-
-        //
-        navigator.clipboard.writeText(tobeCopied);
-        dispatch(addSuccessMessage("API key copied to clipboard !"));
-        setCopied("yes");
-      }}
-      disabled={copied != "no"}
-      className={`btn ${copied ? "btn-neutral" : "btn-success"}`}
-    >
-      {(() => {
-        switch (copied) {
-          case "no":
-            return <ClipboardIcon className="size-4" />;
-          case "ongoing":
-            return <span className="loading loading-spinner loading-xs"></span>;
-          case "yes":
-            return <CheckIcon className="size-4" />;
-        }
-      })()}
-      {copied == "yes" ? "Copied !" : "Copy key"}
-    </button>
-  );
 };
 
 //

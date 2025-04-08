@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "eafbf475-c260-4370-93ee-a21e3792ddcb",
+  "id": "8d50e5a2-5be6-409d-8d0a-b6a05eb93db2",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "flare_domains": {

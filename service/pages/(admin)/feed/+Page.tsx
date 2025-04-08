@@ -1,11 +1,10 @@
-import ReloadButton from "@/components/ReloadButton";
-import WebSocketIndicator from "@/components/WebSocketIndicator";
 import { useTRPC, useTRPCClient } from "@/helpers/trpc";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { TrashIcon } from "@heroicons/react/24/solid";
-import { useSubscription } from "@trpc/tanstack-react-query";
-import type { InferSelectModel } from "drizzle-orm";
+import FlaresTable from "./tables/FlaresTable";
+import appLogo from "@/assets/images/logo.webp";
+import { cliTitle } from "@/helpers/static";
 
 //
 //
@@ -13,7 +12,62 @@ import type { InferSelectModel } from "drizzle-orm";
 
 //
 const FlaresFeedPage = () => {
+  //
+  return (
+    <FlaresTable
+      noData={<HeroNoFlares />}
+      belt={import.meta.env.DEV ? <FlareGeneratorCommandBelt /> : undefined}
+    />
+  );
+};
+
+//
+//
+//
+
+const HeroNoFlares = () => {
+  //
+  return (
+    <div className="hero mt-8">
+      <div className="hero-content text-center">
+        <div>
+          <img
+            src={appLogo}
+            className="size-2/12 place-self-center self-center"
+            alt=""
+          />
+          <br />
+          <h1 className="text-3xl font-bold">No Flares received yet.</h1>
+          <p className="py-6">
+            Please use <strong>{cliTitle}</strong> against one of the configured
+            DDNS.
+          </p>
+          <br />
+          <div className="mockup-code text-left">
+            <pre data-prefix="">
+              <code style={{ color: "green" }}>
+                # within <strong>{cliTitle}</strong> container&apos;s
+                interactive shell
+              </code>
+            </pre>
+            <pre data-prefix="$">
+              <code>./pierceflare-cli.sh --force-ping</code>
+            </pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+//
+//
+//
+
+const FlareGeneratorCommandBelt = () => {
+  //
   const trpc = useTRPC();
+  const trpcCli = useTRPCClient();
   const queryClient = useQueryClient();
 
   //
@@ -24,46 +78,6 @@ const FlaresFeedPage = () => {
       }),
     [queryClient, trpc],
   );
-
-  //
-  const { data: flares } = useQuery(trpc.getFlares.queryOptions());
-  const { status, data } = useSubscription(
-    trpc.onFlaresUpdates.subscriptionOptions(),
-  );
-
-  //
-  useEffect(() => {
-    invalidateFlares();
-  }, [data]);
-
-  //
-  return (
-    <div className="w-11/12">
-      <div className="mx-4 flex items-center gap-4">
-        <ReloadButton action={invalidateFlares} />
-        <WebSocketIndicator status={status} />
-        {import.meta.env.DEV && (
-          <FlareGeneratorCommandBelt forceInvalidation={invalidateFlares} />
-        )}
-      </div>
-      <div className="divider"></div>
-      {flares?.map((e) => <span key={e.receivedAt}>{JSON.stringify(e)}</span>)}
-    </div>
-  );
-};
-
-//
-//
-//
-
-const FlareGeneratorCommandBelt = ({
-  forceInvalidation,
-}: {
-  forceInvalidation: () => void;
-}) => {
-  //
-  const trpc = useTRPC();
-  const trpcCli = useTRPCClient();
 
   const { data: domains } = useQuery(trpc.getFlareDomains.queryOptions());
   const [selectedOption, setSelectedOption] = useState<string | undefined>(
@@ -109,7 +123,7 @@ const FlareGeneratorCommandBelt = ({
         <button
           onClick={async () => {
             await trpcCli.deleteAllFlares.query();
-            forceInvalidation();
+            invalidateFlares();
           }}
           className="btn btn-xs btn-error join-item"
         >

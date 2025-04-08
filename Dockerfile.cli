@@ -8,10 +8,10 @@ RUN apk update && apk add --no-cache curl
 WORKDIR /app
 
 # Copy the client script into the image
-COPY cli/run.sh .
+COPY cli/pierceflare-cli.sh .
 
 # Make the script executable
-RUN chmod +x run.sh
+RUN chmod +x pierceflare-cli.sh
 
 # Set environment variables (defaults, can be overridden at runtime)
 # These MUST be provided when running the container
@@ -21,4 +21,4 @@ ENV PIERCEFLARE_SERVER_URL=""
 ENV PIERCEFLARE_CHECK_INTERVAL="300"
 
 # Run the script when the container starts
-CMD ["./run.sh"]
+CMD ["./pierceflare-cli.sh"]
