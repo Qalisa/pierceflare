@@ -6,8 +6,10 @@ export interface AppUser {
 //
 //
 
+/** do not store sensitive data */
 export type SessionDataTypes = {
   user?: AppUser;
+  encryptedSessionData?: string;
   authFailure?: { username?: string; message: string };
 };
 
@@ -16,13 +18,16 @@ export type SessionDataTypes = {
 //
 
 type InjectingPageContext = SessionDataTypes & {
+  //
   k8sApp: {
     imageVersion: string;
     imageRevision: string;
     version: string;
   };
+  //
   availableCloudflareDomains: string[];
-  tRPCUrl: string;
+  //
+  tRPCWsUrl: string;
 };
 
 export type PageContextInjection = {

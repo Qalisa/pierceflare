@@ -4,6 +4,8 @@ import { useTRPC, useTRPCClient } from "@/helpers/trpc";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { TrashIcon } from "@heroicons/react/24/solid";
+import { useSubscription } from "@trpc/tanstack-react-query";
+import type { InferSelectModel } from "drizzle-orm";
 
 //
 //
@@ -13,6 +15,8 @@ import { TrashIcon } from "@heroicons/react/24/solid";
 const FlaresFeedPage = () => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
+  //
   const invalidateFlares = useCallback(
     () =>
       queryClient.invalidateQueries({
@@ -21,28 +25,41 @@ const FlaresFeedPage = () => {
     [queryClient, trpc],
   );
 
+  //
   const { data: flares } = useQuery(trpc.getFlares.queryOptions());
-  const { data: apiKeys } = useQuery(trpc.getApiKeys.queryOptions());
+  const { status, data } = useSubscription(
+    trpc.onFlaresUpdates.subscriptionOptions(),
+  );
 
+  //
+  useEffect(() => {
+    invalidateFlares();
+  }, [data]);
+
+  //
   return (
     <div className="w-11/12">
       <div className="mx-4 flex items-center gap-4">
         <ReloadButton action={invalidateFlares} />
-        <WebSocketIndicator />
-        <FlareGeneratorCommandBelt invalidateFlares={invalidateFlares} />
+        <WebSocketIndicator status={status} />
+        {import.meta.env.DEV && (
+          <FlareGeneratorCommandBelt forceInvalidation={invalidateFlares} />
+        )}
       </div>
-      <div className="divider"></div>
-      {apiKeys?.map((e) => <span key={e.createdAt}>{JSON.stringify(e)}</span>)}
       <div className="divider"></div>
       {flares?.map((e) => <span key={e.receivedAt}>{JSON.stringify(e)}</span>)}
     </div>
   );
 };
 
+//
+//
+//
+
 const FlareGeneratorCommandBelt = ({
-  invalidateFlares,
+  forceInvalidation,
 }: {
-  invalidateFlares: () => void;
+  forceInvalidation: () => void;
 }) => {
   //
   const trpc = useTRPC();
@@ -55,7 +72,7 @@ const FlareGeneratorCommandBelt = ({
 
   //
   useEffect(() => {
-    if (domains && !selectedOption) {
+    if (domains && domains.length && !selectedOption) {
       setSelectedOption(domains[0].ddnsForDomain);
     }
   }, [selectedOption, domains]);
@@ -66,11 +83,18 @@ const FlareGeneratorCommandBelt = ({
       <select
         className="select select-xs join-item"
         value={selectedOption}
+        disabled={domains == undefined || domains.length == 0}
         onChange={(e) => setSelectedOption(e.target.value)}
       >
-        {domains?.map((e) => (
-          <option key={e.ddnsForDomain}>{e.ddnsForDomain}</option>
-        ))}
+        {domains == undefined ? (
+          <option>Loading...</option>
+        ) : domains.length ? (
+          domains.map((e) => (
+            <option key={e.ddnsForDomain}>{e.ddnsForDomain}</option>
+          ))
+        ) : (
+          <option>No domain yet !</option>
+        )}
       </select>
       <div className="join join-horizontal join-item">
         <button
@@ -78,7 +102,6 @@ const FlareGeneratorCommandBelt = ({
           disabled={selectedOption == undefined}
           onClick={async () => {
             await trpcCli.sendTestFlare.query({ ofDomain: selectedOption! });
-            invalidateFlares();
           }}
         >
           Generate Flare
@@ -86,11 +109,12 @@ const FlareGeneratorCommandBelt = ({
         <button
           onClick={async () => {
             await trpcCli.deleteAllFlares.query();
-            invalidateFlares();
+            forceInvalidation();
           }}
           className="btn btn-xs btn-error join-item"
         >
-          <TrashIcon className="size-2" />
+          <TrashIcon className="size-3" />
+          All
         </button>
       </div>
     </div>

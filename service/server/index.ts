@@ -1,5 +1,4 @@
 import {
-  CANONICAL_URL,
   CLOUDFLARE_API_TOKEN,
   PORT,
   SERVICE_AUTH_PASSWORD,
@@ -14,14 +13,14 @@ import { trpcServer } from "@hono/trpc-server";
 import { routes } from "../helpers/routes";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
-import db, { prewarmDb } from "@/db";
+import { getDb } from "@/db";
 import { flareKeys, flares } from "@/db/schema";
 
 import { Hono } from "hono";
 import { compress } from "hono/compress";
 import type { Session } from "hono-sessions";
-import { MemoryStore, sessionMiddleware } from "hono-sessions";
-import { title } from "../helpers/static";
+import { CookieStore, sessionMiddleware } from "hono-sessions";
+import { title, wsUrl } from "../helpers/static";
 import type { PageContextInjection, SessionDataTypes } from "@/helpers/types";
 import { eq } from "drizzle-orm";
 import { getConnInfo } from "@hono/node-server/conninfo";
@@ -34,6 +33,8 @@ import { cfEmitter } from "./cloudflare/cfOrders";
 import type { HonoContext } from "./trpc/_base";
 import { appRouter } from "./trpc/router";
 import startTRPCWsServer from "./trpc/wsServer";
+import { type HttpBindings } from "@hono/node-server";
+import { getCookie } from "hono/cookie";
 
 //
 //
@@ -41,40 +42,40 @@ import startTRPCWsServer from "./trpc/wsServer";
 
 //
 const startServer = async () => {
-  //
-  // DB SETUP (AUTO CREATION, MIGRATIONS...)
-  //
+  /** we do not need available domains right await for UI, just pass them empty until filled */
+  let availableCloudflareDomains: string[] = [];
+  const cookiesEncryptionKey = "password_at_least_32_characters_long";
 
-  prewarmDb();
+  const wsServerIsReady = startTRPCWsServer(
+    cookiesEncryptionKey,
+    () => availableCloudflareDomains,
+  );
 
-  //
-  // Cloudflare WORKER
-  //
+  const cfWorkerPromise = (async () => {
+    //
+    const cloudflareCli = new Cloudflare({
+      apiToken: CLOUDFLARE_API_TOKEN,
+    });
 
-  const orderer = cfEmitter;
+    //
+    const zones = await getZones(cloudflareCli);
+    availableCloudflareDomains = zones.map(([_id, name]) => name);
 
-  //
-  const cloudflareCli = new Cloudflare({
-    apiToken: CLOUDFLARE_API_TOKEN,
-  });
+    //
+    const cfWorker = new CloudflareDNSWorker(cfEmitter, {
+      zones,
+      cloudflareCli,
+      rateLimit: 1200, // Cloudflare's rate limit is 1200 requests per 5 minutes
+      maxConcurrent: 1,
+      timeout: 10000,
+      retryDelay: 2000,
+      maxRetries: 0,
+    });
 
-  //
-  const zones = await getZones(cloudflareCli);
-  const availableCloudflareDomains = zones.map(([_id, name]) => name);
-
-  //
-  const cfWorker = new CloudflareDNSWorker(orderer, {
-    zones,
-    cloudflareCli,
-    rateLimit: 1200, // Cloudflare's rate limit is 1200 requests per 5 minutes
-    maxConcurrent: 1,
-    timeout: 10000,
-    retryDelay: 2000,
-    maxRetries: 0,
-  });
-
-  const cfWorkerFlow = cfWorker.flow;
-  lastValueFrom(cfWorkerFlow);
+    return {
+      cfWorker,
+    };
+  })();
 
   //
   // WEB SERVER
@@ -88,6 +89,7 @@ const startServer = async () => {
       apiContext: {
         ddnsForDomain: string;
       };
+      Bindings: HttpBindings;
     };
   }>();
 
@@ -101,9 +103,19 @@ const startServer = async () => {
   // SESSION
   //
 
+  //
+  const sessionCookieName = "sessionId";
   app.use(
     sessionMiddleware({
-      store: new MemoryStore(),
+      store: new CookieStore(),
+      encryptionKey: cookiesEncryptionKey, // Required for CookieStore, recommended for others
+      expireAfterSeconds: 900, // Expire session after 15 minutes of inactivity
+      sessionCookieName,
+      cookieOptions: {
+        sameSite: "Lax", // Recommended for basic CSRF protection in modern browsers
+        path: "/", // Required for this library to work properly
+        httpOnly: true, // Recommended to avoid XSS attacks
+      },
     }),
   );
 
@@ -132,7 +144,8 @@ const startServer = async () => {
     }
 
     const authOK =
-      SERVICE_AUTH_USERNAME == username && SERVICE_AUTH_PASSWORD == password;
+      SERVICE_AUTH_USERNAME == username.trim() &&
+      SERVICE_AUTH_PASSWORD == password;
     if (!authOK) {
       return loginFailed("Invalid credentials", username);
     }
@@ -176,7 +189,7 @@ const startServer = async () => {
     bearerAuth({
       verifyToken: async (token, { status, set }) => {
         //
-        const [{ ddnsForDomain }] = await db
+        const [{ ddnsForDomain }] = await getDb()
           .select({ ddnsForDomain: flareKeys.ddnsForDomain })
           .from(flareKeys)
           .where(eq(flareKeys.apiKey, token))
@@ -212,12 +225,14 @@ const startServer = async () => {
     }
 
     //
-    await db.insert(flares).values({
-      flaredIPv6: addressType === "IPv6" ? address : null,
-      flaredIPv4: addressType === "IPv4" ? address : null,
-      ofDomain: ddnsForDomain,
-      receivedAt: new Date(),
-    });
+    await getDb()
+      .insert(flares)
+      .values({
+        flaredIPv6: addressType === "IPv6" ? address : null,
+        flaredIPv4: addressType === "IPv4" ? address : null,
+        ofDomain: ddnsForDomain,
+        receivedAt: new Date(),
+      });
 
     //
     cfEmitter.next({
@@ -239,17 +254,18 @@ const startServer = async () => {
   // tRPC middleware (API + Websockets)
   //
 
-  await startTRPCWsServer();
-
+  //
   app.use(
     `${routes.trpc.root}/*`,
     trpcServer({
       router: appRouter,
-      createContext: (_opts, c) =>
-        ({
+      createContext: (_opts, c) => {
+        //
+        return {
           ...(c.get("session").get("user") != null ? { userLogged: true } : {}),
           availableCloudflareDomains,
-        }) satisfies HonoContext,
+        } satisfies HonoContext;
+      },
     }),
   );
 
@@ -259,19 +275,22 @@ const startServer = async () => {
 
   //
   apply(app, {
-    pageContext: ({ hono: { get } }) => {
-      const session = get("session") as Session<SessionDataTypes>;
+    pageContext: ({ hono: c }) => {
+      const session = c.get("session") as Session<SessionDataTypes>;
       const user = session.get("user");
       const authFailure = session.get("authFailure");
-      const tRPCUrl = `${CANONICAL_URL.origin}${routes.trpc.root}`;
+      const tRPCWsUrl = wsUrl;
 
       //
       const injecting: PageContextInjection = {
         injected: {
           ...(authFailure ? { authFailure } : {}),
           ...(user ? { user } : {}),
+          ...(user
+            ? { encryptedSessionData: getCookie(c, sessionCookieName) }
+            : {}),
           availableCloudflareDomains,
-          tRPCUrl,
+          tRPCWsUrl,
           k8sApp: {
             imageRevision,
             imageVersion,
@@ -279,9 +298,27 @@ const startServer = async () => {
           },
         },
       };
+
+      //
       return injecting;
     },
   });
+
+  //
+  // workers
+  //
+
+  //
+  if (import.meta.env.PROD) {
+    await Promise.all([wsServerIsReady, async () => getDb()]);
+  }
+
+  //
+  cfWorkerPromise.then((e) => lastValueFrom(e.cfWorker.flow));
+
+  //
+  // Serve Server !
+  //
 
   //
   return serve(app, {

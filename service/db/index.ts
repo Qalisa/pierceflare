@@ -4,7 +4,8 @@ import { createClient } from "@libsql/client/node";
 import { SERVICE_DATABASE_FILES_PATH } from "@/server/env";
 import { title } from "@/helpers/static";
 
-const db = (() => {
+//
+const readyingDB = () => {
   const appDbName = title.toLowerCase();
   const sqlite = createClient({
     url: `file:${SERVICE_DATABASE_FILES_PATH}/${appDbName}.db`,
@@ -15,12 +16,11 @@ const db = (() => {
   migrate(db, { migrationsFolder: "./drizzle" });
   console.log(`[${title}]`, "DB Schema Migration Done.");
   return db;
-})();
-
-//
-export const prewarmDb = () => {
-  return db;
 };
 
 //
-export default db;
+let db: ReturnType<typeof readyingDB> | null = null;
+
+export const getDb = () => {
+  return db ?? (db = readyingDB());
+};

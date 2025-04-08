@@ -1,4 +1,4 @@
-import db from "@/db";
+import { getDb } from "@/db";
 import { flareKeys, flares } from "@/db/schema";
 import { produceRandomKey } from "@/helpers/random";
 import { count, eq, inArray } from "drizzle-orm";
@@ -6,6 +6,10 @@ import { flareDomains } from "@/db/schema";
 import { TRPCError } from "@trpc/server";
 import { addLinger, protectedProcedure } from "./_base";
 import { z } from "zod";
+import EventEmitter, { on } from "events";
+import type { InferSelectModel } from "drizzle-orm";
+
+const ee = new EventEmitter();
 
 //
 export const produceUnusedAPIKey = async () => {
@@ -13,7 +17,7 @@ export const produceUnusedAPIKey = async () => {
     //
     const key = produceRandomKey();
     //
-    const [{ count: alreadyExist }] = await db
+    const [{ count: alreadyExist }] = await getDb()
       .select({ count: count() })
       .from(flareKeys)
       .where(eq(flareKeys.apiKey, key));
@@ -39,7 +43,7 @@ const apiProtected = {
       const apiKey = await produceUnusedAPIKey();
 
       //
-      await db.insert(flareKeys).values({
+      await getDb().insert(flareKeys).values({
         ddnsForDomain,
         apiKey,
         createdAt: new Date(),
@@ -77,11 +81,13 @@ const apiProtected = {
         }
 
         //
-        await db.insert(flareDomains).values({
-          ddnsForDomain: `${subdomain}.${cloudFlareDomain}`,
-          description,
-          createdAt: new Date(),
-        });
+        await getDb()
+          .insert(flareDomains)
+          .values({
+            ddnsForDomain: `${subdomain}.${cloudFlareDomain}`,
+            description,
+            createdAt: new Date(),
+          });
       },
     ),
   //
@@ -90,12 +96,12 @@ const apiProtected = {
     .input(z.object({ subdomains: z.string().array() }))
     .query(async ({ input: { subdomains } }) => {
       //
-      await db
+      await getDb()
         .delete(flareDomains)
         .where(inArray(flareDomains.ddnsForDomain, subdomains));
 
       // TODO: make cascading delete work and remove below
-      await db
+      await getDb()
         .delete(flareKeys)
         .where(inArray(flareKeys.ddnsForDomain, subdomains));
     }),
@@ -103,7 +109,11 @@ const apiProtected = {
   sendTestFlare: protectedProcedure
     .input(z.object({ ofDomain: z.string().nonempty() }))
     .query(async ({ input: { ofDomain } }) => {
-      await db.insert(flares).values({ receivedAt: new Date(), ofDomain });
+      const testFlare = await getDb()
+        .insert(flares)
+        .values({ receivedAt: new Date(), ofDomain })
+        .returning();
+      ee.emit("add", testFlare);
       // cfEmitter.next({
       //   operation: "update",
       //   record: {
@@ -115,15 +125,26 @@ const apiProtected = {
       // });
     }),
   //
-  deleteAllFlares: protectedProcedure.query(() => db.delete(flares)),
+  deleteAllFlares: protectedProcedure.query(() => getDb().delete(flares)),
   //
   getFlareDomains: protectedProcedure.query(() =>
-    db.select().from(flareDomains),
+    getDb().select().from(flareDomains),
   ),
   //
-  getApiKeys: protectedProcedure.query(() => db.select().from(flareKeys)),
+  getApiKeys: protectedProcedure.query(() => getDb().select().from(flareKeys)),
   //
-  getFlares: protectedProcedure.query(() => db.select().from(flares)),
+  getFlares: protectedProcedure.query(() => getDb().select().from(flares)),
+  //
+  //
+  //
+  onFlaresUpdates: protectedProcedure.subscription(async function* (opts) {
+    for await (const [data] of on(ee, "add", {
+      signal: opts.signal,
+    })) {
+      const flare = data as InferSelectModel<typeof flares>;
+      yield flare;
+    }
+  }),
 };
 
 export default apiProtected;

@@ -11,11 +11,17 @@ const t = initTRPC.context<HonoContext>().create();
 //
 export const protectedProcedure = t.procedure.use(
   async function isAuthed(opts) {
-    const { ctx } = opts;
-    if (!("userLogged" in ctx)) {
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+    const {
+      ctx: { userLogged },
+    } = opts;
+
+    //
+    if (userLogged == true) {
+      return opts.next();
     }
-    return opts.next();
+
+    //
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   },
 );
 

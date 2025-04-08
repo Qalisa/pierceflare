@@ -1,21 +1,17 @@
-import useWebSocket, { ReadyState } from "react-use-websocket";
+import type { TRPCSubscriptionStatus } from "@trpc/tanstack-react-query";
 
 //
-const WebSocketIndicator = () => {
-  const { readyState } = useWebSocket("ws://localhost:3000");
-
+const WebSocketIndicator = ({ status }: { status: TRPCSubscriptionStatus }) => {
   //
-  const status = (() => {
-    switch (readyState) {
-      case ReadyState.OPEN:
+  const statusCss = (() => {
+    switch (status) {
+      case "pending":
+      case "idle":
         return "status-success";
-      case ReadyState.CLOSED:
-      case ReadyState.CLOSING:
+      case "error":
         return "status-error";
-      case ReadyState.CONNECTING:
+      case "connecting":
         return "status-warning";
-      case ReadyState.UNINSTANTIATED:
-        return "status-secondary";
     }
   })();
 
@@ -24,8 +20,8 @@ const WebSocketIndicator = () => {
     <div className="flex items-center gap-2">
       <span className="text-xs">Live Updates</span>
       <div className="inline-grid *:[grid-area:1/1]">
-        <div className={"status animate-ping " + status}></div>
-        <div className={"status " + status}></div>
+        <div className={"status animate-ping " + statusCss}></div>
+        <div className={"status " + statusCss}></div>
       </div>
     </div>
   );
