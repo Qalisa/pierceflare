@@ -1,7 +1,14 @@
 import appLogo from "@/assets/images/logo.webp";
-import { routes } from "@/server/app";
+import { routes } from "@/helpers/routes";
+import { useRef, useState } from "react";
+import { usePageContext } from "vike-react/usePageContext";
 
 const IndexPage = () => {
+  const { injected } = usePageContext();
+  const { authFailure } = injected;
+  const [sent, setSent] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
   //
   return (
     <>
@@ -9,8 +16,12 @@ const IndexPage = () => {
         <figure>
           <img alt="" src={appLogo} width="100px" />
         </figure>
-        <form className="card-body" method="POST" action={routes.pages.login}>
-          <h2 className="card-title">Login</h2>
+        <form
+          className="card-body"
+          method="POST"
+          action={routes.pages.login}
+          ref={formRef}
+        >
           <fieldset className="fieldset">
             <input
               name="username"
@@ -18,7 +29,9 @@ const IndexPage = () => {
               className="input"
               placeholder="Username"
               autoComplete="username"
+              defaultValue={authFailure?.username}
               required
+              disabled={sent}
             />
           </fieldset>
           <fieldset className="fieldset">
@@ -29,9 +42,24 @@ const IndexPage = () => {
               className="input"
               placeholder="Password"
               required
+              disabled={sent}
             />
           </fieldset>
-          <input type="submit" className="btn btn-block" />
+          <button
+            type="submit"
+            className="btn btn-block btn-primary mt-1"
+            disabled={sent}
+            onClick={(e) => {
+              e.preventDefault();
+              setSent(true);
+              formRef.current?.submit();
+            }}
+          >
+            Login
+            {sent && (
+              <span className="loading loading-spinner loading-xs"></span>
+            )}
+          </button>
         </form>
       </div>
     </>

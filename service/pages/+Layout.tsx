@@ -5,21 +5,16 @@ import { usePageContext } from "vike-react/usePageContext";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 
 import appLogo from "@/assets/images/logo.webp";
-import { githubRepoUrl, title } from "@/server/static";
+import { githubRepoUrl, title } from "@/helpers/static";
+
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useState } from "react";
 
 //
 const Layout = ({ children }: { children: React.ReactNode }) => {
-  const { authFailureMessages } = usePageContext();
-
   return (
     <>
-      {authFailureMessages && (
-        <div className="absolute top-0 flex w-full flex-col gap-1">
-          {authFailureMessages.map((e, i) => (
-            <Failure message={e} key={i} />
-          ))}
-        </div>
-      )}
+      <FailureDock />
       <div id="app">{children}</div>
       <Footer />
     </>
@@ -27,10 +22,13 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 };
 
 //
+//
+//
+
+//
 const Footer = () => {
-  const {
-    k8sApp: { version, imageRevision, imageVersion },
-  } = usePageContext();
+  const { injected } = usePageContext();
+  const { version, imageRevision, imageVersion } = injected.k8sApp;
 
   //
   return (
@@ -68,11 +66,53 @@ const Footer = () => {
 };
 
 //
-const Failure = ({ message }: { message: string }) => (
-  <div role="alert" className="alert alert-error m-4">
-    <ExclamationTriangleIcon className="size-4" />
-    <span>{message}</span>
-  </div>
-);
+//
+//
+
+const FailureDock = () => {
+  const { injected } = usePageContext();
+  const { authFailure } = injected;
+
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    if (visible) {
+      const timer = setTimeout(() => setVisible(false), 2000);
+      return () => clearTimeout(timer); // Cleanup on unmount
+    }
+  }, [visible]);
+
+  return (
+    <>
+      {authFailure && (
+        <div className="absolute top-0 flex w-full flex-col gap-1">
+          {[authFailure].map(({ message }, i) => (
+            <AnimatePresence key={i}>
+              {visible && <Failure message={message} />}
+            </AnimatePresence>
+          ))}
+        </div>
+      )}
+    </>
+  );
+};
+
+//
+const Failure = ({ message }: { message: string }) => {
+  //
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      role="alert"
+      className="alert alert-error m-4"
+    >
+      <ExclamationTriangleIcon className="size-6" />
+      <span>{message}</span>
+    </motion.div>
+  );
+};
 
 export default Layout;

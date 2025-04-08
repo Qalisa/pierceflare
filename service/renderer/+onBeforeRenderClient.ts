@@ -1,5 +1,5 @@
 import { getRootStore } from "@/store";
-import { PageContext } from "vike/types";
+import type { PageContext } from "vike/types";
 
 // store is initialized only once on the client, so it can persist between client-side navigations
 let store: ReturnType<typeof getRootStore> | null = null;

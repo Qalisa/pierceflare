@@ -1,28 +1,57 @@
-import { usePageContext } from "vike-react/usePageContext";
+import DNSEntriesTable from "./tables/DNSEntriesTable";
+import { title } from "@/helpers/static";
+import CreateDDNSEntryModal from "./modals/CreateDDNSEntry";
+import DeleteDDNSEntriesModal from "./modals/DeleteDDNSEntries";
+import { getModal, modalIds } from "@/helpers/modals";
+import { PlusCircleIcon } from "@heroicons/react/24/solid";
+import appLogo from "@/assets/images/logo.webp";
+import ManageAPIKeysModal from "./modals/ManageAPIKeys";
 
+//
 const DashboardPage = () => {
-  //
-  const { user } = usePageContext();
-
   //
   return (
     <>
-      <h1>Hello {user!.username} !</h1>
-      <table className="table-xs table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Name</th>
-            <th>Job</th>
-            <th>company</th>
-            <th>location</th>
-            <th>Last Login</th>
-            <th>Favorite Color</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <DashboardModals />
+      <DNSEntriesTable noData={<HeroNoDDNS />} />
     </>
+  );
+};
+
+//
+const DashboardModals = () => {
+  return (
+    <>
+      <CreateDDNSEntryModal />
+      <DeleteDDNSEntriesModal />
+      <ManageAPIKeysModal />
+    </>
+  );
+};
+
+const HeroNoDDNS = () => {
+  return (
+    <div className="hero m-auto">
+      <div className="hero-content text-center">
+        <div className="max-w-md">
+          <img
+            src={appLogo}
+            className="size-4/12 place-self-center self-center"
+            alt=""
+          />
+          <br />
+          <h1 className="text-5xl font-bold">No DDNS Entry yet.</h1>
+          <p className="py-6">Please create one before using {title}.</p>
+          <button
+            className="btn btn-primary"
+            onClick={() => getModal(modalIds.createDDNS).openModal()}
+          >
+            <PlusCircleIcon className="size-4" />
+            Create DDNS Entry
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -1,7 +1,7 @@
 import type { OnPageTransitionStartAsync } from "vike/types";
 
-export const onPageTransitionStart: OnPageTransitionStartAsync = async (
-  pageContext,
-) => {
-  document.querySelector("body")?.classList.add("page-is-transitioning");
+export const onPageTransitionStart: OnPageTransitionStartAsync = async () => {
+  document
+    .querySelector("#page-content")
+    ?.classList.add("page-is-transitioning");
 };

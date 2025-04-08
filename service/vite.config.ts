@@ -1,9 +1,9 @@
 import react from "@vitejs/plugin-react";
-import { defineConfig, Plugin } from "vite";
+import type { Plugin } from "vite";
+import { defineConfig } from "vite";
 import vike from "vike/plugin";
-import { fileURLToPath, URL } from "url";
-import { telefunc } from "telefunc/vite";
-import { existsSync, cpSync } from "fs";
+import { URL, fileURLToPath } from "url";
+import { cpSync, existsSync } from "fs";
 import { resolve } from "path";
 
 //
@@ -34,7 +34,7 @@ const copyDrizzlePlugin: Plugin = {
 
 //
 export default defineConfig({
-  plugins: [copyDrizzlePlugin, vike(), react(), telefunc()],
+  plugins: [copyDrizzlePlugin, vike(), react()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./", import.meta.url)),

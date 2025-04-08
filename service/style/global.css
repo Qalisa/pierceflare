@@ -21,6 +21,6 @@ body {
   opacity: 1;
   transition: opacity 0.3s ease-in-out;
 }
-body.page-is-transitioning #page-content {
+#page-content.page-is-transitioning {
   opacity: 0;
 }

@@ -1,9 +1,14 @@
 ARG K8S_APP__VERSION="[unknown-from-docker]"
+ARG CANONICAL_URL="[define-me-pls]"
 
 # use the official Bun image
 # see all versions at https://hub.docker.com/r/oven/bun/tags
 FROM oven/bun:1 AS base
 WORKDIR /usr/src/app
+
+##
+##
+##
 
 # install dependencies into temp directory
 # this will cache them and speed up future builds
@@ -17,12 +22,18 @@ RUN mkdir -p /temp/prod
 COPY service/package.json service/bun.lock /temp/prod/
 RUN cd /temp/prod && bun install --frozen-lockfile --production
 
+##
+##
+##
+
 # copy node_modules from temp directory
 # then copy all (non-ignored) project files into the image
 FROM base AS prerelease
 ARG K8S_APP__VERSION
+ARG CANONICAL_URL
 
-ENV K8S_APP__VERSION=$K8S_APP__VERSION
+ENV K8S_APP__VERSION=$K8S_APP__VERSION \
+    CANONICAL_URL=$CANONICAL_URL
 
 COPY --from=install /temp/dev/node_modules node_modules
 COPY service/. .
@@ -30,6 +41,10 @@ COPY service/. .
 # [optional] tests & build
 ENV NODE_ENV=production
 RUN bunx --bun vike build
+
+##
+##
+##
 
 # copy production dependencies and source code into final image
 FROM oven/bun:1-alpine AS lean

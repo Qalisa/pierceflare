@@ -1,21 +1,49 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "f75bb705-e672-44df-8ed5-f6dec0fd2d05",
+  "id": "65231680-8e79-4a32-b730-052162524303",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "flares": {
-      "name": "flares",
+    "flare_domains": {
+      "name": "flare_domains",
       "columns": {
-        "domain": {
-          "name": "domain",
+        "ddnsForDomain": {
+          "name": "ddnsForDomain",
           "type": "text",
           "primaryKey": true,
           "notNull": true,
           "autoincrement": false
         },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "description": {
           "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "syncedIpAt": {
+          "name": "syncedIpAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "latestSyncedIPv6": {
+          "name": "latestSyncedIPv6",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "latestSyncedIPv4": {
+          "name": "latestSyncedIPv4",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -25,6 +53,133 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "flare_keys": {
+      "name": "flare_keys",
+      "columns": {
+        "apiKey": {
+          "name": "apiKey",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ddnsForDomain": {
+          "name": "ddnsForDomain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "flare_keys_ddnsForDomain_flare_domains_ddnsForDomain_fk": {
+          "name": "flare_keys_ddnsForDomain_flare_domains_ddnsForDomain_fk",
+          "tableFrom": "flare_keys",
+          "tableTo": "flare_domains",
+          "columnsFrom": [
+            "ddnsForDomain"
+          ],
+          "columnsTo": [
+            "ddnsForDomain"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "flares_send": {
+      "name": "flares_send",
+      "columns": {
+        "ofDomain": {
+          "name": "ofDomain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "receivedAt": {
+          "name": "receivedAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "flaredIPv4": {
+          "name": "flaredIPv4",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "flaredIPv6": {
+          "name": "flaredIPv6",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "syncStatus": {
+          "name": "syncStatus",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'waiting'"
+        },
+        "statusAt": {
+          "name": "statusAt",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "statusDescr": {
+          "name": "statusDescr",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "flares_send_ofDomain_flare_domains_ddnsForDomain_fk": {
+          "name": "flares_send_ofDomain_flare_domains_ddnsForDomain_fk",
+          "tableFrom": "flares_send",
+          "tableTo": "flare_domains",
+          "columnsFrom": [
+            "ofDomain"
+          ],
+          "columnsTo": [
+            "ddnsForDomain"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "flares_send_receivedAt_ofDomain_pk": {
+          "columns": [
+            "receivedAt",
+            "ofDomain"
+          ],
+          "name": "flares_send_receivedAt_ofDomain_pk"
+        }
+      },
       "uniqueConstraints": {},
       "checkConstraints": {}
     }

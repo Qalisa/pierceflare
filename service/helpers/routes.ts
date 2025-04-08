@@ -1,29 +1,31 @@
 const loginPageRoute = "/";
 
+const apiRoot = "/api";
+
 /** ALL URL Routes / paths handled by the app */
 const routes = {
   /** page specific routes */
   pages: {
     login: loginPageRoute,
     dashboard: "/dashboard",
-    createDDNS: "/ddns/create",
+    flaresFeed: "/feed",
   },
   /** API specific routes */
-  api: {
+  appApi: {
     logout: "/logout",
+  },
+  trpc: {
+    root: "/trpc",
+  },
+  api: {
+    root: apiRoot,
+    flare: `${apiRoot}/flare`,
   },
   /** default route to redirect, most probably root url, aka "/" */
   default: loginPageRoute,
 } as const;
 
-interface AppUser {
-  username: string;
-}
-
-type AppAdminUser = AppUser;
-
 // If you define Vike.PageContext in a .d.ts file then
 // make sure there is at least one export/import statement.
 // Tell TypeScript this file isn't an ambient module:
 export { routes };
-export type { AppUser, AppAdminUser };

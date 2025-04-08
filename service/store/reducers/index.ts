@@ -1,11 +1,11 @@
 // store/index.ts
 import { combineReducers } from "@reduxjs/toolkit";
-import contactFormReducer from "./contactForm";
-import debugOptionsReducer from "./debug";
+import flashMessagesReducer from "./flashMessages";
+import ddnsEntriesReducer from "./ddnsEntries";
 
 const rootReducer = combineReducers({
-  // contactForm: contactFormReducer,
-  // debugOptions: debugOptionsReducer,
+  flashMessages: flashMessagesReducer,
+  ddnsEntries: ddnsEntriesReducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

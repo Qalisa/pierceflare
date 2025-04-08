@@ -1,26 +1,32 @@
 import ThemeToggler from "@/components/ThemeToggle";
 import appLogo from "@/assets/images/logo.webp";
-import { routes } from "@/server/app";
+import { routes } from "@/helpers/routes";
 import { navigate } from "vike/client/router";
 
 import {
-  PowerIcon,
+  ArrowsUpDownIcon,
   ClipboardDocumentListIcon,
-  PlusCircleIcon,
+  PowerIcon,
 } from "@heroicons/react/24/solid";
-import { title } from "@/server/static";
+import { title } from "@/helpers/static";
 import { usePageContext } from "vike-react/usePageContext";
+import { useRef, useState } from "react";
+import FlashMessages from "@/components/FlashMessages";
 
 //
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
+      <FlashMessages />
       <div className="navbar bg-base-100 gap-8 shadow-sm">
         <LeftPart />
         <CenterPart />
         <RightPart />
       </div>
-      <div className="flex flex-auto flex-col content-center justify-center">
+      <div
+        id="page-content"
+        className="flex w-full flex-auto flex-col items-center pt-8"
+      >
         {children}
       </div>
     </>
@@ -57,11 +63,11 @@ const CenterPart = () => {
         Dashboard
       </button>
       <button
-        className={`join-item btn ${urlPathname === routes.pages.createDDNS ? "btn-active" : ""}`}
-        onClick={() => navigate(routes.pages.createDDNS)}
+        className={`join-item btn ${urlPathname === routes.pages.flaresFeed ? "btn-active" : ""}`}
+        onClick={() => navigate(routes.pages.flaresFeed)}
       >
-        Create DDNS
-        <PlusCircleIcon className="size-4" />
+        Feed
+        <ArrowsUpDownIcon className="size-4" />
       </button>
     </div>
   );
@@ -70,15 +76,37 @@ const CenterPart = () => {
 //
 const RightPart = () => {
   return (
-    <div className="join join-vertical sm:join-horizontal items-center gap-2">
+    <div className="join join-vertical sm:join-horizontal mr-0 items-center gap-2 sm:mr-4">
       <ThemeToggler />
-      <form action={routes.api.logout} method="post">
-        <button type="submit" className="btn btn-xs btn-primary" title="">
-          Logout
-          <PowerIcon className="size-3" />
-        </button>
-      </form>
+      <LogoutButton />
     </div>
+  );
+};
+
+const LogoutButton = () => {
+  const [sent, setSent] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  return (
+    <form action={routes.appApi.logout} method="post" ref={formRef}>
+      <button
+        type="submit"
+        className="btn btn-xs btn-primary"
+        disabled={sent}
+        onClick={(e) => {
+          e.preventDefault();
+          setSent(true);
+          formRef.current?.submit();
+        }}
+      >
+        Logout
+        {sent ? (
+          <span className="loading loading-spinner loading-xs"></span>
+        ) : (
+          <PowerIcon className="size-3" />
+        )}
+      </button>
+    </form>
   );
 };
 
