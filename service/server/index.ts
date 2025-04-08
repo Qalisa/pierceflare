@@ -33,6 +33,7 @@ import { getZones } from "./cloudflare/zones";
 import { cfEmitter } from "./cloudflare/cfOrders";
 import type { HonoContext } from "./trpc/_base";
 import { appRouter } from "./trpc/router";
+import startTRPCWsServer from "./trpc/wsServer";
 
 //
 //
@@ -238,11 +239,13 @@ const startServer = async () => {
   // tRPC middleware (API + Websockets)
   //
 
+  await startTRPCWsServer();
+
   app.use(
     `${routes.trpc.root}/*`,
     trpcServer({
       router: appRouter,
-      createContext: (opts, c) =>
+      createContext: (_opts, c) =>
         ({
           ...(c.get("session").get("user") != null ? { userLogged: true } : {}),
           availableCloudflareDomains,

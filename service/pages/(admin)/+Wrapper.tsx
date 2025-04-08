@@ -9,7 +9,7 @@ import { useState } from "react";
 import { TRPCProvider } from "@/helpers/trpc";
 import type { AppRouter } from "@/server/trpc/router";
 import { usePageContext } from "vike-react/usePageContext";
-import { wsUrl } from "@/server/trpc/wsServer";
+import { wsUrl } from "@/helpers/static";
 
 const makeQueryClient = () => {
   return new QueryClient({
@@ -60,6 +60,8 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
       ],
     }),
   );
+
+  console.log("caca");
 
   //
   return (
