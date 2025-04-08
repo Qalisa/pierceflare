@@ -95,13 +95,6 @@ const apiProtected = {
     .use(addLinger())
     .input(z.object({ subdomains: z.string().array() }))
     .query(async ({ input: { subdomains } }) => {
-      // // TODO: make cascading delete work and remove below
-      // await getDb().delete(flares).where(inArray(flares.ofDomain, subdomains));
-      // await getDb()
-      //   .delete(flareKeys)
-      //   .where(inArray(flareKeys.ddnsForDomain, subdomains));
-
-      //
       await getDb()
         .delete(flareDomains)
         .where(inArray(flareDomains.ddnsForDomain, subdomains));

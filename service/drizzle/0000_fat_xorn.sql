@@ -23,5 +23,5 @@ CREATE TABLE `flares_send` (
 	`statusAt` integer,
 	`statusDescr` text,
 	PRIMARY KEY(`receivedAt`, `ofDomain`),
-	FOREIGN KEY (`ofDomain`) REFERENCES `flare_domains`(`ddnsForDomain`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`ofDomain`) REFERENCES `flare_domains`(`ddnsForDomain`) ON UPDATE no action ON DELETE cascade
 );

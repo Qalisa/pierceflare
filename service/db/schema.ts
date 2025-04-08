@@ -29,7 +29,7 @@ export const flares = sqliteTable(
   "flares_send",
   {
     ofDomain: text()
-      .references(() => flareDomains.ddnsForDomain, { onDelete: "no action" })
+      .references(() => flareDomains.ddnsForDomain, { onDelete: "cascade" })
       .notNull(),
     receivedAt: integer({ mode: "timestamp_ms" }).notNull(),
     flaredIPv4: text(),
