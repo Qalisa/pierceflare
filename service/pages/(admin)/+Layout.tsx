@@ -10,8 +10,17 @@ import {
 } from "@heroicons/react/24/solid";
 import { title } from "@/helpers/static";
 import { usePageContext } from "vike-react/usePageContext";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FlashMessages from "@/components/FlashMessages";
+import FlareGeneratorCommandBelt from "@/components/FlareGeneratorCommandBelt";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "@/store/reducers";
+import {
+  incrementUnseenCount,
+  resetUnseenCount,
+} from "@/store/reducers/unseenUpdates";
+import { useSubscription } from "@trpc/tanstack-react-query";
+import { useTRPC } from "@/helpers/trpc";
 
 //
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -50,6 +59,7 @@ const LeftPart = () => {
 const CenterPart = () => {
   //
   const { urlPathname } = usePageContext();
+  const showBelt = false; // import.meta.env.DEV;
 
   //
   return (
@@ -62,8 +72,59 @@ const CenterPart = () => {
         <ClipboardDocumentListIcon className="size-4" />
         Dashboard
       </button>
+      <FlaresButton
+        className="join-item"
+        active={urlPathname === routes.pages.flaresFeed}
+      />
+      {showBelt && (
+        <div className="relative left-16">
+          <FlareGeneratorCommandBelt />
+        </div>
+      )}
+    </div>
+  );
+};
+
+//
+const FlaresButton = ({
+  className,
+  active,
+}: {
+  className: string;
+  active: boolean;
+}) => {
+  //
+  const dispatch = useDispatch();
+  const { flares: flaresUpdates } = useSelector(
+    (state: RootState) => state.unseenUpdates.unseenUpdates,
+  );
+
+  //
+  useEffect(() => {
+    if (active) dispatch(resetUnseenCount("flares"));
+  }, [active]);
+
+  //
+  const trpc = useTRPC();
+  const { data } = useSubscription(trpc.onFlaresUpdates.subscriptionOptions());
+
+  //
+  useEffect(() => {
+    if (data && !active) dispatch(incrementUnseenCount("flares"));
+  }, [data]);
+
+  return (
+    <div className={["indicator", className].join(" ")}>
+      {flaresUpdates > 0 && (
+        <span
+          style={{ top: "5%" }}
+          className="indicator-item badge badge-xs badge-error pointer-events-none"
+        >
+          {flaresUpdates}
+        </span>
+      )}
       <button
-        className={`join-item btn ${urlPathname === routes.pages.flaresFeed ? "btn-active" : ""}`}
+        className={`btn ${active ? "btn-active" : ""}`}
         onClick={() => navigate(routes.pages.flaresFeed)}
       >
         Feed
@@ -83,6 +144,7 @@ const RightPart = () => {
   );
 };
 
+//
 const LogoutButton = () => {
   const [sent, setSent] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);

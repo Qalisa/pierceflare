@@ -30,6 +30,7 @@ const FlaresTable = ({
   //
   //
 
+  //
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
