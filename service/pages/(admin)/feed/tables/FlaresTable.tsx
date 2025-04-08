@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-table";
 import type { JSX } from "react";
 import { useCallback, useEffect } from "react";
-import { AnimatePresence, motion, useIsPresent } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useTRPC } from "@/helpers/trpc";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSubscription, type inferOutput } from "@trpc/tanstack-react-query";
@@ -44,14 +44,14 @@ const FlaresTable = ({
   );
 
   //
-  const { data: flares } = useQuery(trpc.getFlares.queryOptions({ limit: 10 }));
+  const { data: flares } = useQuery(trpc.getFlares.queryOptions({ limit: 5 }));
   const { status, data: wsData } = useSubscription(
     trpc.onFlaresUpdates.subscriptionOptions(),
   );
 
   //
   useEffect(() => {
-    invalidateFlares();
+    if (wsData) invalidateFlares();
   }, [wsData]);
 
   const useSkeleton = flares == undefined;
@@ -108,6 +108,7 @@ const FlaresTable = ({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    enableSorting: false,
   });
 
   //
@@ -132,7 +133,7 @@ const FlaresTable = ({
 
   //
   return (
-    <div className="w-11/12">
+    <div className="mb-8 w-11/12">
       <div className="mx-4 flex items-end gap-4">
         <WebSocketIndicator status={status} />
         <ReloadButton
@@ -143,93 +144,74 @@ const FlaresTable = ({
         {belt}
       </div>
       <div className="divider"></div>
-      <div className="overflow-x-auto">
-        <table className="table w-full">
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    colSpan={header.colSpan}
-                    className={
-                      header.column.getCanSort()
-                        ? "cursor-pointer select-none"
-                        : ""
-                    }
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
+      <table className="table w-full">
+        <thead>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <tr key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <th
+                  key={header.id}
+                  colSpan={header.colSpan}
+                  className={
+                    header.column.getCanSort()
+                      ? "cursor-pointer select-none"
+                      : ""
+                  }
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {useSkeleton ? (
+            produceSkeletonRows()
+          ) : noFlares ? (
+            <tr>
+              <td colSpan={99}>{noData}</td>
+            </tr>
+          ) : (
+            <AnimatePresence initial={false} mode="popLayout">
+              {table.getRowModel().rows.map((row) => {
+                //
+                const key = row.original.flareId;
+
+                //
+                return (
+                  <TR key={key}>
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
                         )}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {useSkeleton ? (
-              produceSkeletonRows()
-            ) : noFlares ? (
-              <tr>
-                <td colSpan={99}>{noData}</td>
-              </tr>
-            ) : (
-              <AnimatePresence>
-                {table.getRowModel().rows.map((row) => {
-                  //
-                  return (
-                    <TR
-                      isSelected={row.getIsSelected()}
-                      key={row.getValue("receivedAt")}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext(),
-                          )}
-                        </td>
-                      ))}
-                    </TR>
-                  );
-                })}
-              </AnimatePresence>
-            )}
-          </tbody>
-        </table>
-      </div>
+                      </td>
+                    ))}
+                  </TR>
+                );
+              })}
+            </AnimatePresence>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 };
 
 //
-const TR = ({
-  isSelected,
-  children,
-}: {
-  children: React.ReactNode;
-  isSelected: boolean;
-}) => {
-  //
-  const isPresent = useIsPresent();
-
-  //
+const TR = ({ children }: { children: React.ReactNode }) => {
   return (
     <motion.tr
-      className={isSelected ? "bg-base-200" : undefined}
       layout
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      style={{
-        position: isPresent ? "relative" : "absolute",
-        display: isPresent ? "table-row" : "flex",
-        alignItems: isPresent ? "" : "center",
-      }}
     >
       {children}
     </motion.tr>

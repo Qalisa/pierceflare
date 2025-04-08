@@ -1,9 +1,4 @@
-import {
-  integer,
-  primaryKey,
-  sqliteTable,
-  text,
-} from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 
 export const flareDomains = sqliteTable("flare_domains", {
@@ -25,18 +20,18 @@ export const flareKeys = sqliteTable("flare_keys", {
   createdAt: integer({ mode: "timestamp_ms" }).notNull(),
 });
 
-export const flares = sqliteTable(
-  "flares_send",
-  {
-    ofDomain: text()
-      .references(() => flareDomains.ddnsForDomain, { onDelete: "cascade" })
-      .notNull(),
-    receivedAt: integer({ mode: "timestamp_ms" }).notNull(),
-    flaredIPv4: text(),
-    flaredIPv6: text(),
-    syncStatus: text().notNull().default("waiting"),
-    statusAt: integer({ mode: "timestamp_ms" }),
-    statusDescr: text(),
-  },
-  (table) => [primaryKey({ columns: [table.receivedAt, table.ofDomain] })],
-);
+export const flares = sqliteTable("flares_send", {
+  // order metadata
+  flareId: integer().primaryKey({ autoIncrement: true }),
+  ofDomain: text()
+    .references(() => flareDomains.ddnsForDomain, { onDelete: "cascade" })
+    .notNull(),
+  receivedAt: integer({ mode: "timestamp_ms" }).notNull(),
+  // payload
+  flaredIPv4: text(),
+  flaredIPv6: text(),
+  // sync attempt
+  syncStatus: text().notNull().default("waiting"),
+  statusAt: integer({ mode: "timestamp_ms" }),
+  statusDescr: text(),
+});

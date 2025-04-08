@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "65231680-8e79-4a32-b730-052162524303",
+  "id": "0cbcb72c-e9f3-42bc-9b69-b4a73cec9a68",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "flare_domains": {
@@ -104,6 +104,13 @@
     "flares_send": {
       "name": "flares_send",
       "columns": {
+        "flareId": {
+          "name": "flareId",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": true
+        },
         "ofDomain": {
           "name": "ofDomain",
           "type": "text",
@@ -171,15 +178,7 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {
-        "flares_send_receivedAt_ofDomain_pk": {
-          "columns": [
-            "receivedAt",
-            "ofDomain"
-          ],
-          "name": "flares_send_receivedAt_ofDomain_pk"
-        }
-      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}
     }

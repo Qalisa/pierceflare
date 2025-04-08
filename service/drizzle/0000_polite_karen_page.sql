@@ -15,6 +15,7 @@ CREATE TABLE `flare_keys` (
 );
 --> statement-breakpoint
 CREATE TABLE `flares_send` (
+	`flareId` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`ofDomain` text NOT NULL,
 	`receivedAt` integer NOT NULL,
 	`flaredIPv4` text,
@@ -22,6 +23,5 @@ CREATE TABLE `flares_send` (
 	`syncStatus` text DEFAULT 'waiting' NOT NULL,
 	`statusAt` integer,
 	`statusDescr` text,
-	PRIMARY KEY(`receivedAt`, `ofDomain`),
 	FOREIGN KEY (`ofDomain`) REFERENCES `flare_domains`(`ddnsForDomain`) ON UPDATE no action ON DELETE cascade
 );
