@@ -1,7 +1,7 @@
 import { getDb } from "@/db";
 import { flareKeys, flares } from "@/db/schema";
 import { produceRandomKey } from "@/helpers/random";
-import { count, eq, inArray } from "drizzle-orm";
+import { count, desc, eq, inArray } from "drizzle-orm";
 import { flareDomains } from "@/db/schema";
 import { TRPCError } from "@trpc/server";
 import { addLinger, protectedProcedure } from "./_base";
@@ -129,7 +129,9 @@ const apiProtected = {
   //
   getApiKeys: protectedProcedure.query(() => getDb().select().from(flareKeys)),
   //
-  getFlares: protectedProcedure.query(() => getDb().select().from(flares)),
+  getFlares: protectedProcedure.query(() =>
+    getDb().select().from(flares).orderBy(desc(flares.receivedAt)),
+  ),
   //
   //
   //

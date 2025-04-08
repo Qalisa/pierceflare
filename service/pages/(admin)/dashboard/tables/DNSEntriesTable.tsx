@@ -7,7 +7,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { dateFormatter } from "@/helpers/table";
 import type { JSX } from "react";
 import { useMemo } from "react";
 import { getModal, modalIds } from "@/helpers/modals";
@@ -24,6 +23,7 @@ import { useTRPC } from "@/helpers/trpc";
 import type { QueryClient } from "@tanstack/react-query";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { inferOutput } from "@trpc/tanstack-react-query";
+import { timeAgoFormatter } from "@/components/TimeAgoCellFormater";
 
 //
 //
@@ -103,7 +103,7 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
     }),
     columnHelper.accessor("createdAt", {
       header: "Created At",
-      cell: dateFormatter,
+      cell: timeAgoFormatter,
     }),
     columnHelper.accessor("ddnsForDomain", {
       header: "Domain",
@@ -124,7 +124,7 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
     }),
     columnHelper.accessor("syncedIpAt", {
       header: "Latest Update",
-      cell: dateFormatter,
+      cell: timeAgoFormatter,
     }),
     columnHelper.display({
       id: "createKey",

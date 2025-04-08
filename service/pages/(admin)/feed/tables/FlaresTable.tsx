@@ -4,7 +4,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { dateFormatter } from "@/helpers/table";
 import type { JSX } from "react";
 import { useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
@@ -13,6 +12,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSubscription, type inferOutput } from "@trpc/tanstack-react-query";
 import ReloadButton from "@/components/ReloadButton";
 import WebSocketIndicator from "@/components/WebSocketIndicator";
+import { timeAgoFormatter } from "@/components/TimeAgoCellFormater";
 
 //
 //
@@ -61,33 +61,41 @@ const FlaresTable = ({
   //
   //
 
-  type OfDomains = inferOutput<typeof trpc.getFlareDomains>[number];
-  const columnHelper = createColumnHelper<OfDomains>();
+  type OfFlares = inferOutput<typeof trpc.getFlares>[number];
+  const columnHelper = createColumnHelper<OfFlares>();
   const columns = [
-    columnHelper.accessor("createdAt", {
-      header: "Created At",
-      cell: dateFormatter,
+    columnHelper.accessor("receivedAt", {
+      header: "",
+      cell: timeAgoFormatter,
     }),
-    columnHelper.accessor("ddnsForDomain", {
+    columnHelper.accessor("ofDomain", {
       header: "Domain",
-    }),
-    columnHelper.accessor("description", {
-      header: "Description",
     }),
     columnHelper.group({
       header: "IPs",
       columns: [
-        columnHelper.accessor("latestSyncedIPv4", {
+        columnHelper.accessor("flaredIPv4", {
           header: "v4",
         }),
-        columnHelper.accessor("latestSyncedIPv6", {
+        columnHelper.accessor("flaredIPv6", {
           header: "v6",
         }),
       ],
     }),
-    columnHelper.accessor("syncedIpAt", {
-      header: "Latest Update",
-      cell: dateFormatter,
+    columnHelper.group({
+      header: "Sync",
+      columns: [
+        columnHelper.accessor("syncStatus", {
+          header: "Status",
+        }),
+        columnHelper.accessor("statusAt", {
+          header: "At",
+          cell: timeAgoFormatter,
+        }),
+        columnHelper.accessor("statusDescr", {
+          header: "Descr",
+        }),
+      ],
     }),
   ];
 
