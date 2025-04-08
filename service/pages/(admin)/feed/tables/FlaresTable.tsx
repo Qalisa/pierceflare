@@ -126,7 +126,11 @@ const FlaresTable = ({
     <div className="w-11/12">
       <div className="mx-4 flex items-end gap-4">
         <WebSocketIndicator status={status} />
-        <ReloadButton className="ml-auto" action={invalidateFlares} />
+        <ReloadButton
+          className="ml-auto"
+          action={invalidateFlares}
+          disabled={useSkeleton}
+        />
         {belt}
       </div>
       <div className="divider"></div>

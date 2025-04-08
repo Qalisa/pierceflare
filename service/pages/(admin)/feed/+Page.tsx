@@ -125,6 +125,7 @@ const FlareGeneratorCommandBelt = () => {
             await trpcCli.deleteAllFlares.query();
             invalidateFlares();
           }}
+          disabled={domains == undefined}
           className="btn btn-xs btn-error join-item"
         >
           <TrashIcon className="size-3" />

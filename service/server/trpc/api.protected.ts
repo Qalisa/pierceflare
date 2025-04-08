@@ -8,6 +8,7 @@ import { addLinger, protectedProcedure } from "./_base";
 import { z } from "zod";
 import EventEmitter, { on } from "events";
 import type { InferSelectModel } from "drizzle-orm";
+import { isValidSubdomain } from "@/helpers/domains";
 
 const ee = new EventEmitter();
 
@@ -73,10 +74,11 @@ const apiProtected = {
         }
 
         //
-        if (subdomain.includes(".")) {
+        subdomain = subdomain.trim();
+        if (!isValidSubdomain(subdomain)) {
           throw new TRPCError({
             code: "UNPROCESSABLE_CONTENT",
-            message: `Subdomain "${subdomain}" should not contain "."`,
+            message: `Subdomain "${subdomain}.${cloudFlareDomain}" is not valid`,
           });
         }
 

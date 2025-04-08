@@ -191,6 +191,7 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
     <div className="w-11/12">
       <div className="mx-4 flex gap-4">
         <button
+          disabled={domains == undefined}
           onClick={() => getModal(modalIds.createDDNS).openModal()}
           className="btn btn-primary btn-sm"
         >
@@ -211,6 +212,7 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
         )}
         <ReloadButton
           className="ml-auto"
+          disabled={domains == undefined}
           action={() => invalidateFlareDomains(trpc, queryClient)}
         />
       </div>
