@@ -2,13 +2,10 @@ import db from "@/db";
 import { flareKeys, flares } from "@/db/schema";
 import { produceRandomKey } from "@/helpers/random";
 import { count, eq, inArray } from "drizzle-orm";
-import { broadcastToWSClients } from "@/server/ws";
 import { flareDomains } from "@/db/schema";
 import { TRPCError } from "@trpc/server";
 import { addLinger, protectedProcedure } from "./_base";
 import { z } from "zod";
-import type { useTRPC } from "@/helpers/trpc";
-import type { QueryClient } from "@tanstack/react-query";
 
 //
 export const produceUnusedAPIKey = async () => {
@@ -107,7 +104,6 @@ const apiProtected = {
     .input(z.object({ ofDomain: z.string().nonempty() }))
     .query(async ({ input: { ofDomain } }) => {
       await db.insert(flares).values({ receivedAt: new Date(), ofDomain });
-      broadcastToWSClients("ok");
       // cfEmitter.next({
       //   operation: "update",
       //   record: {

@@ -1,11 +1,15 @@
-import { clientOnly } from "vike-react/clientOnly";
-
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import {
+  createTRPCClient,
+  httpBatchLink,
+  createWSClient,
+  wsLink,
+} from "@trpc/client";
 import { useState } from "react";
 import { TRPCProvider } from "@/helpers/trpc";
 import type { AppRouter } from "@/server/trpc/router";
 import { usePageContext } from "vike-react/usePageContext";
+import { wsUrl } from "@/server/trpc/wsServer";
 
 const makeQueryClient = () => {
   return new QueryClient({
@@ -33,21 +37,25 @@ const getQueryClient = () => {
   }
 };
 
-const WebSocketProvider = clientOnly(
-  () => import("@/providers/websocket/WebSocketProvider"),
-);
-
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
+  //
+  const queryClient = getQueryClient();
+  const wsClient = createWSClient({
+    url: wsUrl,
+  });
+
   //
   const {
     injected: { tRPCUrl },
   } = usePageContext();
-  const queryClient = getQueryClient();
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
       links: [
         httpBatchLink({
           url: tRPCUrl,
+        }),
+        wsLink({
+          client: wsClient,
         }),
       ],
     }),
@@ -57,7 +65,7 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
       <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
-        <WebSocketProvider fallback={children}>{children}</WebSocketProvider>
+        {children}
       </TRPCProvider>
     </QueryClientProvider>
   );

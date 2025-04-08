@@ -1,5 +1,4 @@
 import ReloadButton from "@/components/ReloadButton";
-import { useWebSocket } from "@/providers/websocket/useWebSocket";
 import WebSocketIndicator from "@/components/WebSocketIndicator";
 import { useTRPC, useTRPCClient } from "@/helpers/trpc";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -24,11 +23,6 @@ const FlaresFeedPage = () => {
 
   const { data: flares } = useQuery(trpc.getFlares.queryOptions());
   const { data: apiKeys } = useQuery(trpc.getApiKeys.queryOptions());
-
-  const { websocket } = useWebSocket();
-  if (websocket) {
-    websocket.onmessage = invalidateFlares;
-  }
 
   return (
     <div className="w-11/12">

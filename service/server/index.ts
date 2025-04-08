@@ -26,8 +26,6 @@ import type { PageContextInjection, SessionDataTypes } from "@/helpers/types";
 import { eq } from "drizzle-orm";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { rateLimiter } from "hono-rate-limiter";
-import { createNodeWebSocket } from "@hono/node-ws";
-import { wsBroadcaster } from "./ws";
 import { lastValueFrom } from "rxjs";
 import Cloudflare from "cloudflare";
 import { CloudflareDNSWorker } from "./cloudflare/cloudflareWorker";
@@ -151,45 +149,6 @@ const startServer = async () => {
   });
 
   //
-  // WEBSOCKETS (RPC)
-  //
-  //
-
-  const { upgradeWebSocket } = createNodeWebSocket({ app });
-
-  //
-  app.get(
-    "/ws",
-    upgradeWebSocket(({ get, status, body }) => {
-      //
-      const session = get("session") as Session<SessionDataTypes>;
-      const user = session.get("user");
-      if (!user) {
-        status(403);
-        body("Unauthorized");
-        return {};
-      }
-
-      let onBroadcast: (message: string) => void;
-
-      //
-      return {
-        onOpen(_evt, ws) {
-          onBroadcast = (message: string) => {
-            ws.send(message);
-          };
-          wsBroadcaster.on("all", onBroadcast);
-        },
-        onClose() {
-          wsBroadcaster.removeListener("all", onBroadcast);
-        },
-      };
-    }),
-  );
-
-  // injectWebSocket(app);
-
-  //
   // API
   //
 
@@ -276,7 +235,7 @@ const startServer = async () => {
   });
 
   //
-  // tRPC middleware
+  // tRPC middleware (API + Websockets)
   //
 
   app.use(
@@ -324,9 +283,6 @@ const startServer = async () => {
   //
   return serve(app, {
     port: PORT,
-    onCreate() {
-      // injectWebSocket(server!);
-    },
     onReady() {
       console.log(`[${title}]`, `Server is ready.`);
     },

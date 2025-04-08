@@ -24,6 +24,5 @@ export default {
   // Points to your server entry
   server: {
     entry: "server/index.ts",
-    hmr: false,
   },
 } satisfies Config;

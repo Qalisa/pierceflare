@@ -2,7 +2,7 @@ import { withLinger } from "@/helpers/withLinger";
 import { initTRPC, TRPCError } from "@trpc/server";
 
 export type HonoContext = {
-  userLogged?: true;
+  userLogged?: boolean;
   availableCloudflareDomains: string[];
 };
 

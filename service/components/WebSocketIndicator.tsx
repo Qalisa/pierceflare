@@ -1,18 +1,21 @@
-import { useWebSocket } from "@/providers/websocket/useWebSocket";
+import useWebSocket, { ReadyState } from "react-use-websocket";
 
 //
 const WebSocketIndicator = () => {
-  const { connectionState } = useWebSocket();
+  const { readyState } = useWebSocket("ws://localhost:3000");
 
   //
   const status = (() => {
-    switch (connectionState) {
-      case "pending":
-        return "status-secondary";
-      case "yes":
+    switch (readyState) {
+      case ReadyState.OPEN:
         return "status-success";
-      case "no":
+      case ReadyState.CLOSED:
+      case ReadyState.CLOSING:
         return "status-error";
+      case ReadyState.CONNECTING:
+        return "status-warning";
+      case ReadyState.UNINSTANTIATED:
+        return "status-secondary";
     }
   })();
 
