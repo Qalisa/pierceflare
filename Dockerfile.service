@@ -1,63 +1,52 @@
 ARG K8S_APP__VERSION="[unknown-from-docker]"
 ARG CANONICAL_URL="[define-me-pls]"
 
-# use the official Bun image
-# see all versions at https://hub.docker.com/r/oven/bun/tags
-FROM oven/bun:1 AS base
-WORKDIR /usr/src/app
-
-##
-##
-##
-
-# install dependencies into temp directory
-# this will cache them and speed up future builds
-FROM base AS install
-RUN mkdir -p /temp/dev
-COPY service/package.json service/bun.lock /temp/dev/
-RUN cd /temp/dev && bun install --frozen-lockfile
-
-# install with --production (exclude devDependencies)
-RUN mkdir -p /temp/prod
-COPY service/package.json service/bun.lock /temp/prod/
-RUN cd /temp/prod && bun install --frozen-lockfile --production
-
-##
-##
-##
-
-# copy node_modules from temp directory
-# then copy all (non-ignored) project files into the image
-FROM base AS prerelease
+#
+FROM node:slim AS prerelease
 ARG K8S_APP__VERSION
 ARG CANONICAL_URL
 
 ENV K8S_APP__VERSION=$K8S_APP__VERSION \
     CANONICAL_URL=$CANONICAL_URL
 
-COPY --from=install /temp/dev/node_modules node_modules
-COPY service/. .
-
-# [optional] tests & build
-ENV NODE_ENV=production
-RUN bunx --bun vike build
-
-##
-##
-##
-
-# copy production dependencies and source code into final image
-FROM oven/bun:1-alpine AS lean
-
 WORKDIR /usr/src/app
 
-COPY --from=prerelease /usr/src/app/dist .
-COPY --from=prerelease /usr/src/app/package.json .
+# Install PNPM globally
+RUN npm install -g pnpm
 
+#
+COPY service/package.json service/.npmrc ./
+ENV COREPACK_ENABLE_STRICT=0
+RUN pnpm install
+
+#
+COPY service .
 ENV NODE_ENV=production
+RUN pnpm run build
 
-WORKDIR /usr/src/app/server
+##
+##
+##
 
-EXPOSE 3000/tcp
-ENTRYPOINT ["bun", "run"]
-CMD ["."]
+# Copy production dependencies and source code into final image
+# @note alpine variants requires musl compatible binaries (https://hub.docker.com/_/node/)
+FROM node:23-alpine AS lean
+
+WORKDIR /usr/src/app
+COPY --from=prerelease /usr/src/app/package.json .
+COPY --from=prerelease /usr/src/app/dist ./dist
+COPY --from=prerelease /usr/src/app/drizzle ./drizzle
+
+# required binaries
+COPY --from=prerelease /usr/src/app/node_modules/@libsql* ./node_modules/@libsql/
+
+
+# ENV SERVICE_AUTH_USERNAME=""
+# ENV SERVICE_AUTH_PASSWORD=""
+ENV SERVICE_DATABASE_FILES_PATH=/usr/src/app/db
+
+ENV NODE_ENV=production \
+    PORT=80
+
+ENTRYPOINT ["node"]
+CMD ["dist/server/index.standalone.mjs"]

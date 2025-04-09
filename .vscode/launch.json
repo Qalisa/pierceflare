@@ -23,6 +23,9 @@
       "type": "node-terminal",
       "request": "launch",
       "command": "bun dev",
+      "env": {
+        "SERVICE_DATABASE_FILES_PATH": "${workspaceFolder}/service/db"
+      },
       "cwd": "${workspaceFolder}/service",
       "serverReadyAction": {
         "action": "startDebugging",
@@ -44,7 +47,8 @@
         "killOnServerStop": true
       },
       "env": {
-        "NODE_ENV": "production"
+        "NODE_ENV": "production",
+        "SERVICE_DATABASE_FILES_PATH": "${workspaceFolder}/service/db"
       },
       "preLaunchTask": "Generate Bundle"
     },

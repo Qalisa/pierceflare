@@ -275,11 +275,30 @@ const startServer = async () => {
 
   //
   if (import.meta.env.PROD) {
-    await Promise.all([async () => getDb()]);
+    //
+    logr.log("Pre-warming...");
+
+    //
+    await Promise.all([
+      // Database
+      new Promise((resolve) => {
+        resolve(getDb());
+      }),
+    ]);
+
+    //
+    logr.log("Pre-warm OK.");
   }
 
   //
-  cfWorkerPromise.then((e) => lastValueFrom(e.cfWorker.flow));
+  // Init CF Worker
+  //
+
+  cfWorkerPromise.then((e) => {
+    //
+    logr.log("Starting Cloudflare DNS Worker.");
+    return lastValueFrom(e.cfWorker.flow);
+  });
 
   //
   // Serve Server !
@@ -289,7 +308,7 @@ const startServer = async () => {
   return serve(app, {
     port: PORT,
     onReady() {
-      logr.log(`Server is ready.`);
+      logr.log(`(${import.meta.env.MODE}) Server is ready on 0.0.0.0:${PORT}.`);
     },
   });
 };

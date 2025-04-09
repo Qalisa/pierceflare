@@ -13,12 +13,10 @@ services:
         - K8S_APP__VERSION=debug-0.0.1-docker
         - CANONICAL_URL=https://localhost
     ports:
-      - "80:80"
+      - "3000:80"
     environment:
       SERVICE_AUTH_USERNAME: root
       SERVICE_AUTH_PASSWORD: root
-      SERVICE_DATABASE_FILES_PATH: /db
-      PORT: "80"
     env_file:
       - ../service/.env
     volumes:

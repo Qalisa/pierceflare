@@ -4,18 +4,32 @@ import { createClient } from "@libsql/client/node";
 import { SERVICE_DATABASE_FILES_PATH } from "@/server/env";
 import { title } from "@/helpers/static";
 import logr from "@/server/loggers";
+import { mkdirSync } from "fs";
 
 //
 const readyingDB = () => {
-  const appDbName = title.toLowerCase();
-  const sqlite = createClient({
-    url: `file:${SERVICE_DATABASE_FILES_PATH}/${appDbName}.db`,
-  });
+  //
+  logr.log("Initiating DB...");
+  mkdirSync(SERVICE_DATABASE_FILES_PATH, { recursive: true });
 
-  logr.log("Starting DB Schema Migration...");
+  //
+  const appDbName = title.toLowerCase();
+  const url = `file:${SERVICE_DATABASE_FILES_PATH}/${appDbName}.db`;
+
+  //
+  logr.log("Loading SQLite DB from", url);
+  const sqlite = createClient({
+    url,
+  });
   const db = drizzle(sqlite);
+
+  //
+  logr.log("Starting DB Schema Migration...");
   migrate(db, { migrationsFolder: "./drizzle" });
-  logr.log("DB Schema Migration Done.");
+  logr.log("DB Schema Migration Done");
+
+  //
+  logr.log("Database Ready !");
   return db;
 };
 
