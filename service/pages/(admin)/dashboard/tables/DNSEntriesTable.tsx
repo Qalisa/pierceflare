@@ -154,6 +154,9 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
     state: {
       rowSelection,
     },
+    // TODO: may fix
+    // getRowId: (originalRow, i) =>
+    //   originalRow.ddnsForDomain ?? "skel_" + i.toString(),
     enableRowSelection: true,
     onRowSelectionChange: (updater) => {
       // Create a new selection state based on the updater

@@ -175,9 +175,13 @@ const FlaresTable = ({
     data,
     columns,
     getRowCanExpand: (row) => row.original.statusDescr != null,
-    autoResetExpanded: false,
+    getRowId: (originalRow, i) =>
+      originalRow.flareId
+        ? originalRow.flareId.toString()
+        : "skel_" + i.toString(),
     getCoreRowModel: getCoreRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
+
     enableSorting: false,
   });
 
@@ -250,7 +254,6 @@ const FlaresTable = ({
             <>
               {table.getRowModel().rows.map((row) => {
                 //
-                const key = row.original.flareId;
                 const expanded = row.getIsExpanded();
                 const className =
                   row.original.syncStatus == ("error" satisfies FlareSyncStatus)
@@ -262,7 +265,7 @@ const FlaresTable = ({
 
                 //
                 return (
-                  <Fragment key={key}>
+                  <Fragment key={row.id}>
                     <TR className={className}>
                       {row.getVisibleCells().map((cell) => {
                         //
@@ -277,7 +280,6 @@ const FlaresTable = ({
                       })}
                     </TR>
                     {expanded &&
-                      row.getCanExpand() &&
                       (() => {
                         return (
                           <TR className={className}>
