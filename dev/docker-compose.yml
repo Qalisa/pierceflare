@@ -17,6 +17,7 @@ services:
     environment:
       SERVICE_AUTH_USERNAME: root
       SERVICE_AUTH_PASSWORD: root
+      SERVICE_DATABASE_FILES_PATH: /db
     env_file:
       - ../service/.env
     volumes:
