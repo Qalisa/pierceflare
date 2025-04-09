@@ -1,5 +1,4 @@
-import type { Observable, Subject } from "rxjs";
-import { from, of, throwError, timer } from "rxjs";
+import { from, fromEvent, of, throwError, timer } from "rxjs";
 import {
   bufferTime,
   catchError,
@@ -7,30 +6,34 @@ import {
   delay,
   filter,
   finalize,
+  map,
   mergeMap,
   retry,
+  switchMap,
   timeout,
 } from "rxjs/operators";
 // Import Cloudflare client from their npm package
 import { title } from "@/helpers/static";
-import type Cloudflare from "cloudflare";
-import type { CloudflareConfig, DNSUpdateRequest } from "./types";
+import type { CloudflareConfig, CloudflareWorkerRequest } from "./types";
 import type { Zones } from "./zones";
+import { randomIntFromInterval } from "@/helpers/random";
+import type { DbRequestsEvents } from "@/db/requests";
+import { dbRequestsEE, eeRequests } from "@/db/requests";
 
 //
 export class CloudflareDNSWorker {
   private config: CloudflareConfig;
   private activeRequests = 0;
   private rateWindow: number[] = [];
-  private requestSubject: Subject<DNSUpdateRequest>;
-  public flow: Observable<Cloudflare.DNS.Records.RecordBatchResponse>;
+  private dbRequestsEE: typeof dbRequestsEE;
+  public flow: ReturnType<typeof this.executeRequest>;
 
   constructor(
-    requestSubject: Subject<DNSUpdateRequest>,
+    dbRequestsEE: typeof this.dbRequestsEE,
     config: CloudflareConfig,
   ) {
     this.config = config;
-    this.requestSubject = requestSubject;
+    this.dbRequestsEE = dbRequestsEE;
     this.flow = this.initializeWorker(config.zones);
   }
 
@@ -39,9 +42,16 @@ export class CloudflareDNSWorker {
    */
   private initializeWorker(zones: Zones) {
     // Process requests in order, respecting rate limits and concurrency
-    const flow = this.requestSubject.pipe(
+    const flow = fromEvent<CloudflareWorkerRequest["flareAdded"]>(
+      dbRequestsEE,
+      "flareAdded" satisfies keyof DbRequestsEvents,
+    ).pipe(
+      // cast
+      map((flareAdded) => {
+        return { flareAdded } as CloudflareWorkerRequest;
+      }),
       // Group by priority - higher priority items processed first
-      bufferTime(100),
+      bufferTime(1000),
       filter((batch) => batch.length > 0),
       mergeMap((batch) => {
         // Sort batch by priority
@@ -177,9 +187,11 @@ export class CloudflareDNSWorker {
   /**
    * Execute the Cloudflare API request using the Cloudflare client
    */
-  private executeRequest(request: DNSUpdateRequest, zones: Zones) {
-    const { record, operation } = request;
-    const { fullName } = record;
+  private executeRequest(
+    { flareAdded: flare, options }: CloudflareWorkerRequest,
+    zones: Zones,
+  ) {
+    const { ofDomain: fullName, remoteOperation } = flare;
 
     //
     const find = zones.find(([, name]) => fullName.endsWith(name));
@@ -199,26 +211,62 @@ export class CloudflareDNSWorker {
       );
     }
 
-    // Use the Cloudflare client to execute the request
-    switch (operation) {
-      case "update":
-        return from(
-          this.config.cloudflareCli.dns.records.batch({
-            zone_id,
-            posts: [
-              {
-                type: record.type,
-                name,
-                content: record.content,
-                ttl: record.ttl || 1,
-                proxied: record.proxied,
-              },
-            ],
-          }),
-        );
+    //
+    const produceRemoteOperation = () => {
+      // Use the Cloudflare client to execute the request
+      switch (remoteOperation) {
+        case "dummy":
+          return timer(randomIntFromInterval(300, 1000)).pipe(
+            switchMap(() => {
+              const shouldError = Math.random() < 0.25; // 25% chance to throw
+              if (shouldError) {
+                return throwError(() => new Error("Random error occurred!"));
+              }
+              return of("Success after random delay");
+            }),
+          );
+        case "batch":
+          return from(
+            this.config.cloudflareCli.dns.records.batch({
+              zone_id,
+              posts: [
+                {
+                  type: flare.flaredIPv4 ? "A" : "AAAA",
+                  name,
+                  content: flare.flaredIPv4 ?? flare.flaredIPv6!,
+                  ttl: options?.ttl || 1,
+                  proxied: options?.proxied,
+                },
+              ],
+            }),
+          ).pipe(map(() => "ok"));
 
-      default:
-        return throwError(() => new Error(`Unknown operation: ${operation}`));
-    }
+        default:
+          return throwError(
+            () => new Error(`Unknown operation: ${remoteOperation}`),
+          );
+      }
+    };
+
+    // update flare
+    return produceRemoteOperation().pipe(
+      catchError(async (err) => {
+        await eeRequests.markSyncStatusForFlare(flare.flareId, {
+          syncStatus: "error",
+          statusDescr: err instanceof Error ? err.message : JSON.stringify(err),
+        });
+
+        // rethrow to prevent followup
+        throw err;
+      }),
+      // on non-errored scenarii
+      concatMap(async () => {
+        eeRequests.markSyncStatusForFlare(flare.flareId, {
+          syncStatus: "ok",
+          statusDescr: "ok",
+        });
+        return "ok" as const;
+      }),
+    );
   }
 }

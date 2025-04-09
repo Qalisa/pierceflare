@@ -14,7 +14,7 @@ import { routes } from "../helpers/routes";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 import { getDb } from "@/db";
-import { flareKeys, flares } from "@/db/schema";
+import { flareKeys } from "@/db/schema";
 
 import { Hono } from "hono";
 import { compress } from "hono/compress";
@@ -27,14 +27,14 @@ import { getConnInfo } from "@hono/node-server/conninfo";
 import { rateLimiter } from "hono-rate-limiter";
 import { lastValueFrom } from "rxjs";
 import Cloudflare from "cloudflare";
-import { CloudflareDNSWorker } from "./cloudflare/cloudflareWorker";
+import { CloudflareDNSWorker } from "./cloudflare/worker";
 import { getZones } from "./cloudflare/zones";
-import { cfEmitter } from "./cloudflare/cfOrders";
 import type { HonoContext } from "./trpc/_base";
 import { appRouter } from "./trpc/router";
 import startTRPCWsServer from "./trpc/wsServer";
 import { type HttpBindings } from "@hono/node-server";
 import { getCookie } from "hono/cookie";
+import { dbRequestsEE, eeRequests } from "@/db/requests";
 
 //
 //
@@ -62,7 +62,7 @@ const startServer = async () => {
     availableCloudflareDomains = zones.map(([_id, name]) => name);
 
     //
-    const cfWorker = new CloudflareDNSWorker(cfEmitter, {
+    const cfWorker = new CloudflareDNSWorker(dbRequestsEE, {
       zones,
       cloudflareCli,
       rateLimit: 1200, // Cloudflare's rate limit is 1200 requests per 5 minutes
@@ -221,28 +221,15 @@ const startServer = async () => {
     //
     if (!address) {
       c.status(500);
-      return c.text("No address found");
+      return c.text("Remote IP of flare emitter CLI is unresolvable.");
     }
 
     //
-    await getDb()
-      .insert(flares)
-      .values({
-        flaredIPv6: addressType === "IPv6" ? address : null,
-        flaredIPv4: addressType === "IPv4" ? address : null,
-        ofDomain: ddnsForDomain,
-        receivedAt: new Date(),
-      });
-
-    //
-    cfEmitter.next({
-      operation: "update",
-      record: {
-        type: addressType === "IPv6" ? "AAAA" : "A",
-        proxied: true,
-        fullName: ddnsForDomain,
-        content: address,
-      },
+    eeRequests.queueFlareForProcessing("batch", {
+      flaredIPv6: addressType === "IPv6" ? address : undefined,
+      flaredIPv4: addressType === "IPv4" ? address : undefined,
+      ofDomain: ddnsForDomain,
+      receivedAt: new Date(),
     });
 
     //

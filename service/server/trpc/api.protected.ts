@@ -1,38 +1,15 @@
 import { getDb } from "@/db";
 import { flareKeys, flares } from "@/db/schema";
-import { produceRandomKey } from "@/helpers/random";
-import { count, desc, eq, inArray } from "drizzle-orm";
+import { desc, inArray } from "drizzle-orm";
 import { flareDomains } from "@/db/schema";
 import { TRPCError } from "@trpc/server";
 import { addLinger, protectedProcedure } from "./_base";
 import { z } from "zod";
-import EventEmitter, { on } from "events";
+import { on } from "events";
 import type { InferSelectModel } from "drizzle-orm";
 import { isValidSubdomain } from "@/helpers/domains";
-
-const ee = new EventEmitter();
-
-//
-export const produceUnusedAPIKey = async () => {
-  while (true) {
-    //
-    const key = produceRandomKey();
-    //
-    const [{ count: alreadyExist }] = await getDb()
-      .select({ count: count() })
-      .from(flareKeys)
-      .where(eq(flareKeys.apiKey, key));
-
-    if (alreadyExist) continue;
-
-    //
-    return key;
-  }
-};
-
-//
-//
-//
+import type { DbRequestsEvents } from "@/db/requests";
+import { dbRequestsEE, eeRequests, produceUnusedAPIKey } from "@/db/requests";
 
 const apiProtected = {
   //
@@ -104,21 +81,12 @@ const apiProtected = {
   //
   sendTestFlare: protectedProcedure
     .input(z.object({ ofDomain: z.string().nonempty() }))
-    .query(async ({ input: { ofDomain } }) => {
-      const testFlare = await getDb()
-        .insert(flares)
-        .values({ receivedAt: new Date(), ofDomain })
-        .returning();
-      ee.emit("add", testFlare);
-      // cfEmitter.next({
-      //   operation: "update",
-      //   record: {
-      //     fullName: "test.ivy.community",
-      //     type: "A",
-      //     proxied: true,
-      //     content: "1.1.1.1",
-      //   },
-      // });
+    .query(({ input: { ofDomain } }) => {
+      eeRequests.queueFlareForProcessing("dummy", {
+        ofDomain,
+        receivedAt: new Date(),
+        flaredIPv4: "1.1.1.1",
+      });
     }),
   //
   deleteAllFlares: protectedProcedure.query(() => getDb().delete(flares)),
@@ -146,9 +114,14 @@ const apiProtected = {
   //
   //
   onFlaresUpdates: protectedProcedure.subscription(async function* (opts) {
-    for await (const [data] of on(ee, "add", {
-      signal: opts.signal,
-    })) {
+    //
+    for await (const [data] of on(
+      dbRequestsEE,
+      "flareAdded" satisfies keyof DbRequestsEvents,
+      {
+        signal: opts.signal,
+      },
+    )) {
       const flare = data as InferSelectModel<typeof flares>;
       yield flare;
     }

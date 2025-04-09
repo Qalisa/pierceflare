@@ -1,21 +1,17 @@
 import type Cloudflare from "cloudflare";
 import type { Zones } from "./zones";
+import type { DbRequestsEvents } from "@/db/requests";
 
-// Types for our DNS update operations
-export interface DNSRecord {
-  type: "A" | "AAAA"; // A, AAAA, CNAME, etc.
-  fullName: string; // The DNS record name
-  content: string; // The DNS record content (e.g. IP address)
-  ttl?: number; // Time to live in seconds
-  proxied?: boolean; // Whether the record is proxied through Cloudflare
-}
-
-export interface DNSUpdateRequest {
-  record: DNSRecord;
-  operation: "update";
+//
+export type CloudflareWorkerRequest = {
+  flareAdded: DbRequestsEvents["flareAdded"][number];
   priority?: number; // Higher number = higher priority
   retries?: number; // Number of retries allowed for this request
-}
+  options?: {
+    ttl?: number; // Time to live in seconds
+    proxied?: boolean; // Whether the record is proxied through Cloudflare
+  };
+};
 
 export interface CloudflareConfig {
   zones: Zones;
