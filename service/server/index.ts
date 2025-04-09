@@ -19,8 +19,7 @@ import { flareKeys } from "@/db/schema";
 import { Hono } from "hono";
 import { compress } from "hono/compress";
 import type { Session } from "hono-sessions";
-import { CookieStore, sessionMiddleware } from "hono-sessions";
-import { wsUrl } from "../helpers/static";
+import { MemoryStore, sessionMiddleware } from "hono-sessions";
 import type { PageContextInjection, SessionDataTypes } from "@/helpers/types";
 import { eq } from "drizzle-orm";
 import { getConnInfo } from "@hono/node-server/conninfo";
@@ -31,9 +30,7 @@ import { CloudflareDNSWorker } from "./cloudflare/worker";
 import { getZones } from "./cloudflare/zones";
 import type { HonoContext } from "./trpc/_base";
 import { appRouter } from "./trpc/router";
-import startTRPCWsServer from "./trpc/wsServer";
 import { type HttpBindings } from "@hono/node-server";
-import { getCookie } from "hono/cookie";
 import { dbRequestsEE, eeRequests } from "@/db/requests";
 import logr from "./loggers";
 
@@ -45,12 +42,6 @@ import logr from "./loggers";
 const startServer = async () => {
   /** we do not need available domains right await for UI, just pass them empty until filled */
   let availableCloudflareDomains: string[] = [];
-  const cookiesEncryptionKey = "password_at_least_32_characters_long";
-
-  const wsServerIsReady = startTRPCWsServer(
-    cookiesEncryptionKey,
-    () => availableCloudflareDomains,
-  );
 
   const cfWorkerPromise = (async () => {
     //
@@ -105,18 +96,9 @@ const startServer = async () => {
   //
 
   //
-  const sessionCookieName = "sessionId";
   app.use(
     sessionMiddleware({
-      store: new CookieStore(),
-      encryptionKey: cookiesEncryptionKey, // Required for CookieStore, recommended for others
-      expireAfterSeconds: 900, // Expire session after 15 minutes of inactivity
-      sessionCookieName,
-      cookieOptions: {
-        sameSite: "Lax", // Recommended for basic CSRF protection in modern browsers
-        path: "/", // Required for this library to work properly
-        httpOnly: true, // Recommended to avoid XSS attacks
-      },
+      store: new MemoryStore(),
     }),
   );
 
@@ -267,18 +249,13 @@ const startServer = async () => {
       const session = c.get("session") as Session<SessionDataTypes>;
       const user = session.get("user");
       const authFailure = session.get("authFailure");
-      const tRPCWsUrl = wsUrl;
 
       //
       const injecting: PageContextInjection = {
         injected: {
           ...(authFailure ? { authFailure } : {}),
           ...(user ? { user } : {}),
-          ...(user
-            ? { encryptedSessionData: getCookie(c, sessionCookieName) }
-            : {}),
           availableCloudflareDomains,
-          tRPCWsUrl,
           k8sApp: {
             imageRevision,
             imageVersion,
@@ -298,7 +275,7 @@ const startServer = async () => {
 
   //
   if (import.meta.env.PROD) {
-    await Promise.all([wsServerIsReady, async () => getDb()]);
+    await Promise.all([async () => getDb()]);
   }
 
   //

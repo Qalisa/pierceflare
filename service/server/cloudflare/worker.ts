@@ -10,6 +10,7 @@ import {
   mergeMap,
   retry,
   switchMap,
+  tap,
   timeout,
 } from "rxjs/operators";
 import type { CloudflareConfig, CloudflareWorkerRequest } from "./types";
@@ -95,10 +96,27 @@ export class CloudflareDNSWorker {
               return timer(delayMs);
             },
           }),
-          catchError((error) => {
-            logr.error("Error executing request:", error);
-            return throwError(() => error);
+          //
+          tap({
+            next: () =>
+              logr.log(
+                `[flareId|${request.flareAdded.flareId}]`,
+                "Request completed",
+              ),
           }),
+          //
+          catchError((error) => {
+            //
+            logr.error(
+              `[flareId|${request.flareAdded.flareId}]`,
+              "Error executing request:",
+              error instanceof Error ? error.message : JSON.stringify(error),
+            );
+
+            //
+            return of(request.flareAdded.flareId);
+          }),
+          //
           finalize(() => {
             this.activeRequests--;
             // Clean up old entries in rate window
@@ -110,12 +128,6 @@ export class CloudflareDNSWorker {
         );
       }),
     );
-
-    //
-    flow.subscribe({
-      next: (result) => logr.log("Request completed:", result),
-      error: (error) => logr.error("Error in request pipeline:", error),
-    });
 
     //
     return flow;
@@ -225,9 +237,13 @@ export class CloudflareDNSWorker {
             switchMap(() => {
               const shouldError = Math.random() < 0.25; // 25% chance to throw
               if (shouldError) {
-                return throwError(() => new Error("Random error occurred!"));
+                return throwError(
+                  () => new Error("Random dummy error occurred!"),
+                );
               }
-              return of("Success after random delay");
+
+              //
+              return of(flare.flareId);
             }),
           );
         case "batch":
@@ -244,7 +260,7 @@ export class CloudflareDNSWorker {
                 },
               ],
             }),
-          ).pipe(map(() => "ok"));
+          ).pipe(map(() => flare.flareId));
 
         default:
           return throwError(
@@ -256,6 +272,7 @@ export class CloudflareDNSWorker {
     // update flare
     return produceRemoteOperation().pipe(
       catchError(async (err) => {
+        //
         await eeRequests.markSyncStatusForFlare(flare.flareId, {
           syncStatus: "error",
           statusDescr: err instanceof Error ? err.message : JSON.stringify(err),
@@ -270,7 +287,7 @@ export class CloudflareDNSWorker {
           syncStatus: "ok",
           statusDescr: "ok",
         });
-        return "ok" as const;
+        return flare.flareId;
       }),
     );
   }

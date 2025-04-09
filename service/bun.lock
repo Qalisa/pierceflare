@@ -35,7 +35,6 @@
         "vike-react": "^0.6.1",
         "vike-server": "^1.0.14",
         "vite": "^6.2.5",
-        "ws": "^8.18.1",
         "zod": "^3.24.2",
       },
       "devDependencies": {
@@ -44,7 +43,6 @@
         "@types/node": "^22.14.0",
         "@types/react": "^19.1.0",
         "@types/react-dom": "^19.1.1",
-        "@types/ws": "^8.18.1",
         "@typescript-eslint/parser": "^8.29.0",
         "cssnano": "^7.0.6",
         "daisyui": "^5.0.12",

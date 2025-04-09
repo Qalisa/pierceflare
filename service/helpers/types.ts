@@ -9,7 +9,6 @@ export interface AppUser {
 /** do not store sensitive data */
 export type SessionDataTypes = {
   user?: AppUser;
-  encryptedSessionData?: string;
   authFailure?: { username?: string; message: string };
 };
 
@@ -26,8 +25,6 @@ type InjectingPageContext = SessionDataTypes & {
   };
   //
   availableCloudflareDomains: string[];
-  //
-  tRPCWsUrl: string;
 };
 
 export type PageContextInjection = {
