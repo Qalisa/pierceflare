@@ -59,7 +59,7 @@
     "@types/react-dom": "^19.1.1",
     "@typescript-eslint/parser": "^8.29.0",
     "cssnano": "^7.0.6",
-    "daisyui": "^5.0.12",
+    "daisyui": "^5.0.17",
     "drizzle-kit": "^0.30.6",
     "eslint": "^9.24.0",
     "eslint-config-love": "119.0.0",

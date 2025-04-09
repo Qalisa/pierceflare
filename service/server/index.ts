@@ -89,7 +89,7 @@ const startServer = async () => {
   // COMPRESSION
   //
 
-  app.use(compress());
+  // app.use(compress()); // TODO: uncomment when fixed https://github.com/oven-sh/bun/issues/1723
 
   //
   // SESSION
