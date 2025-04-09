@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/libsql/node";
 import { createClient } from "@libsql/client/node";
 import { SERVICE_DATABASE_FILES_PATH } from "@/server/env";
 import { title } from "@/helpers/static";
+import logr from "@/server/loggers";
 
 //
 const readyingDB = () => {
@@ -11,10 +12,10 @@ const readyingDB = () => {
     url: `file:${SERVICE_DATABASE_FILES_PATH}/${appDbName}.db`,
   });
 
-  console.log(`[${title}]`, "Starting DB Schema Migration...");
+  logr.log("Starting DB Schema Migration...");
   const db = drizzle(sqlite);
   migrate(db, { migrationsFolder: "./drizzle" });
-  console.log(`[${title}]`, "DB Schema Migration Done.");
+  logr.log("DB Schema Migration Done.");
   return db;
 };
 

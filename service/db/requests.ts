@@ -21,6 +21,7 @@ export type DbRequestsEvents = {
     remoteOperation: RemoteOperation;
   })[];
   flareSyncStatuted: FlareType["flareId"][];
+  flareChanged: FlareType["flareId"][];
 };
 
 export const dbRequestsEE = new EventEmitter<DbRequestsEvents>();
@@ -35,19 +36,27 @@ export const eeRequests = {
     remoteOperation: RemoteOperation,
     toWrite: InferInsertModel<typeof flares>,
   ) => {
+    //
     const [flare] = await getDb().insert(flares).values(toWrite).returning();
+
+    //
     dbRequestsEE.emit("flareAdded", { ...flare, remoteOperation });
+    dbRequestsEE.emit("flareChanged", flare.flareId);
   },
   //
   markSyncStatusForFlare: async (
     flareId: FlareType["flareId"],
     { statusDescr, syncStatus }: Pick<FlareType, "statusDescr" | "syncStatus">,
   ) => {
+    //
     await getDb()
       .update(flares)
       .set({ statusAt: new Date(), statusDescr, syncStatus })
       .where(eq(flares.flareId, flareId));
+
+    //
     dbRequestsEE.emit("flareSyncStatuted", flareId);
+    dbRequestsEE.emit("flareChanged", flareId);
   },
 };
 

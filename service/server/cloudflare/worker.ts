@@ -12,13 +12,16 @@ import {
   switchMap,
   timeout,
 } from "rxjs/operators";
-// Import Cloudflare client from their npm package
-import { title } from "@/helpers/static";
 import type { CloudflareConfig, CloudflareWorkerRequest } from "./types";
 import type { Zones } from "./zones";
 import { randomIntFromInterval } from "@/helpers/random";
 import type { DbRequestsEvents } from "@/db/requests";
 import { dbRequestsEE, eeRequests } from "@/db/requests";
+import logr from "../loggers";
+
+//
+//
+//
 
 //
 export class CloudflareDNSWorker {
@@ -48,6 +51,10 @@ export class CloudflareDNSWorker {
     ).pipe(
       // cast
       map((flareAdded) => {
+        //
+        logr.log("Processing", flareAdded);
+
+        //
         return { flareAdded } as CloudflareWorkerRequest;
       }),
       // Group by priority - higher priority items processed first
@@ -82,15 +89,14 @@ export class CloudflareDNSWorker {
             count: request.retries || this.config.maxRetries,
             delay: (error, retryCount) => {
               const delayMs = this.calculateRetryDelay(error, retryCount);
-              console.log(
-                `[${title}]`,
+              logr.log(
                 `Retrying request (${retryCount}/${request.retries || this.config.maxRetries}) after ${delayMs}ms`,
               );
               return timer(delayMs);
             },
           }),
           catchError((error) => {
-            console.error(`[${title}]`, "Error executing request:", error);
+            logr.error("Error executing request:", error);
             return throwError(() => error);
           }),
           finalize(() => {
@@ -107,9 +113,8 @@ export class CloudflareDNSWorker {
 
     //
     flow.subscribe({
-      next: (result) => console.log(`[${title}]`, "Request completed:", result),
-      error: (error) =>
-        console.error(`[${title}]`, "Error in request pipeline:", error),
+      next: (result) => logr.log("Request completed:", result),
+      error: (error) => logr.error("Error in request pipeline:", error),
     });
 
     //

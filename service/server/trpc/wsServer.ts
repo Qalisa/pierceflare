@@ -1,8 +1,9 @@
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import { WebSocketServer } from "ws";
 import { appRouter } from "./router";
-import { title, wsPort, wsUrl } from "@/helpers/static";
+import { wsPort, wsUrl } from "@/helpers/static";
 import { decrypt } from "hono-sessions";
+import logr from "../loggers";
 
 /** */
 const startTRPCWsServer = (
@@ -59,20 +60,20 @@ const startTRPCWsServer = (
     //
     wss.once("listening", () => {
       //
-      console.log(`[${title}]`, `✅ WebSocket Server listening on ${wsUrl}`);
+      logr.log(`✅ WebSocket Server listening on ${wsUrl}`);
 
       //
       process.on("SIGTERM", () => {
-        console.log("SIGTERM");
+        logr.log("SIGTERM");
         handler.broadcastReconnectNotification();
         wss.close();
       });
 
       //
       wss.on("connection", (ws) => {
-        console.log(`➕➕ Connection (${wss.clients.size})`);
+        logr.log(`➕➕ Connection (${wss.clients.size})`);
         ws.once("close", () => {
-          console.log(`➖➖ Connection (${wss.clients.size})`);
+          logr.log(`➖➖ Connection (${wss.clients.size})`);
         });
       });
 

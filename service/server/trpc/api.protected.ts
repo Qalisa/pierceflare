@@ -6,7 +6,6 @@ import { TRPCError } from "@trpc/server";
 import { addLinger, protectedProcedure } from "./_base";
 import { z } from "zod";
 import { on } from "events";
-import type { InferSelectModel } from "drizzle-orm";
 import { isValidSubdomain } from "@/helpers/domains";
 import type { DbRequestsEvents } from "@/db/requests";
 import { dbRequestsEE, eeRequests, produceUnusedAPIKey } from "@/db/requests";
@@ -117,12 +116,12 @@ const apiProtected = {
     //
     for await (const [data] of on(
       dbRequestsEE,
-      "flareAdded" satisfies keyof DbRequestsEvents,
+      "flareChanged" satisfies keyof DbRequestsEvents,
       {
         signal: opts.signal,
       },
     )) {
-      const flare = data as InferSelectModel<typeof flares>;
+      const flare = data as DbRequestsEvents["flareChanged"][number];
       yield flare;
     }
   }),

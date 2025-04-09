@@ -20,7 +20,7 @@ import { Hono } from "hono";
 import { compress } from "hono/compress";
 import type { Session } from "hono-sessions";
 import { CookieStore, sessionMiddleware } from "hono-sessions";
-import { title, wsUrl } from "../helpers/static";
+import { wsUrl } from "../helpers/static";
 import type { PageContextInjection, SessionDataTypes } from "@/helpers/types";
 import { eq } from "drizzle-orm";
 import { getConnInfo } from "@hono/node-server/conninfo";
@@ -35,6 +35,7 @@ import startTRPCWsServer from "./trpc/wsServer";
 import { type HttpBindings } from "@hono/node-server";
 import { getCookie } from "hono/cookie";
 import { dbRequestsEE, eeRequests } from "@/db/requests";
+import logr from "./loggers";
 
 //
 //
@@ -311,7 +312,7 @@ const startServer = async () => {
   return serve(app, {
     port: PORT,
     onReady() {
-      console.log(`[${title}]`, `Server is ready.`);
+      logr.log(`Server is ready.`);
     },
   });
 };
