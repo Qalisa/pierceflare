@@ -2,17 +2,23 @@ import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
+  getExpandedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import type { JSX } from "react";
-import { useCallback, useEffect } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { Fragment, useCallback, useEffect } from "react";
+import { motion } from "motion/react";
 import { useTRPC } from "@/helpers/trpc";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSubscription, type inferOutput } from "@trpc/tanstack-react-query";
 import ReloadButton from "@/components/ReloadButton";
 import WebSocketIndicator from "@/components/WebSocketIndicator";
 import { timeAgoFormatter } from "@/components/TimeAgoCellFormater";
+import type { RootState } from "@/store/reducers";
+import { resetUnseenCount } from "@/store/reducers/unseenUpdates";
+import { useDispatch, useSelector } from "react-redux";
+import type { FlareSyncStatus } from "@/db/schema";
+import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
 
 //
 //
@@ -44,10 +50,23 @@ const FlaresTable = ({
   );
 
   //
-  const { data: flares } = useQuery(trpc.getFlares.queryOptions({ limit: 5 }));
+  const { data: flares } = useQuery(trpc.getFlares.queryOptions({ limit: 20 }));
   const { status, data: wsData } = useSubscription(
     trpc.onFlaresUpdates.subscriptionOptions(),
   );
+
+  const dispatch = useDispatch();
+  const { flares: flaresUpdates } = useSelector(
+    (state: RootState) => state.unseenUpdates.unseenUpdates,
+  );
+
+  //
+  useEffect(() => {
+    if (flaresUpdates) {
+      dispatch(resetUnseenCount("flares"));
+      invalidateFlares();
+    }
+  }, []);
 
   //
   useEffect(() => {
@@ -89,13 +108,60 @@ const FlaresTable = ({
       columns: [
         columnHelper.accessor("syncStatus", {
           header: "Status",
+          cell: (c) => {
+            //
+            const value = c.getValue() as FlareSyncStatus;
+
+            //
+            const className = (() => {
+              switch (value) {
+                case "waiting":
+                  return "status-warning";
+                case "error":
+                  return "status-error";
+                case "ok":
+                  return "status-success";
+              }
+            })();
+
+            //
+            return (
+              <div className="flex items-center gap-2">
+                <div className="inline-grid *:[grid-area:1/1]">
+                  {value == "waiting" && (
+                    <div className={`status ${className} animate-ping`}></div>
+                  )}
+                  <div className={`status ${className}`}></div>
+                </div>
+                <span className="text-xs">{value}</span>
+              </div>
+            );
+          },
         }),
         columnHelper.accessor("statusAt", {
           header: "At",
           cell: timeAgoFormatter,
         }),
-        columnHelper.accessor("statusDescr", {
-          header: "Descr",
+        columnHelper.display({
+          id: "collapser",
+          header: "",
+          cell: ({ row }) => {
+            //
+            if (!row.getCanExpand()) return <></>;
+
+            const expanded = row.getIsExpanded();
+
+            //
+            return (
+              <button
+                className={`swap ${expanded ? "swap-active" : ""}`}
+                onClick={row.getToggleExpandedHandler()}
+              >
+                <ChevronUpIcon className="swap-on size-4" />
+                <ChevronDownIcon className="swap-off size-4" />
+              </button>
+            );
+          },
         }),
       ],
     }),
@@ -108,7 +174,10 @@ const FlaresTable = ({
   const table = useReactTable({
     data,
     columns,
+    getRowCanExpand: (row) => row.original.statusDescr != null,
+    autoResetExpanded: false,
     getCoreRowModel: getCoreRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
     enableSorting: false,
   });
 
@@ -134,7 +203,7 @@ const FlaresTable = ({
 
   //
   return (
-    <div className="mb-8 w-11/12">
+    <div className="mb-32 w-11/12">
       <div className="mx-4 flex items-end gap-4">
         <WebSocketIndicator status={status} />
         <ReloadButton
@@ -178,26 +247,55 @@ const FlaresTable = ({
               <td colSpan={99}>{noData}</td>
             </tr>
           ) : (
-            <AnimatePresence initial={false} mode="popLayout">
+            <>
               {table.getRowModel().rows.map((row) => {
                 //
                 const key = row.original.flareId;
+                const expanded = row.getIsExpanded();
+                const className =
+                  row.original.syncStatus == ("error" satisfies FlareSyncStatus)
+                    ? [
+                        expanded ? "bg-error/50" : "bg-error/25",
+                        "text-error-content",
+                      ].join(" ")
+                    : "";
 
                 //
                 return (
-                  <TR key={key}>
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </td>
-                    ))}
-                  </TR>
+                  <Fragment key={key}>
+                    <TR className={className}>
+                      {row.getVisibleCells().map((cell) => {
+                        //
+                        return (
+                          <td key={cell.id}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </td>
+                        );
+                      })}
+                    </TR>
+                    {expanded &&
+                      row.getCanExpand() &&
+                      (() => {
+                        return (
+                          <TR className={className}>
+                            <td colSpan={row.getVisibleCells().length}>
+                              <div className="flex w-full gap-4">
+                                <strong>Message:</strong>
+                                <code className="bg-neutral flex-1 p-4 text-xs">
+                                  {row.original.statusDescr}
+                                </code>
+                              </div>
+                            </td>
+                          </TR>
+                        );
+                      })()}
+                  </Fragment>
                 );
               })}
-            </AnimatePresence>
+            </>
           )}
         </tbody>
       </table>
@@ -206,13 +304,21 @@ const FlaresTable = ({
 };
 
 //
-const TR = ({ children }: { children: React.ReactNode }) => {
+const TR = ({
+  children,
+  className,
+}: {
+  className: string;
+  children: React.ReactNode;
+}) => {
   return (
     <motion.tr
       layout
+      className={className}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
     >
       {children}
     </motion.tr>

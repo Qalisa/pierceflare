@@ -88,7 +88,9 @@ const apiProtected = {
       });
     }),
   //
-  deleteAllFlares: protectedProcedure.query(() => getDb().delete(flares)),
+  deleteAllFlares: protectedProcedure.mutation(async () => {
+    await getDb().delete(flares);
+  }),
   //
   getFlareDomains: protectedProcedure.query(() =>
     getDb().select().from(flareDomains),

@@ -285,7 +285,7 @@ export class CloudflareDNSWorker {
       concatMap(async () => {
         eeRequests.markSyncStatusForFlare(flare.flareId, {
           syncStatus: "ok",
-          statusDescr: "ok",
+          statusDescr: null,
         });
         return flare.flareId;
       }),

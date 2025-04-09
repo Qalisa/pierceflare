@@ -62,7 +62,7 @@ const FlareGeneratorCommandBelt = () => {
         </button>
         <button
           onClick={async () => {
-            await trpcCli.deleteAllFlares.query();
+            await trpcCli.deleteAllFlares.mutate();
             invalidateFlares();
           }}
           disabled={domains == undefined}
