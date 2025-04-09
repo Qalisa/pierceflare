@@ -10,8 +10,6 @@ export const $ddnsEntries = z.object({
   selectedForDeletion: z.array(z.string()),
   //
   generateApiKeyFor: z.string().optional(),
-  //
-  tableStaleness: z.object({ flareDomains: z.number(), flares: z.number() }),
 });
 
 export type DDNSEntries = z.infer<typeof $ddnsEntries>;
@@ -23,10 +21,6 @@ export type DDNSEntries = z.infer<typeof $ddnsEntries>;
 const initialState: DDNSEntries = {
   selected: [],
   selectedForDeletion: [],
-  tableStaleness: {
-    flareDomains: 0,
-    flares: 0,
-  },
 };
 
 const ddnsEntriesSlice = createSlice({

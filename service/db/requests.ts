@@ -3,6 +3,7 @@ import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { count, eq } from "drizzle-orm";
 import EventEmitter from "events";
 import { getDb } from ".";
+import type { FlareSyncStatus } from "./schema";
 import { flares } from "./schema";
 import { flareKeys } from "./schema";
 
@@ -21,7 +22,11 @@ export type DbRequestsEvents = {
     remoteOperation: RemoteOperation;
   })[];
   flareSyncStatuted: FlareType["flareId"][];
-  flareChanged: FlareType["flareId"][];
+  flareChanged: [
+    flareId: FlareType["flareId"],
+    status: FlareSyncStatus,
+    dateEpoch: number,
+  ][];
 };
 
 export const dbRequestsEE = new EventEmitter<DbRequestsEvents>();
@@ -41,22 +46,31 @@ export const eeRequests = {
 
     //
     dbRequestsEE.emit("flareAdded", { ...flare, remoteOperation });
-    dbRequestsEE.emit("flareChanged", flare.flareId);
+    dbRequestsEE.emit("flareChanged", [
+      flare.flareId,
+      "waiting",
+      flare.receivedAt.getTime(),
+    ]);
   },
   //
   markSyncStatusForFlare: async (
     flareId: FlareType["flareId"],
     { statusDescr, syncStatus }: Pick<FlareType, "statusDescr" | "syncStatus">,
   ) => {
+    const statusAt = new Date();
     //
     await getDb()
       .update(flares)
-      .set({ statusAt: new Date(), statusDescr, syncStatus })
+      .set({ statusAt, statusDescr, syncStatus })
       .where(eq(flares.flareId, flareId));
 
     //
     dbRequestsEE.emit("flareSyncStatuted", flareId);
-    dbRequestsEE.emit("flareChanged", flareId);
+    dbRequestsEE.emit("flareChanged", [
+      flareId,
+      syncStatus as FlareSyncStatus,
+      statusAt.getTime(),
+    ]);
   },
 };
 

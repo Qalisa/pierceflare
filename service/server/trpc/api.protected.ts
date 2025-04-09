@@ -121,8 +121,8 @@ const apiProtected = {
         signal: opts.signal,
       },
     )) {
-      const flare = data as DbRequestsEvents["flareChanged"][number];
-      yield flare;
+      const event = data as DbRequestsEvents["flareChanged"][number];
+      yield event;
     }
   }),
 };

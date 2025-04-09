@@ -51,7 +51,8 @@ const FlaresTable = ({
 
   //
   useEffect(() => {
-    if (wsData) invalidateFlares();
+    if (!wsData) return;
+    invalidateFlares();
   }, [wsData]);
 
   const useSkeleton = flares == undefined;
