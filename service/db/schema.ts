@@ -1,5 +1,9 @@
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+//
+//
+//
 
 export const flareDomains = sqliteTable("flare_domains", {
   ddnsForDomain: text().primaryKey(),
@@ -10,7 +14,10 @@ export const flareDomains = sqliteTable("flare_domains", {
   latestSyncedIPv6: text(),
   latestSyncedIPv4: text(),
 });
-export const flareDomains$ = createInsertSchema(flareDomains);
+
+//
+//
+//
 
 export const flareKeys = sqliteTable("flare_keys", {
   apiKey: text().primaryKey(),
@@ -19,6 +26,13 @@ export const flareKeys = sqliteTable("flare_keys", {
     .notNull(),
   createdAt: integer({ mode: "timestamp_ms" }).notNull(),
 });
+
+//
+//
+//
+
+const _flareSyncStatus = z.enum(["waiting", "error", "ok"]);
+export type FlareSyncStatus = z.infer<typeof _flareSyncStatus>;
 
 export const flares = sqliteTable("flares_send", {
   // order metadata
@@ -31,7 +45,9 @@ export const flares = sqliteTable("flares_send", {
   flaredIPv4: text(),
   flaredIPv6: text(),
   // sync attempt
-  syncStatus: text().notNull().default("waiting"),
+  syncStatus: text()
+    .notNull()
+    .default("waiting" satisfies FlareSyncStatus),
   statusAt: integer({ mode: "timestamp_ms" }),
   statusDescr: text(),
 });

@@ -1,9 +1,13 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createTRPCClient, createWSClient, wsLink } from "@trpc/client";
+import {
+  createTRPCClient,
+  httpBatchStreamLink,
+  httpSubscriptionLink,
+  splitLink,
+} from "@trpc/client";
 import { useState } from "react";
 import { TRPCProvider } from "@/helpers/trpc";
 import type { AppRouter } from "@/server/trpc/router";
-import { usePageContext } from "vike-react/usePageContext";
 
 const makeQueryClient = () => {
   return new QueryClient({
@@ -33,30 +37,20 @@ const getQueryClient = () => {
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
   //
-  const {
-    injected: { tRPCWsUrl, encryptedSessionData },
-  } = usePageContext();
-
-  //
-  //
-  //
-
   const queryClient = getQueryClient();
-  const wsClient = createWSClient({
-    url: tRPCWsUrl,
-    connectionParams: async () => {
-      return {
-        encryptedSessionData,
-      };
-    },
-  });
 
   //
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
       links: [
-        wsLink({
-          client: wsClient,
+        splitLink({
+          condition: (op) => op.type === "subscription",
+          true: httpSubscriptionLink({
+            url: "http://localhost:3000/trpc",
+          }),
+          false: httpBatchStreamLink({
+            url: "http://localhost:3000/trpc",
+          }),
         }),
       ],
     }),

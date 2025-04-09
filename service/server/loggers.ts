@@ -4,7 +4,7 @@ const _log = (
   logger: typeof console.log | typeof console.error,
   ...args: unknown[]
 ) => {
-  return logger([`[${title}]`, ...args]);
+  return logger(`[${title}]`, ...args);
 };
 
 const logr = {

@@ -262,19 +262,18 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
                 </tr>
               ))
             ) : (
-              <AnimatePresence>
+              <AnimatePresence initial={false} mode="popLayout">
                 {table.getRowModel().rows.map((row) => {
                   return (
                     <motion.tr
-                      key={row.id}
+                      key={row.getValue("ddnsForDomain")}
                       className={
                         row.getIsSelected() ? "bg-base-200" : undefined
                       }
-                      initial={{ opacity: 1 }}
+                      initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       layout
-                      transition={{ duration: 0.6 }}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <td key={cell.id}>
