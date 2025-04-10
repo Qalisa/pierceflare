@@ -92,6 +92,7 @@ const FlaresTable = ({
       header: () => <WebSocketIndicator status={status} />,
       columns: [
         columnHelper.accessor("receivedAt", {
+          header: "Received",
           cell: timeAgoFormatter,
         }),
         columnHelper.accessor("ofDomain", {
