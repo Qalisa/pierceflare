@@ -33,7 +33,7 @@ jobs:
     - name: Extract appVersion from Helm Chart
       id: data-from-helm
       run: |
-        APP_VERSION=$(yq e '.appVersion' .helm/Chart.yaml)
+        APP_VERSION=$(yq e '.appVersion' .helm/service/Chart.yaml)
         FIRST_HOST=$(yq -r '.ingress.hosts[0]' .helm-values/service/values.${{ github.ref_name }}.yaml)
         echo "appVersion=${APP_VERSION}" >> $GITHUB_OUTPUT
         echo "canonicalUrl=https://${FIRST_HOST}" >> $GITHUB_OUTPUT
