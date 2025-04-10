@@ -24,6 +24,7 @@ type InjectingPageContext = SessionDataTypes & {
     version: string;
   };
   //
+  trpcUrl: string;
   availableCloudflareDomains: string[];
 };
 

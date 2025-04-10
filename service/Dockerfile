@@ -9,14 +9,14 @@ ARG CANONICAL_URL
 ENV K8S_APP__VERSION=$K8S_APP__VERSION \
     CANONICAL_URL=$CANONICAL_URL
 
-WORKDIR /usr/src/app
-
-# Install PNPM globally
-RUN npm install -g pnpm
+#
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
 
 #
+WORKDIR /usr/src/app
 COPY ./service/package.json ./service/.npmrc ./
-ENV COREPACK_ENABLE_STRICT=0
 RUN pnpm install
 
 #

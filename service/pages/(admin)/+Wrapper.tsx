@@ -8,6 +8,7 @@ import {
 import { useState } from "react";
 import { TRPCProvider } from "@/helpers/trpc";
 import type { AppRouter } from "@/server/trpc/router";
+import { usePageContext } from "vike-react/usePageContext";
 
 const makeQueryClient = () => {
   return new QueryClient({
@@ -38,6 +39,9 @@ const getQueryClient = () => {
 const Wrapper = ({ children }: { children: React.ReactNode }) => {
   //
   const queryClient = getQueryClient();
+  const {
+    injected: { trpcUrl },
+  } = usePageContext();
 
   //
   const [trpcClient] = useState(() =>
@@ -46,10 +50,10 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => {
         splitLink({
           condition: (op) => op.type === "subscription",
           true: httpSubscriptionLink({
-            url: "http://localhost:3000/trpc",
+            url: trpcUrl,
           }),
           false: httpBatchStreamLink({
-            url: "http://localhost:3000/trpc",
+            url: trpcUrl,
           }),
         }),
       ],

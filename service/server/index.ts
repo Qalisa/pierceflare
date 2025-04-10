@@ -1,4 +1,5 @@
 import {
+  CANONICAL_URL,
   CLOUDFLARE_API_TOKEN,
   PORT,
   SERVICE_AUTH_PASSWORD,
@@ -229,6 +230,7 @@ const startServer = async () => {
     `${routes.trpc.root}/*`,
     trpcServer({
       router: appRouter,
+      endpoint: routes.trpc.root,
       createContext: (_opts, c) => {
         //
         return {
@@ -249,6 +251,7 @@ const startServer = async () => {
       const session = c.get("session") as Session<SessionDataTypes>;
       const user = session.get("user");
       const authFailure = session.get("authFailure");
+      const trpcUrl = `${CANONICAL_URL.origin}${routes.trpc.root}`;
 
       //
       const injecting: PageContextInjection = {
@@ -256,6 +259,7 @@ const startServer = async () => {
           ...(authFailure ? { authFailure } : {}),
           ...(user ? { user } : {}),
           availableCloudflareDomains,
+          trpcUrl,
           k8sApp: {
             imageRevision,
             imageVersion,
