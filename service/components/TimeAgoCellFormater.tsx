@@ -1,6 +1,7 @@
+import TimeAgo from "timeago-react";
+
 import { CalendarIcon, ClockIcon } from "@heroicons/react/24/solid";
 import type { CellContext } from "@tanstack/react-table";
-import TimeAgo from "timeago-react";
 
 //
 export const timeAgoFormatter = <T,>({ getValue }: CellContext<T, unknown>) => {

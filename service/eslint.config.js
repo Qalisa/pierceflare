@@ -1,16 +1,14 @@
-import tseslint from "typescript-eslint";
-import eslint, { } from "@eslint/js";
-
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import reactPlugin from "eslint-plugin-react";
-
 import reactRefresh from "eslint-plugin-react-refresh";
 import globals from "globals";
-import tsParser from "@typescript-eslint/parser";
-
 // Import resolver for handling aliases and static assets
 import { resolve as pathResolve } from "path";
+import tseslint from "typescript-eslint";
 import { fileURLToPath } from "url";
+
+import eslint from "@eslint/js";
+import tsParser from "@typescript-eslint/parser";
 
 const __dirname = pathResolve(fileURLToPath(import.meta.url), "..");
 
@@ -23,10 +21,10 @@ export default tseslint.config(
       "prettier/prettier": [
         "error",
         {
-          "endOfLine": "auto"
-        }
-      ]
-    }
+          endOfLine: "auto",
+        },
+      ],
+    },
   },
   reactPlugin.configs.flat.recommended,
   reactPlugin.configs.flat["jsx-runtime"],
@@ -37,9 +35,9 @@ export default tseslint.config(
     ignores: ["*.cjs", "*.js"],
   },
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ["**/*.ts", "**/*.tsx"],
     rules: {
-      "func-style": [2, "expression"]
+      "func-style": [2, "expression"],
     },
   },
   {
@@ -58,7 +56,7 @@ export default tseslint.config(
       ecmaVersion: "latest",
       sourceType: "module",
       parserOptions: {
-        project: "./tsconfig.json",
+        project: true,
         tsconfigRootDir: __dirname,
       },
     },
@@ -82,5 +80,5 @@ export default tseslint.config(
         },
       ],
     },
-  }
+  },
 );

@@ -1,5 +1,6 @@
-import { withLinger } from "@/helpers/withLinger";
-import { initTRPC, TRPCError } from "@trpc/server";
+import { TRPCError, initTRPC } from "@trpc/server";
+
+import { withLinger } from "#/helpers/withLinger";
 
 export type HonoContext = {
   userLogged?: boolean;

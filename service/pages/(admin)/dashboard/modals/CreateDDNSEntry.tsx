@@ -1,5 +1,6 @@
-import DDNSCreateForm from "@/pages/(admin)/dashboard/forms/DDNSCreateForm";
-import { modalIds } from "@/helpers/modals";
+import { modalIds } from "#/helpers/modals";
+import DDNSCreateForm from "#/pages/(admin)/dashboard/forms/DDNSCreateForm";
+
 //
 const CreateDDNSEntryModal = () => {
   const { form, button } = DDNSCreateForm({ submitButtonOutside: true });

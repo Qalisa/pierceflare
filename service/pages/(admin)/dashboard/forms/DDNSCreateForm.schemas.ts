@@ -1,6 +1,7 @@
-import { flareDomains } from "@/db/schema";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+import { flareDomains } from "#/db/schema";
 
 export const expectedInput$ = createInsertSchema(flareDomains)
   .omit({

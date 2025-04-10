@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+
 import { ThemeContext } from "./ThemeContext";
 
 const STORAGE_KEY = "enforceReverseOsTheme";

@@ -1,6 +1,6 @@
 {
     "editor.codeActionsOnSave": {
-      "source.fixAll": "explicit"
+      "source.fixAll": "explicit",
     },
     "terminal.integrated.cwd": "${workspaceFolder}/service",
     "files.associations": {

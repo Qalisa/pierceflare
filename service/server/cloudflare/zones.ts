@@ -1,5 +1,6 @@
 import type Cloudflare from "cloudflare";
-import logr from "@/server/loggers";
+
+import logr from "#/server/loggers";
 
 export type Zones = Awaited<ReturnType<typeof getZones>>;
 

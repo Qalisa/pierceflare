@@ -1,4 +1,4 @@
-import { title } from "@/helpers/static";
+import { title } from "#/helpers/static";
 
 const _log = (
   logger: typeof console.log | typeof console.error,

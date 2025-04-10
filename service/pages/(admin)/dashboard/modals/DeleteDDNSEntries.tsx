@@ -1,5 +1,5 @@
-import DDNSDeleteForm from "@/pages/(admin)/dashboard/forms/DDNSDeleteForm";
-import { modalIds } from "@/helpers/modals";
+import { modalIds } from "#/helpers/modals";
+import DDNSDeleteForm from "#/pages/(admin)/dashboard/forms/DDNSDeleteForm";
 
 //
 const DeleteDDNSEntriesModal = () => {

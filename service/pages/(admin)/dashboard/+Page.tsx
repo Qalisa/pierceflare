@@ -1,11 +1,13 @@
-import DNSEntriesTable from "./tables/DNSEntriesTable";
-import { title } from "@/helpers/static";
+import { PlusCircleIcon } from "@heroicons/react/24/solid";
+
+import appLogo from "#/assets/images/logo.webp";
+import { getModal, modalIds } from "#/helpers/modals";
+import { title } from "#/helpers/static";
+
 import CreateDDNSEntryModal from "./modals/CreateDDNSEntry";
 import DeleteDDNSEntriesModal from "./modals/DeleteDDNSEntries";
-import { getModal, modalIds } from "@/helpers/modals";
-import { PlusCircleIcon } from "@heroicons/react/24/solid";
-import appLogo from "@/assets/images/logo.webp";
 import ManageAPIKeysModal from "./modals/ManageAPIKeys";
+import DNSEntriesTable from "./tables/DNSEntriesTable";
 
 //
 const DashboardPage = () => {

@@ -1,4 +1,4 @@
-import logo404 from "@/assets/images/404.webp";
+import logo404 from "#/assets/images/404.webp";
 
 export default {
   // Default <title>

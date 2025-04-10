@@ -1,10 +1,9 @@
 import vikeReact from "vike-react/config";
+import vikeServer from "vike-server/config";
 import type { Config } from "vike/types";
 
-import vikeServer from "vike-server/config";
-
-import appLogo from "@/assets/images/logo.webp";
-import { title } from "@/helpers/static";
+import appLogo from "#/assets/images/logo.webp";
+import { title } from "#/helpers/static";
 
 // Default config (can be overridden by pages)
 // https://vike.dev/config

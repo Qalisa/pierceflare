@@ -1,5 +1,6 @@
-import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { z } from "zod";
+
+import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
 
 //
 //

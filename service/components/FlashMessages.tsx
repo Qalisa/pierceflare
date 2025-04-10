@@ -1,12 +1,15 @@
-import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
-import { CheckCircleIcon } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import type { RootState } from "@/store/reducers";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import type { FlashMessageType } from "@/store/reducers/flashMessages";
-import { clearFlashMessages } from "@/store/reducers/flashMessages";
-import { onlyUniqueStr } from "@/helpers/onlyUnique";
+
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
+
+import { onlyUniqueStr } from "#/helpers/onlyUnique";
+import type { RootState } from "#/store/reducers";
+import type { FlashMessageType } from "#/store/reducers/flashMessages";
+import { clearFlashMessages } from "#/store/reducers/flashMessages";
+
 import CopyToClipboardButton from "./CopyToClipboardButton";
 
 const lingerDurationMs = 2_000; // 2 secs

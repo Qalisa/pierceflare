@@ -1,7 +1,9 @@
-import { produceRandomKey } from "@/helpers/random";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { count, eq } from "drizzle-orm";
 import EventEmitter from "events";
+
+import { produceRandomKey } from "#/helpers/random";
+
 import { getDb } from ".";
 import type { FlareSyncStatus } from "./schema";
 import { flareDomains } from "./schema";

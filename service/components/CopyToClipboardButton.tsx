@@ -1,8 +1,10 @@
-import { wait } from "@/helpers/withLinger";
-import { addSuccessMessage } from "@/store/reducers/flashMessages";
-import { ClipboardIcon, CheckIcon } from "@heroicons/react/24/solid";
 import { useState } from "react";
 import { useDispatch } from "react-redux";
+
+import { CheckIcon, ClipboardIcon } from "@heroicons/react/24/solid";
+
+import { wait } from "#/helpers/withLinger";
+import { addSuccessMessage } from "#/store/reducers/flashMessages";
 
 //
 const CopyToClipboardButton = ({

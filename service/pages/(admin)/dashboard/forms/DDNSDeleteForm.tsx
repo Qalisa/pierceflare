@@ -1,19 +1,18 @@
 import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
 
 import { TrashIcon } from "@heroicons/react/24/solid";
+import { Bars3BottomRightIcon } from "@heroicons/react/24/solid";
+import { useQueryClient } from "@tanstack/react-query";
 
-import { useDispatch, useSelector } from "react-redux";
+import { getModal, modalIds } from "#/helpers/modals";
+import { useTRPC, useTRPCClient } from "#/helpers/trpc";
+import type { RootState } from "#/store/reducers";
+import { clearSelected } from "#/store/reducers/ddnsEntries";
 import {
   addErrorMessage,
   addSuccessMessage,
-} from "@/store/reducers/flashMessages";
-import { clearSelected } from "@/store/reducers/ddnsEntries";
-import { getModal, modalIds } from "@/helpers/modals";
-import type { RootState } from "@/store/reducers";
-
-import { Bars3BottomRightIcon } from "@heroicons/react/24/solid";
-import { useTRPCClient, useTRPC } from "@/helpers/trpc";
-import { useQueryClient } from "@tanstack/react-query";
+} from "#/store/reducers/flashMessages";
 
 const formId = "ddns-delete";
 

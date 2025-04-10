@@ -1,6 +1,8 @@
 import type Cloudflare from "cloudflare";
+
+import type { DbRequestsEvents } from "#/db/requests";
+
 import type { Zones } from "./zones";
-import type { DbRequestsEvents } from "@/db/requests";
 
 //
 export type CloudflareWorkerRequest = {

@@ -1,10 +1,12 @@
 import { migrate } from "drizzle-orm/libsql/migrator";
 import { drizzle } from "drizzle-orm/libsql/node";
-import { createClient } from "@libsql/client/node";
-import { SERVICE_DATABASE_FILES_PATH } from "@/server/env";
-import { title } from "@/helpers/static";
-import logr from "@/server/loggers";
 import { mkdirSync } from "fs";
+
+import { createClient } from "@libsql/client/node";
+
+import { title } from "#/helpers/static";
+import { SERVICE_DATABASE_FILES_PATH } from "#/server/env";
+import logr from "#/server/loggers";
 
 //
 const readyingDB = () => {

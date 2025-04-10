@@ -1,6 +1,6 @@
-import ThemeToggler from "@/components/ThemeToggle";
-import appLogo from "@/assets/images/logo.webp";
-import { routes } from "@/server/routes";
+import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { usePageContext } from "vike-react/usePageContext";
 import { navigate } from "vike/client/router";
 
 import {
@@ -8,16 +8,17 @@ import {
   ClipboardDocumentListIcon,
   PowerIcon,
 } from "@heroicons/react/24/solid";
-import { title } from "@/helpers/static";
-import { usePageContext } from "vike-react/usePageContext";
-import { useEffect, useRef, useState } from "react";
-import FlashMessages from "@/components/FlashMessages";
-import { useDispatch, useSelector } from "react-redux";
-import type { RootState } from "@/store/reducers";
-import { incrementUnseenCount } from "@/store/reducers/unseenUpdates";
 import { useSubscription } from "@trpc/tanstack-react-query";
-import { useTRPC } from "@/helpers/trpc";
-import FlareGeneratorCommandBelt from "@/components/FlareGeneratorCommandBelt";
+
+import appLogo from "#/assets/images/logo.webp";
+import FlareGeneratorCommandBelt from "#/components/FlareGeneratorCommandBelt";
+import FlashMessages from "#/components/FlashMessages";
+import ThemeToggler from "#/components/ThemeToggle";
+import { title } from "#/helpers/static";
+import { useTRPC } from "#/helpers/trpc";
+import { routes } from "#/server/routes";
+import type { RootState } from "#/store/reducers";
+import { incrementUnseenCount } from "#/store/reducers/unseenUpdates";
 
 //
 const Layout = ({ children }: { children: React.ReactNode }) => {

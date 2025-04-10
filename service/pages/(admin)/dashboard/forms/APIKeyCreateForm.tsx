@@ -1,17 +1,16 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useDispatch, useSelector } from "react-redux";
 
 import { CheckCircleIcon, PlusIcon } from "@heroicons/react/24/solid";
-
-import { useDispatch, useSelector } from "react-redux";
-import { addErrorMessage } from "@/store/reducers/flashMessages";
-import { getModal, modalIds } from "@/helpers/modals";
-import type { RootState } from "@/store/reducers";
-
 import { Bars3BottomRightIcon } from "@heroicons/react/24/solid";
-import { useState } from "react";
-import { apiKeyCliEnvVariableName, cliTitle } from "@/helpers/static";
-import { useTRPCClient } from "@/helpers/trpc";
-import CopyToClipboardButton from "@/components/CopyToClipboardButton";
+
+import CopyToClipboardButton from "#/components/CopyToClipboardButton";
+import { getModal, modalIds } from "#/helpers/modals";
+import { apiKeyCliEnvVariableName, cliTitle } from "#/helpers/static";
+import { useTRPCClient } from "#/helpers/trpc";
+import type { RootState } from "#/store/reducers";
+import { addErrorMessage } from "#/store/reducers/flashMessages";
 
 const formId = "api-key-creation";
 

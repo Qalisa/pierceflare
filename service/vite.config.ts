@@ -1,11 +1,12 @@
-import react from "@vitejs/plugin-react";
-import type { Plugin } from "vite";
-import { defineConfig } from "vite";
-import vike from "vike/plugin";
-import { URL, fileURLToPath } from "url";
 import { cpSync, existsSync } from "fs";
 import { resolve } from "path";
+import { URL, fileURLToPath } from "url";
+import vike from "vike/plugin";
+import type { Plugin } from "vite";
+import { defineConfig } from "vite";
+
 import tailwindcss from "@tailwindcss/vite";
+import react from "@vitejs/plugin-react";
 
 //
 //

@@ -1,4 +1,4 @@
-import ThemeToggler from "@/components/ThemeToggle";
+import ThemeToggler from "#/components/ThemeToggle";
 
 //
 const Layout = ({ children }: { children: React.ReactNode }) => {

@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { usePageContext } from "vike-react/usePageContext";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   createTRPCClient,
@@ -5,10 +8,9 @@ import {
   httpSubscriptionLink,
   splitLink,
 } from "@trpc/client";
-import { useState } from "react";
-import { TRPCProvider } from "@/helpers/trpc";
-import type { AppRouter } from "@/server/trpc/router";
-import { usePageContext } from "vike-react/usePageContext";
+
+import { TRPCProvider } from "#/helpers/trpc";
+import type { AppRouter } from "#/server/trpc/router";
 
 const makeQueryClient = () => {
   return new QueryClient({

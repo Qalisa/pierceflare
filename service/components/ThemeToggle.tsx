@@ -1,5 +1,6 @@
-import { useTheme } from "@/providers/theme/useTheme";
 import { MoonIcon, SunIcon } from "@heroicons/react/24/solid";
+
+import { useTheme } from "#/providers/theme/useTheme";
 
 const ThemeToggler = () => {
   const { doesOSPreferDark, toggleTheme, doEnforceReverseOSTheme } = useTheme();

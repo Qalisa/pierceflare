@@ -1,4 +1,5 @@
 import { useContext } from "react";
+
 import { ThemeContext } from "./ThemeContext";
 
 // Hook for easy usage
