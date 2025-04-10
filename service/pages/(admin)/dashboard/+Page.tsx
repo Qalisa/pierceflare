@@ -1,6 +1,7 @@
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
 
 import appLogo from "#/assets/images/logo.webp";
+
 import { getModal, modalIds } from "#/helpers/modals";
 import { title } from "#/helpers/static";
 

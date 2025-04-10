@@ -11,6 +11,7 @@ import {
 import { useSubscription } from "@trpc/tanstack-react-query";
 
 import appLogo from "#/assets/images/logo.webp";
+
 import FlareGeneratorCommandBelt from "#/components/FlareGeneratorCommandBelt";
 import FlashMessages from "#/components/FlashMessages";
 import ThemeToggler from "#/components/ThemeToggle";

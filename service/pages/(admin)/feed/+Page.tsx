@@ -1,4 +1,5 @@
 import appLogo from "#/assets/images/logo.webp";
+
 import { cliTitle } from "#/helpers/static";
 
 import FlaresTable from "./tables/FlaresTable";

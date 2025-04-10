@@ -12,7 +12,7 @@
     "sort": "sort-package-json"
   },
   "prettier": {
-    "importOrder": ["^@(.*)$", "^#/(.*)$", "^[./]"],
+    "importOrder": ["^@(.*)$", "^#/assets/(.*)$", "^#/(.*)$", "^[./]"],
     "importOrderSideEffects": false,
     "importOrderSeparation": true,
     "importOrderSortSpecifiers": true,
