@@ -37,7 +37,7 @@
     //
     //
     {
-      "label": "Generate Bundle",
+      "label": "⚙️ Build",
       "command": "bun",
       "args": ["build:dev"],
       "options": {
@@ -47,7 +47,16 @@
       "problemMatcher": []
     },
     {
-      "label": "Generate Migration",
+      "label": "One-shot Pierceflare CLI",
+      "command": "docker",
+      "args": ["compose", "up", "--build"],
+      "options": {
+        "cwd": "${workspaceFolder}/.dev/cli"
+      }
+
+    },
+    {
+      "label": "⚙️ Drizzle: Generate Migration",
       "command": "bun",
       "args": ["create-migration"],
       "options": {

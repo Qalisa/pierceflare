@@ -15,12 +15,12 @@ WORKDIR /usr/src/app
 RUN npm install -g pnpm
 
 #
-COPY service/package.json service/.npmrc ./
+COPY ./service/package.json ./service/.npmrc ./
 ENV COREPACK_ENABLE_STRICT=0
 RUN pnpm install
 
 #
-COPY service .
+COPY ./service .
 ENV NODE_ENV=production
 RUN pnpm run build
 

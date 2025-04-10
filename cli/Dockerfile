@@ -8,7 +8,7 @@ RUN apk update && apk add --no-cache curl
 WORKDIR /app
 
 # Copy the client script into the image
-COPY pierceflare-cli.sh .
+COPY ./cli .
 
 # Make the script executable
 RUN chmod +x pierceflare-cli.sh
