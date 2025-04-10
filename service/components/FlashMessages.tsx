@@ -38,26 +38,17 @@ const FlashMessages = () => {
     if (idsToDeleteLater.length === 0) return;
 
     //
-    const _cleanupFunctions = idsToDeleteLater.map((id) => {
-      //
+    idsToDeleteLater.forEach((id) => {
       const timer = setTimeout(() => {
         dispatch(clearFlashMessages({ idsToDelete: [id] }));
-      }, lingerDurationMs);
-
-      //
-      return () => {
         clearTimeout(timer);
-      };
+      }, lingerDurationMs);
     });
 
     //
     setScheduledForDeletion(
       [...schedueledForDeletion, ...idsToDeleteLater].filter(onlyUniqueStr),
     );
-
-    return () => {
-      // cleanupFunctions.forEach((cleanup) => cleanup());
-    };
   }, [flashMessages]);
 
   return (
