@@ -4,6 +4,7 @@ import appLogo from "#/assets/images/logo.webp";
 import swaggerLogo from "#/assets/images/swagger.svg";
 
 import FlashMessages from "#/components/FlashMessages";
+import FlashMessagesBelt from "#/components/FlashMessagesBelt";
 import { githubRepoUrl, title } from "#/helpers/static";
 import { routes } from "#/server/routes";
 
@@ -17,6 +18,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       <FlashMessages />
       <div id="app">{children}</div>
       <Footer />
+      {import.meta.env.DEV && <FlashMessagesBelt />}
     </>
   );
 };

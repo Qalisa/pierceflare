@@ -56,9 +56,17 @@ const FlashMessages = () => {
     if (idsToDeleteLater.length === 0) return;
 
     //
-    idsToDeleteLater.forEach((id) => {
+    idsToDeleteLater.forEach((idToDelete) => {
       const timer = setTimeout(() => {
-        dispatch(clearFlashMessages({ idsToDelete: [id] }));
+        // remove from scheduled
+        setScheduledForDeletion(
+          schedueledForDeletion.filter((id) => idToDelete == id),
+        );
+
+        // remove flash message
+        dispatch(clearFlashMessages({ idsToDelete: [idToDelete] }));
+
+        // remove event listener
         clearTimeout(timer);
       }, lingerDurationMs);
     });
@@ -73,8 +81,8 @@ const FlashMessages = () => {
   return (
     <>
       {flashMessages && (
-        <div className="absolute top-2 z-10 flex w-full flex-col gap-1">
-          <AnimatePresence>
+        <div className="fixed top-2 z-10 flex w-full flex-col gap-1">
+          <AnimatePresence mode="popLayout">
             {flashMessages.map(({ message, id, msgType }) => {
               //
               const icon = (() => {
@@ -99,8 +107,9 @@ const FlashMessages = () => {
                   className={`alert ${availableAlertTypes[msgType]} mx-4`}
                 >
                   {icon}
-                  <span>{message}</span>
+                  <span className="text-sm mr-1">{message}</span>
                   <CopyToClipboardButton
+                    size="xs"
                     tobeCopied={message}
                     flashForSuccess={false}
                   />

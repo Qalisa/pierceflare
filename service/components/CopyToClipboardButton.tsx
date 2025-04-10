@@ -12,9 +12,11 @@ const CopyToClipboardButton = ({
   flashForSuccess,
   btnText,
   lingerWaitMs,
+  size,
 }: {
   tobeCopied: string;
   flashForSuccess: boolean;
+  size: "xs" | "md";
   btnText?: string;
   lingerWaitMs?: number;
 }) => {
@@ -41,7 +43,7 @@ const CopyToClipboardButton = ({
           dispatch(addSuccessMessage("API key copied to clipboard !"));
       }}
       disabled={copied != "no"}
-      className={`btn ${copied ? "btn-neutral" : "btn-success"}`}
+      className={`btn ${size == "xs" ? "btn-xs" : ""} ${copied ? "btn-neutral" : "btn-success"}`}
     >
       {(() => {
         switch (copied) {

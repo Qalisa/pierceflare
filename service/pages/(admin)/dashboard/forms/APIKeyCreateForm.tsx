@@ -51,6 +51,7 @@ const APIKeyCreateForm = ({
           flashForSuccess={true}
           tobeCopied={generatedKey}
           btnText="Copy key"
+          size="md"
           lingerWaitMs={300}
         />
       )}
