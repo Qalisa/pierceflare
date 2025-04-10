@@ -4,17 +4,12 @@ replicaCount: 1
 # required
 secret:
   pierceflare:
-      source: secret # secret | values
-      secretName: pierceflare
-      values:
-        CLOUDFLARE_API_TOKEN: ""
-        SERVICE_AUTH_USERNAME: ""
-        SERVICE_AUTH_PASSWORD: ""
-
+    PIERCEFLARE_API_KEY: ""
+    PIERCEFLARE_SERVER_URL: ""
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: harbor-core.harbor.svc.cluster.local/qalisa/pierceflare
+  repository: ghcr.io/qalisa/pierceflare-cli
   # This sets the pull policy for images.
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
@@ -44,53 +39,6 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-# This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
-service:
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: ClusterIP
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  port: 80
-
-github:
-  syncActionsSecrets:
-    enabled: true
-    repository: Qalisa/pierceflare
-    defaultSyncRefs:
-      - default
-
-# This block is for setting up the ingress for more information can be found here: https://kubernetes.io/docs/concepts/services-networking/ingress/
-ingress:
-  enabled: true
-  className: ""
-  bookEntry:
-    shown: true
-    title: 
-    description:
-    logoUrl: /favicon.ico
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  hosts: []
-  # - chart.local
-  # - chart-dev.local
-  extraHosts: []
-  #  - host: chart-example.local
-  #    paths:
-  #      - path: /
-  #        pathType: ImplementationSpecific
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
-
-cloudflare:
-  zeroTrustAccess:
-    enabled: false
-    namespace: zero-trust-system
-    policies:
-      - groupId: ldap-users
-        description: Allow domain LDAP users
-
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
@@ -102,16 +50,6 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
-
-# This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
-livenessProbe:
-  httpGet:
-    path: /
-    port: http
-readinessProbe:
-  httpGet:
-    path: /
-    port: http
 
 # Additional volumes on the output Deployment definition.
 volumes: []

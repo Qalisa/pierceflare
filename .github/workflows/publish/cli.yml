@@ -6,8 +6,8 @@ on:
      - dev
      - main
     paths:
+      - .helm/cli/Chart.yaml # on maybe new app version
       - .github/workflows/publish/cli.yml
-      - cli
   workflow_dispatch: # Allows manual triggering
 
 permissions:
