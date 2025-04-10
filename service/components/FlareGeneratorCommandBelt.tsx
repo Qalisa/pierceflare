@@ -53,7 +53,7 @@ const FlareGeneratorCommandBelt = () => {
       <div className="join join-horizontal join-item">
         <button
           className="btn btn-xs join-item flex-auto"
-          disabled={selectedOption == undefined}
+          disabled={domains == undefined || domains.length == 0}
           onClick={async () => {
             await trpcCli.sendTestFlare.query({ ofDomain: selectedOption! });
           }}
