@@ -7,7 +7,7 @@ on:
      - main
     paths:
       - .helm/service/Chart.yaml # on maybe new app version
-      - .github/workflows/publish-service.yml
+      - .github/workflows/publish/service.yml
   workflow_dispatch: # Allows manual triggering
 
 jobs:

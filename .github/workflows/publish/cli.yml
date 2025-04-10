@@ -6,8 +6,7 @@ on:
      - dev
      - main
     paths:
-      - .helm/service/Chart.yaml # on maybe new app version
-      - .github/workflows/publish-service.yml
+      - .github/workflows/publish/cli.yml
   workflow_dispatch: # Allows manual triggering
 
 permissions:
@@ -44,7 +43,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: .cli/Dockerfile # Path to the CLI Dockerfile
+          file: ./cli/Dockerfile # Path to the CLI Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
