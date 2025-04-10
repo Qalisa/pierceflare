@@ -104,13 +104,14 @@ const apiProtected = {
         limit: z.number().default(10),
       }),
     )
-    .query(({ input }) =>
-      getDb()
+    .query(async ({ input: { limit } }) => {
+      //
+      return await getDb()
         .select()
         .from(flares)
         .orderBy(desc(flares.receivedAt))
-        .limit(input.limit),
-    ),
+        .limit(limit);
+    }),
   //
   //
   //

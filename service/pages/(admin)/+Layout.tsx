@@ -17,6 +17,7 @@ import type { RootState } from "@/store/reducers";
 import { incrementUnseenCount } from "@/store/reducers/unseenUpdates";
 import { useSubscription } from "@trpc/tanstack-react-query";
 import { useTRPC } from "@/helpers/trpc";
+import FlareGeneratorCommandBelt from "@/components/FlareGeneratorCommandBelt";
 
 //
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -34,6 +35,11 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
       >
         {children}
       </div>
+      {import.meta.env.DEV && (
+        <div className="absolute right-2/100 bottom-2/100">
+          <FlareGeneratorCommandBelt />
+        </div>
+      )}
     </>
   );
 };
