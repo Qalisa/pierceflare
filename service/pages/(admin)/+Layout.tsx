@@ -12,7 +12,6 @@ import { title } from "@/helpers/static";
 import { usePageContext } from "vike-react/usePageContext";
 import { useEffect, useRef, useState } from "react";
 import FlashMessages from "@/components/FlashMessages";
-import FlareGeneratorCommandBelt from "@/components/FlareGeneratorCommandBelt";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "@/store/reducers";
 import { incrementUnseenCount } from "@/store/reducers/unseenUpdates";
@@ -56,7 +55,6 @@ const LeftPart = () => {
 const CenterPart = () => {
   //
   const { urlPathname } = usePageContext();
-  const showBelt = import.meta.env.DEV;
 
   //
   const dispatch = useDispatch();
@@ -93,7 +91,6 @@ const CenterPart = () => {
           </span>
         )}
       </div>
-      {showBelt && <FlareGeneratorCommandBelt />}
     </div>
   );
 };

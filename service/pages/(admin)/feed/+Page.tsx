@@ -1,7 +1,6 @@
 import FlaresTable from "./tables/FlaresTable";
 import appLogo from "@/assets/images/logo.webp";
 import { cliTitle } from "@/helpers/static";
-import FlareGeneratorCommandBelt from "@/components/FlareGeneratorCommandBelt";
 
 //
 //
@@ -10,12 +9,7 @@ import FlareGeneratorCommandBelt from "@/components/FlareGeneratorCommandBelt";
 //
 const FlaresFeedPage = () => {
   //
-  return (
-    <FlaresTable
-      noData={<HeroNoFlares />}
-      belt={import.meta.env.DEV ? <FlareGeneratorCommandBelt /> : undefined}
-    />
-  );
+  return <FlaresTable noData={<HeroNoFlares />} belt={undefined} />;
 };
 
 //

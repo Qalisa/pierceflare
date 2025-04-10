@@ -19,6 +19,8 @@ import { resetUnseenCount } from "@/store/reducers/unseenUpdates";
 import { useDispatch, useSelector } from "react-redux";
 import type { FlareSyncStatus } from "@/db/schema";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
+import { ipAddressFormatter } from "@/components/IPCellFormater";
+import { domainNameFormatter } from "@/components/DomainCellFormater";
 
 //
 //
@@ -91,15 +93,18 @@ const FlaresTable = ({
     }),
     columnHelper.accessor("ofDomain", {
       header: "Domain",
+      cell: domainNameFormatter,
     }),
     columnHelper.group({
       header: "IPs",
       columns: [
         columnHelper.accessor("flaredIPv4", {
           header: "v4",
+          cell: ipAddressFormatter("IPv4"),
         }),
         columnHelper.accessor("flaredIPv6", {
           header: "v6",
+          cell: ipAddressFormatter("IPv6"),
         }),
       ],
     }),
@@ -218,89 +223,92 @@ const FlaresTable = ({
         {belt}
       </div>
       <div className="divider"></div>
-      <table className="table w-full">
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th
-                  key={header.id}
-                  colSpan={header.colSpan}
-                  className={
-                    header.column.getCanSort()
-                      ? "cursor-pointer select-none"
-                      : ""
-                  }
-                >
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {useSkeleton ? (
-            produceSkeletonRows()
-          ) : noFlares ? (
-            <tr>
-              <td colSpan={99}>{noData}</td>
-            </tr>
-          ) : (
-            <>
-              {table.getRowModel().rows.map((row) => {
-                //
-                const expanded = row.getIsExpanded();
-                const className =
-                  row.original.syncStatus == ("error" satisfies FlareSyncStatus)
-                    ? [
-                        expanded ? "bg-error/50" : "bg-error/25",
-                        "text-error-content",
-                      ].join(" ")
-                    : "";
+      <div className="overflow-x-auto">
+        <table className="table w-full">
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    colSpan={header.colSpan}
+                    className={
+                      header.column.getCanSort()
+                        ? "cursor-pointer select-none"
+                        : ""
+                    }
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {useSkeleton ? (
+              produceSkeletonRows()
+            ) : noFlares ? (
+              <tr>
+                <td colSpan={99}>{noData}</td>
+              </tr>
+            ) : (
+              <>
+                {table.getRowModel().rows.map((row) => {
+                  //
+                  const expanded = row.getIsExpanded();
+                  const className =
+                    row.original.syncStatus ==
+                    ("error" satisfies FlareSyncStatus)
+                      ? [
+                          expanded ? "bg-error/50" : "bg-error/25",
+                          "text-error-content",
+                        ].join(" ")
+                      : "";
 
-                //
-                return (
-                  <Fragment key={row.id}>
-                    <TR className={className}>
-                      {row.getVisibleCells().map((cell) => {
-                        //
-                        return (
-                          <td key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </td>
-                        );
-                      })}
-                    </TR>
-                    {expanded &&
-                      (() => {
-                        return (
-                          <TR className={className}>
-                            <td colSpan={row.getVisibleCells().length}>
-                              <div className="flex w-full gap-4">
-                                <strong>Message:</strong>
-                                <code className="bg-neutral flex-1 p-4 text-xs">
-                                  {row.original.statusDescr}
-                                </code>
-                              </div>
+                  //
+                  return (
+                    <Fragment key={row.id}>
+                      <TR className={className}>
+                        {row.getVisibleCells().map((cell) => {
+                          //
+                          return (
+                            <td key={cell.id}>
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext(),
+                              )}
                             </td>
-                          </TR>
-                        );
-                      })()}
-                  </Fragment>
-                );
-              })}
-            </>
-          )}
-        </tbody>
-      </table>
+                          );
+                        })}
+                      </TR>
+                      {expanded &&
+                        (() => {
+                          return (
+                            <TR className={className}>
+                              <td colSpan={row.getVisibleCells().length}>
+                                <div className="flex w-full gap-4">
+                                  <strong>Message:</strong>
+                                  <code className="bg-neutral flex-1 p-4 text-xs">
+                                    {row.original.statusDescr}
+                                  </code>
+                                </div>
+                              </td>
+                            </TR>
+                          );
+                        })()}
+                    </Fragment>
+                  );
+                })}
+              </>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

@@ -24,6 +24,8 @@ import type { QueryClient } from "@tanstack/react-query";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { inferOutput } from "@trpc/tanstack-react-query";
 import { timeAgoFormatter } from "@/components/TimeAgoCellFormater";
+import { ipAddressFormatter } from "@/components/IPCellFormater";
+import { domainNameFormatter } from "@/components/DomainCellFormater";
 
 //
 //
@@ -107,6 +109,7 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
     }),
     columnHelper.accessor("ddnsForDomain", {
       header: "Domain",
+      cell: domainNameFormatter,
     }),
     columnHelper.accessor("description", {
       header: "Description",
@@ -116,9 +119,11 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
       columns: [
         columnHelper.accessor("latestSyncedIPv4", {
           header: "v4",
+          cell: ipAddressFormatter("IPv4"),
         }),
         columnHelper.accessor("latestSyncedIPv6", {
           header: "v6",
+          cell: ipAddressFormatter("IPv6"),
         }),
       ],
     }),
@@ -131,7 +136,7 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
       header: "", // Empty header for action column
       cell: ({ row }) => (
         <button
-          className="btn btn-xs"
+          className="btn btn-xs whitespace-nowrap"
           onClick={() => {
             dispatch(manageAPIKeyOf(row.original.ddnsForDomain));
             getModal(modalIds.manageAPIKeys).openModal();
