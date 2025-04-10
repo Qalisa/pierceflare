@@ -7,7 +7,7 @@ on:
      - main
     paths:
       - .helm/cli/Chart.yaml # on maybe new app version
-      - .github/workflows/publish/cli.yml
+      - .github/workflows/publish-cli.yml
   workflow_dispatch: # Allows manual triggering
 
 permissions:
@@ -15,7 +15,7 @@ permissions:
   packages: write # Needed to push to GHCR
 
 jobs:
-  build-and-push-cli-image:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
