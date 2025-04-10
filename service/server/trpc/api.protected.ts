@@ -128,6 +128,19 @@ const apiProtected = {
       yield event;
     }
   }),
+  onDomainUpdates: protectedProcedure.subscription(async function* (opts) {
+    //
+    for await (const [data] of on(
+      dbRequestsEE,
+      "domainChanged" satisfies keyof DbRequestsEvents,
+      {
+        signal: opts.signal,
+      },
+    )) {
+      const event = data as DbRequestsEvents["domainChanged"][number];
+      yield event;
+    }
+  }),
 };
 
 export default apiProtected;

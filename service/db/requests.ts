@@ -4,6 +4,7 @@ import { count, eq } from "drizzle-orm";
 import EventEmitter from "events";
 import { getDb } from ".";
 import type { FlareSyncStatus } from "./schema";
+import { flareDomains } from "./schema";
 import { flares } from "./schema";
 import { flareKeys } from "./schema";
 
@@ -15,6 +16,7 @@ import { flareKeys } from "./schema";
 type RemoteOperation = "batch" | "dummy";
 
 type FlareType = InferSelectModel<typeof flares>;
+type DomainType = InferSelectModel<typeof flareDomains>;
 
 //
 export type DbRequestsEvents = {
@@ -27,6 +29,7 @@ export type DbRequestsEvents = {
     status: FlareSyncStatus,
     dateEpoch: number,
   ][];
+  domainChanged: DomainType["ddnsForDomain"][];
 };
 
 export const dbRequestsEE = new EventEmitter<DbRequestsEvents>();
@@ -55,9 +58,12 @@ export const eeRequests = {
   //
   markSyncStatusForFlare: async (
     flareId: FlareType["flareId"],
-    { statusDescr, syncStatus }: Pick<FlareType, "statusDescr" | "syncStatus">,
+    {
+      statusDescr,
+      syncStatus,
+      statusAt,
+    }: Required<Pick<FlareType, "statusDescr" | "syncStatus" | "statusAt">>,
   ) => {
-    const statusAt = new Date();
     //
     await getDb()
       .update(flares)
@@ -69,8 +75,46 @@ export const eeRequests = {
     dbRequestsEE.emit("flareChanged", [
       flareId,
       syncStatus as FlareSyncStatus,
-      statusAt.getTime(),
+      statusAt!.getTime(),
     ]);
+  },
+  //
+  mayUpdateFlareDomainSyncState: async ({
+    flaredIPv4,
+    flaredIPv6,
+    ofDomain,
+    statusAt,
+  }: Pick<
+    FlareType,
+    "ofDomain" | "statusAt" | "flaredIPv4" | "flaredIPv6"
+  >) => {
+    //
+    const [{ ipv4, ipv6 }] = await getDb()
+      .select({
+        ipv4: flareDomains.latestSyncedIPv4,
+        ipv6: flareDomains.latestSyncedIPv6,
+      })
+      .from(flareDomains)
+      .where(eq(flareDomains.ddnsForDomain, ofDomain));
+
+    //
+    if (ipv4 == flaredIPv4 && ipv6 == flaredIPv6) {
+      return;
+    }
+
+    //
+    await getDb()
+      .update(flareDomains)
+      .set({
+        latestSyncedIPv4: flaredIPv4,
+        latestSyncedIPv6: flaredIPv6,
+        syncedIpAt: statusAt,
+      })
+      .where(eq(flareDomains.ddnsForDomain, ofDomain))
+      .returning();
+
+    //
+    dbRequestsEE.emit("domainChanged", ofDomain);
   },
 };
 

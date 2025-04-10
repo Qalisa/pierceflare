@@ -276,6 +276,7 @@ export class CloudflareDNSWorker {
         await eeRequests.markSyncStatusForFlare(flare.flareId, {
           syncStatus: "error",
           statusDescr: err instanceof Error ? err.message : JSON.stringify(err),
+          statusAt: new Date(),
         });
 
         // rethrow to prevent followup
@@ -283,10 +284,23 @@ export class CloudflareDNSWorker {
       }),
       // on non-errored scenarii
       concatMap(async () => {
-        eeRequests.markSyncStatusForFlare(flare.flareId, {
+        //
+        const date = new Date();
+
+        //
+        await eeRequests.markSyncStatusForFlare(flare.flareId, {
           syncStatus: "ok",
           statusDescr: null,
+          statusAt: date,
         });
+
+        //
+        await eeRequests.mayUpdateFlareDomainSyncState({
+          ...flare,
+          statusAt: date,
+        });
+
+        //
         return flare.flareId;
       }),
     );

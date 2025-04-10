@@ -58,8 +58,8 @@ const FlaresTable = ({
   );
 
   const dispatch = useDispatch();
-  const { flares: flaresUpdates } = useSelector(
-    (state: RootState) => state.unseenUpdates.unseenUpdates,
+  const flaresUpdates = useSelector(
+    (state: RootState) => state.unseenUpdates.unseenUpdates.flares,
   );
 
   //
@@ -87,13 +87,18 @@ const FlaresTable = ({
   type OfFlares = inferOutput<typeof trpc.getFlares>[number];
   const columnHelper = createColumnHelper<OfFlares>();
   const columns = [
-    columnHelper.accessor("receivedAt", {
-      header: "",
-      cell: timeAgoFormatter,
-    }),
-    columnHelper.accessor("ofDomain", {
-      header: "Domain",
-      cell: domainNameFormatter,
+    columnHelper.group({
+      id: "infos",
+      header: () => <WebSocketIndicator status={status} />,
+      columns: [
+        columnHelper.accessor("receivedAt", {
+          cell: timeAgoFormatter,
+        }),
+        columnHelper.accessor("ofDomain", {
+          header: "Domain",
+          cell: domainNameFormatter,
+        }),
+      ],
     }),
     columnHelper.group({
       header: "IPs",
@@ -214,7 +219,6 @@ const FlaresTable = ({
   return (
     <div className="mb-32 w-11/12">
       <div className="mx-4 flex items-end gap-4">
-        <WebSocketIndicator status={status} />
         <ReloadButton
           className="ml-auto"
           action={invalidateFlares}

@@ -10,6 +10,7 @@ export const ISO_DATE_REGEX = /\d{4}-[01]\d-[0-3]\d/;
 export const $unseenUpdates = z.object({
   unseenUpdates: z.object({
     flares: z.number(),
+    domains: z.number(),
   }),
 });
 
@@ -23,6 +24,7 @@ export type UnseenUpdatesType = keyof UnseenUpdates["unseenUpdates"];
 const initialState: UnseenUpdates = {
   unseenUpdates: {
     flares: 0,
+    domains: 0,
   },
 };
 

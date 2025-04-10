@@ -8,7 +8,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import type { JSX } from "react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { getModal, modalIds } from "@/helpers/modals";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -22,10 +22,12 @@ import ReloadButton from "@/components/ReloadButton";
 import { useTRPC } from "@/helpers/trpc";
 import type { QueryClient } from "@tanstack/react-query";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import type { inferOutput } from "@trpc/tanstack-react-query";
+import { useSubscription, type inferOutput } from "@trpc/tanstack-react-query";
 import { timeAgoFormatter } from "@/components/TimeAgoCellFormater";
 import { ipAddressFormatter } from "@/components/IPCellFormater";
 import { domainNameFormatter } from "@/components/DomainCellFormater";
+import WebSocketIndicator from "@/components/WebSocketIndicator";
+import { resetUnseenCount } from "@/store/reducers/unseenUpdates";
 
 //
 //
@@ -49,6 +51,14 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
     });
 
   const { data: domains } = useQuery(trpc.getFlareDomains.queryOptions());
+  const { status, data: wsData } = useSubscription(
+    trpc.onDomainUpdates.subscriptionOptions(),
+  );
+
+  useEffect(() => {
+    if (!wsData) return;
+    invalidateFlareDomains(trpc, queryClient);
+  }, [wsData]);
 
   const useSkeleton = domains == undefined;
   const data = useSkeleton ? Array(10).fill({}) : domains;
@@ -59,6 +69,22 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
 
   //
   const dispatch = useDispatch();
+  const domainsUpdates = useSelector(
+    (state: RootState) => state.unseenUpdates.unseenUpdates.domains,
+  );
+
+  //
+  useEffect(() => {
+    if (domainsUpdates) {
+      dispatch(resetUnseenCount("domains"));
+      invalidateFlareDomains(trpc, queryClient);
+    }
+  }, []);
+
+  //
+  //
+  //
+
   const selectedDomains = useSelector(
     (state: RootState) => state.ddnsEntries.selected,
   );
@@ -84,36 +110,43 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
   type OfDomains = inferOutput<typeof trpc.getFlareDomains>[number];
   const columnHelper = createColumnHelper<OfDomains>();
   const columns = [
-    columnHelper.display({
-      id: "select",
-      header: ({ table }) => (
-        <input
-          type="checkbox"
-          className="checkbox checkbox-sm"
-          checked={table.getIsAllRowsSelected()}
-          onChange={table.getToggleAllRowsSelectedHandler()}
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          type="checkbox"
-          className="checkbox checkbox-sm"
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-        />
-      ),
+    columnHelper.group({
+      header: () => <WebSocketIndicator status={status} />,
+      id: "infos",
+      columns: [
+        columnHelper.display({
+          id: "select",
+          header: ({ table }) => (
+            <input
+              type="checkbox"
+              className="checkbox checkbox-sm"
+              checked={table.getIsAllRowsSelected()}
+              onChange={table.getToggleAllRowsSelectedHandler()}
+            />
+          ),
+          cell: ({ row }) => (
+            <input
+              type="checkbox"
+              className="checkbox checkbox-sm"
+              checked={row.getIsSelected()}
+              onChange={row.getToggleSelectedHandler()}
+            />
+          ),
+        }),
+        columnHelper.accessor("createdAt", {
+          header: "Created At",
+          cell: timeAgoFormatter,
+        }),
+        columnHelper.accessor("ddnsForDomain", {
+          header: "Domain",
+          cell: domainNameFormatter,
+        }),
+        columnHelper.accessor("description", {
+          header: "Description",
+        }),
+      ],
     }),
-    columnHelper.accessor("createdAt", {
-      header: "Created At",
-      cell: timeAgoFormatter,
-    }),
-    columnHelper.accessor("ddnsForDomain", {
-      header: "Domain",
-      cell: domainNameFormatter,
-    }),
-    columnHelper.accessor("description", {
-      header: "Description",
-    }),
+
     columnHelper.group({
       header: "IPs",
       columns: [

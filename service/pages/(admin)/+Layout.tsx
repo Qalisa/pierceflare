@@ -64,35 +64,47 @@ const CenterPart = () => {
 
   //
   const dispatch = useDispatch();
-  const { flares: flaresUpdates } = useSelector(
+  const { flares: flaresUpdates, domains: domainsUpdates } = useSelector(
     (state: RootState) => state.unseenUpdates.unseenUpdates,
   );
 
   //
   const trpc = useTRPC();
-  const { data } = useSubscription(trpc.onFlaresUpdates.subscriptionOptions());
+  const { data: flareUpdated } = useSubscription(
+    trpc.onFlaresUpdates.subscriptionOptions(),
+  );
+  const { data: domainUpdated } = useSubscription(
+    trpc.onDomainUpdates.subscriptionOptions(),
+  );
 
   //
   const feedActive = urlPathname === routes.pages.flaresFeed;
   useEffect(() => {
-    if (data && !feedActive) dispatch(incrementUnseenCount("flares"));
-  }, [data]);
+    if (flareUpdated && !feedActive) dispatch(incrementUnseenCount("flares"));
+  }, [flareUpdated]);
+
+  //
+  const dashboardActive = urlPathname === routes.pages.dashboard;
+  useEffect(() => {
+    if (domainUpdated && !dashboardActive)
+      dispatch(incrementUnseenCount("domains"));
+  }, [domainUpdated]);
 
   //
   return (
     <div className="flex flex-1 items-center justify-around gap-4">
       <div className="indicator join join-vertical sm:join-horizontal justify-center">
-        <button
-          className={`join-item btn ${urlPathname === routes.pages.dashboard ? "btn-active" : ""}`}
-          name="options"
-          onClick={() => navigate(routes.pages.dashboard)}
-        >
-          <ClipboardDocumentListIcon className="size-4" />
-          Dashboard
-        </button>
-        <FlaresButton className="join-item" active={feedActive} />
+        {/** buttons */}
+        <GoToDashboardButton className="join-item" active={dashboardActive} />
+        <GoToFeedButton className="join-item" active={feedActive} />
+        {/** indicators */}
+        {domainsUpdates > 0 && (
+          <span className="indicator-item indicator-bottom indicator-start badge badge-xs badge-error pointer-events-none">
+            {domainsUpdates}
+          </span>
+        )}
         {flaresUpdates > 0 && (
-          <span className="indicator-item indicator-bottom badge badge-xs badge-error pointer-events-none">
+          <span className="indicator-item indicator-bottom indicator-end badge badge-xs badge-error pointer-events-none">
             {flaresUpdates}
           </span>
         )}
@@ -102,7 +114,30 @@ const CenterPart = () => {
 };
 
 //
-const FlaresButton = ({
+//
+//
+
+//
+const GoToDashboardButton = ({
+  className,
+  active,
+}: {
+  className: string;
+  active: boolean;
+}) => {
+  return (
+    <button
+      className={[`btn ${active ? "btn-active" : ""}`, className].join(" ")}
+      onClick={() => navigate(routes.pages.dashboard)}
+    >
+      <ClipboardDocumentListIcon className="size-4" />
+      Dashboard
+    </button>
+  );
+};
+
+//
+const GoToFeedButton = ({
   className,
   active,
 }: {
@@ -119,6 +154,10 @@ const FlaresButton = ({
     </button>
   );
 };
+
+//
+//
+//
 
 //
 const RightPart = () => {
