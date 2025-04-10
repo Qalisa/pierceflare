@@ -20,6 +20,7 @@ const routes = {
   api: {
     root: apiRoot,
     flare: `${apiRoot}/flare`,
+    infos: `${apiRoot}/infos`,
   },
   /** default route to redirect, most probably root url, aka "/" */
   default: loginPageRoute,

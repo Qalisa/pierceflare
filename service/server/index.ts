@@ -152,6 +152,9 @@ const startServer = async () => {
 
   app.use(
     `${routes.api.root}/*`,
+    //
+    // << ADD RATE LIMITER
+    //
     rateLimiter({
       windowMs: 15 * 60 * 1000, // 15 minutes
       limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
@@ -170,6 +173,9 @@ const startServer = async () => {
       },
       // store: ... , // Redis, MemoryStore, etc. See below.
     }),
+    //
+    // CHECKS FOR TOKEN
+    //
     bearerAuth({
       verifyToken: async (token, { status, set }) => {
         //
@@ -195,9 +201,18 @@ const startServer = async () => {
   );
 
   //
-  app.put(routes.api.flare, async (c) => {
-    //
+  // API Routes
+  //
+
+  //
+  app.get(routes.api.infos, (c) => {
     const { ddnsForDomain } = c.get("apiContext");
+    return c.text(ddnsForDomain);
+  });
+
+  //
+  app.put(routes.api.flare, (c) => {
+    //
     const {
       remote: { addressType, address },
     } = getConnInfo(c);
@@ -205,10 +220,11 @@ const startServer = async () => {
     //
     if (!address) {
       c.status(500);
-      return c.text("Remote IP of flare emitter CLI is unresolvable.");
+      return c.text("Remote IP of flare emitter is unresolvable.");
     }
 
     //
+    const { ddnsForDomain } = c.get("apiContext");
     eeRequests.queueFlareForProcessing("batch", {
       flaredIPv6: addressType === "IPv6" ? address : undefined,
       flaredIPv4: addressType === "IPv4" ? address : undefined,

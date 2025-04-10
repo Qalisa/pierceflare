@@ -1,61 +1,79 @@
 #!/bin/sh
 
-##
-##
-##
+##############################################################################
+# PierceFlare CLI Client
+# This script monitors your external IP address and sends updates to the 
+# PierceFlare server when changes are detected.
+##############################################################################
 
-log () {
+# --- Static vars ---
+
+readonly LOG_TAG="[PierceFlare CLI]"
+readonly ENDPOINT_PUT_FLARE="/api/flare"
+readonly ENDPOINT_GET_INFOS="/api/infos"
+
+# --- Logging Functions ---
+
+# Log message without timestamp
+log() {
   local text="$1"
-  echo "[PierceFlare CLI] - $text"
-} 
+  echo "$LOG_TAG - $text"
+}
 
-logT () {
+# Log message with timestamp 
+logT() {
   local text="$1"
-  echo "[PierceFlare CLI] - $(date '+%Y-%m-%d %H:%M:%S') - $text"
-} 
+  echo "$LOG_TAG - $(date '+%Y-%m-%d %H:%M:%S') - $text"
+}
 
-###
-###
-###
+# --- Configuration ---
 
-# Configuration (from environment variables)
+# Load config from environment variables with defaults
 API_KEY="${PIERCEFLARE_API_KEY}"
 SERVER_URL="${PIERCEFLARE_SERVER_URL}"
 CHECK_INTERVAL_SECONDS="${PIERCEFLARE_CHECK_INTERVAL:-300}" # Default 5 minutes
 ONE_SHOT_MODE="${PIERCEFLARE_ONE_SHOT:-false}"
 
-###
+# Validate required configuration
+validate_config() {
+  local missing_vars=0
+  
+  if [ -z "$API_KEY" ]; then
+    log "Error: PIERCEFLARE_API_KEY environment variable is not set."
+    missing_vars=1
+  fi
 
-if [ -z "$API_KEY" ]; then
-  log "Error: PIERCEFLARE_API_KEY environment variable is not set."
-  exit 1
-fi
+  if [ -z "$SERVER_URL" ]; then
+    log "Error: PIERCEFLARE_SERVER_URL environment variable is not set."
+    missing_vars=1
+  fi
+  
+  return $missing_vars
+}
 
-if [ -z "$SERVER_URL" ]; then
-  log "Error: PIERCEFLARE_SERVER_URL environment variable is not set."
-  exit 1
-fi
+# --- IP Management Functions ---
 
-###
-###
-###
-
-# Function to get current external IP
+# Attempt to get current external IP using multiple fallback services
 get_current_ip() {
   # Try multiple services for robustness
   curl -s https://ifconfig.me || curl -s https://api.ipify.org || curl -s https://icanhazip.com || echo "error"
 }
 
-# Function to send ping to the server
-send_ping() {
+# 
+GET_infos() {
+
+}
+
+# Send IP update to the server
+PUT_flare() {
   local ip_address="$1"
   logT "Sending IP update: $ip_address"
   
-  response=$(curl -s -w "\n%{http_code}" -X POST \
+  response=$(curl -s -w "\n%{http_code}" -X PUT \
     -H "Authorization: Bearer $API_KEY" \
     -H "Content-Type: application/json" \
     -d "{\"ip\":\"$ip_address\"}" \
-    "$SERVER_URL/api/ping")
+    "$SERVER_URL$ENDPOINT_PUT_FLARE")
   
   # Extract body and status code
   http_code=$(echo "$response" | tail -n1)
@@ -70,58 +88,93 @@ send_ping() {
   fi
 }
 
-# --- Main Logic ---
+# Process a single IP check and update
+process_ip_check() {
+  local last_ip="$1"
+  local current_ip
+  
+  current_ip=$(get_current_ip)
+  
+  # Validate retrieved IP
+  if [ "$current_ip" = "error" ] || [ -z "$current_ip" ]; then
+    logT "Error getting current IP address. Skipping check."
+    echo "$last_ip" # Return unchanged
+    return 1
+  fi
+  
+  # Check if IP has changed
+  if [ "$current_ip" != "$last_ip" ]; then
+    if [ -n "$last_ip" ]; then
+      logT "IP address changed: $last_ip -> $current_ip"
+    else
+      logT "Initial IP detected: $current_ip"
+    fi
+    
+    if PUT_flare "$current_ip"; then
+      echo "$current_ip" # Return new IP
+      return 0
+    else
+      logT "Failed to update server with IP. Will retry later."
+      echo "$last_ip" # Return unchanged
+      return 1
+    fi
+  else
+    logT "IP address unchanged ($current_ip). No update needed."
+    echo "$last_ip" # Return unchanged
+    return 0
+  fi
+}
 
-# Check if running in one-shot mode
-if [ "$ONE_SHOT_MODE" = "true" ] || [ "$1" = "--force-ping" ]; then
+# --- Main Functions ---
+
+# One-shot mode - check and update once
+run_one_shot() {
   logT "Running in one-shot mode - forcing immediate ping"
   current_ip=$(get_current_ip)
+  
   if [ "$current_ip" != "error" ] && [ -n "$current_ip" ]; then
-    send_ping "$current_ip"
-    exit $?
+    PUT_flare "$current_ip"
+    return $?
   else
     logT "Error getting IP address."
-    exit 1
+    return 1
   fi
+}
+
+# Continuous monitoring mode
+run_continuous() {
+  local last_sent_ip=""
+
+  # Initial check and send
+  last_sent_ip=$(process_ip_check "$last_sent_ip")
+
+  # Periodic check loop
+  while true; do
+    sleep "$CHECK_INTERVAL_SECONDS"
+    last_sent_ip=$(process_ip_check "$last_sent_ip")
+  done
+}
+
+# --- Main Execution ---
+
+# Validate configuration first
+if ! validate_config; then
+  exit 1
 fi
 
-# Continue with normal continuous monitoring mode
-last_sent_ip=""
-
+##
+##
+##
+  
 logT "Client starting..."
 logT "Server URL: $SERVER_URL"
 logT "Check Interval: $CHECK_INTERVAL_SECONDS seconds"
 
-# Initial check and send
-current_ip=$(get_current_ip)
-if [ "$current_ip" != "error" ] && [ -n "$current_ip" ]; then
-  if send_ping "$current_ip"; then
-    last_sent_ip="$current_ip"
-  fi
+# Determine run mode and execute
+if [ "$ONE_SHOT_MODE" = "true" ] || [ "$1" = "--force-ping" ]; then
+  run_one_shot
+  exit $?
 else
-  logT "Error getting initial IP address."
+  run_continuous
+  # This should never return under normal circumstances
 fi
-
-# Periodic check loop
-while true; do
-  sleep "$CHECK_INTERVAL_SECONDS"
-  
-  current_ip=$(get_current_ip)
-  
-  if [ "$current_ip" = "error" ] || [ -z "$current_ip" ]; then
-    logT "Error getting current IP address. Skipping check."
-    continue
-  fi
-  
-  if [ "$current_ip" != "$last_sent_ip" ]; then
-    logT "IP address changed: $last_sent_ip -> $current_ip"
-    if send_ping "$current_ip"; then
-      last_sent_ip="$current_ip"
-    else
-      logT "Failed to update server with new IP. Will retry later."
-      # Keep last_sent_ip as is, so it retries next time
-    fi
-  else
-    logT "IP address unchanged ($current_ip). No update needed."
-  fi
-done
