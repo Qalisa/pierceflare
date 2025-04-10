@@ -9,9 +9,9 @@ export const domainNameFormatter = <T,>({
   const [sub, ...rest] = domain.split(".");
 
   return (
-    <div className="flex items-center justify-start">
+    <div className="flex items-center justify-start gap-0.5">
       <strong>{sub}</strong>
-      <span className="text-neutral-content/50">{"." + rest.join(".")}</span>
+      <span className="opacity-50">{"." + rest.join(".")}</span>
     </div>
   );
 };
