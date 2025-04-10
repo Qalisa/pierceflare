@@ -61,7 +61,23 @@ get_current_ip() {
 
 # 
 GET_infos() {
+  logT "Checking token validity..."
 
+  response=$(curl -s -w "\n%{http_code}" -X GET \
+    -H "Authorization: Bearer $API_KEY" \
+    "$SERVER_URL$ENDPOINT_GET_INFOS")
+
+  # Extract body and status code
+  http_code=$(echo "$response" | tail -n1)
+  body=$(echo "$response" | sed '$d') # Remove last line (http_code)
+  
+  if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+    logT "Token valid for [$body]."
+    return 0
+  else
+    logT "Could not assert validity of supplied token (HTTP $http_code): $body"
+    return 1
+  fi
 }
 
 # Send IP update to the server
@@ -169,6 +185,11 @@ fi
 logT "Client starting..."
 logT "Server URL: $SERVER_URL"
 logT "Check Interval: $CHECK_INTERVAL_SECONDS seconds"
+
+#
+if ! GET_infos; then 
+  exit 1
+fi
 
 # Determine run mode and execute
 if [ "$ONE_SHOT_MODE" = "true" ] || [ "$1" = "--force-ping" ]; then
