@@ -1,5 +1,5 @@
 import appLogo from "@/assets/images/logo.webp";
-import { routes } from "@/helpers/routes";
+import { routes } from "@/server/routes";
 import { useRef, useState } from "react";
 import { usePageContext } from "vike-react/usePageContext";
 

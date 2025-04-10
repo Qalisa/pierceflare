@@ -1,6 +1,6 @@
 import ThemeToggler from "@/components/ThemeToggle";
 import appLogo from "@/assets/images/logo.webp";
-import { routes } from "@/helpers/routes";
+import { routes } from "@/server/routes";
 import { navigate } from "vike/client/router";
 
 import {

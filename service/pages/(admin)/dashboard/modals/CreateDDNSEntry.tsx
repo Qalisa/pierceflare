@@ -1,4 +1,4 @@
-import DDNSCreateForm from "../forms/DDNSCreateForm";
+import DDNSCreateForm from "@/pages/(admin)/dashboard/forms/DDNSCreateForm";
 import { modalIds } from "@/helpers/modals";
 //
 const CreateDDNSEntryModal = () => {

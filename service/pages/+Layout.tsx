@@ -10,7 +10,7 @@ import { githubRepoUrl, title } from "@/helpers/static";
 
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { routes } from "@/helpers/routes";
+import { routes } from "@/server/routes";
 
 //
 const Layout = ({ children }: { children: React.ReactNode }) => {

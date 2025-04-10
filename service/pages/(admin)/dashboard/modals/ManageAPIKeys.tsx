@@ -1,5 +1,5 @@
 import { modalIds } from "@/helpers/modals";
-import APIKeyCreateForm from "../forms/APIKeyCreateForm";
+import APIKeyCreateForm from "@/pages/(admin)/dashboard/forms/APIKeyCreateForm";
 //
 const ManageAPIKeysModal = () => {
   const { form, buttons } = APIKeyCreateForm({ submitButtonOutside: true });

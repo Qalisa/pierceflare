@@ -1,6 +1,6 @@
 import type { getRootStore } from "@/store/index";
 import { type RootState } from "@/store/reducers/index";
-import type { PageContextInjection } from "@/helpers/types";
+import type { PageContextInjection } from "@/server/types";
 
 declare global {
   namespace Vike {

@@ -1,4 +1,4 @@
-import DDNSDeleteForm from "../forms/DDNSDeleteForm";
+import DDNSDeleteForm from "@/pages/(admin)/dashboard/forms/DDNSDeleteForm";
 import { modalIds } from "@/helpers/modals";
 
 //

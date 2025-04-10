@@ -1,4 +1,4 @@
-import { routes } from "@/helpers/routes";
+import { routes } from "@/server/routes";
 import { redirect } from "vike/abort";
 import type { PageContext } from "vike/types";
 

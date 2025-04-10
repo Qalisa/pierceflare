@@ -18,7 +18,7 @@ import type { Zones } from "./zones";
 import { randomIntFromInterval } from "@/helpers/random";
 import type { DbRequestsEvents } from "@/db/requests";
 import { dbRequestsEE, eeRequests } from "@/db/requests";
-import logr from "../loggers";
+import logr from "@/server/loggers";
 
 //
 //
