@@ -34,7 +34,7 @@ jobs:
       id: data-from-helm
       run: |
         APP_VERSION=$(yq e '.appVersion' .helm/Chart.yaml)
-        FIRST_HOST=$(yq -r '.ingress.hosts[0]' .helm-values/values.${{ github.ref_name }}.yaml)
+        FIRST_HOST=$(yq -r '.ingress.hosts[0]' .helm-values/service/values.${{ github.ref_name }}.yaml)
         echo "appVersion=${APP_VERSION}" >> $GITHUB_OUTPUT
         echo "canonicalUrl=https://${FIRST_HOST}" >> $GITHUB_OUTPUT
 
@@ -64,7 +64,7 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         context: .
-        file: Dockerfile.service
+        file: ./service/Dockerfile
         push: true
         target: lean
         build-args: |

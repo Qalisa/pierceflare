@@ -7,8 +7,8 @@ services:
   pierceflare:
     image: pierceflare
     build:
-      context: ..
-      dockerfile: Dockerfile.service
+      context: ../..
+      dockerfile: ./service/Dockerfile
       args:
         - K8S_APP__VERSION=debug-0.0.1-docker
         - CANONICAL_URL=http://localhost:3000
@@ -19,7 +19,7 @@ services:
       SERVICE_AUTH_PASSWORD: root
       SERVICE_DATABASE_FILES_PATH: /db
     env_file:
-      - ../service/.env
+      - ../../service/.env
     volumes:
       - pierceflare-data:/db:rw
 
