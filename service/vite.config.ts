@@ -5,6 +5,7 @@ import vike from "vike/plugin";
 import { URL, fileURLToPath } from "url";
 import { cpSync, existsSync } from "fs";
 import { resolve } from "path";
+import tailwindcss from "@tailwindcss/vite";
 
 //
 //
@@ -34,24 +35,10 @@ const copyDrizzlePlugin: Plugin = {
 
 //
 export default defineConfig({
-  plugins: [copyDrizzlePlugin, vike(), react()],
+  plugins: [copyDrizzlePlugin, vike(), react(), tailwindcss()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./", import.meta.url)),
-    },
-  },
-  css: {
-    postcss: "./postcss.config.cjs",
-  },
-  build: {
-    target: "es2022",
-  },
-  esbuild: {
-    target: "es2022",
-  },
-  optimizeDeps: {
-    esbuildOptions: {
-      target: "es2022",
     },
   },
 });
