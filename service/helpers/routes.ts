@@ -22,6 +22,10 @@ const routes = {
     flare: `${apiRoot}/flare`,
     infos: `${apiRoot}/infos`,
   },
+  swagger: {
+    ui: `/swagger`,
+    doc: "/swagger/doc",
+  },
   /** default route to redirect, most probably root url, aka "/" */
   default: loginPageRoute,
 } as const;
