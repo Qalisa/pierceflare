@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { usePageContext } from "vike-react/usePageContext";
 
 import { CheckCircleIcon } from "@heroicons/react/24/outline";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
@@ -8,7 +9,10 @@ import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 import { onlyUniqueStr } from "#/helpers/onlyUnique";
 import type { RootState } from "#/store/reducers";
 import type { FlashMessageType } from "#/store/reducers/flashMessages";
-import { clearFlashMessages } from "#/store/reducers/flashMessages";
+import {
+  addErrorMessage,
+  clearFlashMessages,
+} from "#/store/reducers/flashMessages";
 
 import CopyToClipboardButton from "./CopyToClipboardButton";
 
@@ -28,10 +32,21 @@ const FlashMessages = () => {
     (state: RootState) => state.flashMessages,
   );
 
+  const {
+    injected: { authFailure },
+  } = usePageContext();
+
   const [schedueledForDeletion, setScheduledForDeletion] = useState<string[]>(
     [],
   );
 
+  useEffect(() => {
+    if (authFailure) {
+      dispatch(addErrorMessage(authFailure.message));
+    }
+  }, [authFailure]);
+
+  //
   useEffect(() => {
     //
     const idsToDeleteLater = flashMessages
@@ -54,6 +69,7 @@ const FlashMessages = () => {
     );
   }, [flashMessages]);
 
+  //
   return (
     <>
       {flashMessages && (

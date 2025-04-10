@@ -1,12 +1,9 @@
-import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
 import { usePageContext } from "vike-react/usePageContext";
-
-import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 
 import appLogo from "#/assets/images/logo.webp";
 import swaggerLogo from "#/assets/images/swagger.svg";
 
+import FlashMessages from "#/components/FlashMessages";
 import { githubRepoUrl, title } from "#/helpers/static";
 import { routes } from "#/server/routes";
 
@@ -17,7 +14,7 @@ import "#/style/tailwind.css";
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
-      <FailureDock />
+      <FlashMessages />
       <div id="app">{children}</div>
       <Footer />
     </>
@@ -93,56 +90,6 @@ const GithubIconBtn = () => {
         ></path>
       </svg>
     </a>
-  );
-};
-
-//
-//
-//
-
-const FailureDock = () => {
-  const { injected } = usePageContext();
-  const { authFailure } = injected;
-
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    if (visible) {
-      const timer = setTimeout(() => setVisible(false), 2000);
-      return () => clearTimeout(timer); // Cleanup on unmount
-    }
-  }, [visible]);
-
-  return (
-    <>
-      {authFailure && (
-        <div className="absolute top-0 flex w-full flex-col gap-1">
-          {[authFailure].map(({ message }, i) => (
-            <AnimatePresence key={i}>
-              {visible && <Failure message={message} />}
-            </AnimatePresence>
-          ))}
-        </div>
-      )}
-    </>
-  );
-};
-
-//
-const Failure = ({ message }: { message: string }) => {
-  //
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      role="alert"
-      className="alert alert-error m-4"
-    >
-      <ExclamationTriangleIcon className="size-6" />
-      <span>{message}</span>
-    </motion.div>
   );
 };
 

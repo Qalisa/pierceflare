@@ -13,7 +13,6 @@ import { useSubscription } from "@trpc/tanstack-react-query";
 import appLogo from "#/assets/images/logo.webp";
 
 import FlareGeneratorCommandBelt from "#/components/FlareGeneratorCommandBelt";
-import FlashMessages from "#/components/FlashMessages";
 import ThemeToggler from "#/components/ThemeToggle";
 import { title } from "#/helpers/static";
 import { useTRPC } from "#/helpers/trpc";
@@ -25,7 +24,6 @@ import { incrementUnseenCount } from "#/store/reducers/unseenUpdates";
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
-      <FlashMessages />
       <div className="navbar bg-base-100 gap-8 shadow-sm">
         <LeftPart />
         <CenterPart />

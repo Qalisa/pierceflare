@@ -19,6 +19,7 @@ import { getDb } from "#/db";
 import { dbRequestsEE, eeRequests } from "#/db/requests";
 import { flareKeys } from "#/db/schema";
 import { title } from "#/helpers/static";
+import { withLinger } from "#/helpers/withLinger";
 import { CloudflareDNSWorker } from "#/server/cloudflare/worker";
 import { getZones } from "#/server/cloudflare/zones";
 import {
@@ -112,33 +113,39 @@ const startServer = async () => {
   // Login //
   app.post(routes.pages.login, async ({ req, get, redirect }) => {
     //
-    const session = get("session");
-    const loginFailed = async (message: string, username?: string) => {
-      session.flash("authFailure", { message, username });
-      return redirect(routes.pages.login);
+    const login = async () => {
+      //
+      const session = get("session");
+      const loginFailed = async (message: string, username?: string) => {
+        session.flash("authFailure", { message, username });
+        return redirect(routes.pages.login);
+      };
+
+      const body = await req.parseBody();
+      const { password, username } = body;
+
+      //
+      if (typeof password !== "string" || typeof username !== "string") {
+        return loginFailed("Unexpected values for credentials");
+      }
+      if (!password || !username) {
+        return loginFailed("Missing username or password");
+      }
+
+      const authOK =
+        SERVICE_AUTH_USERNAME == username.trim() &&
+        SERVICE_AUTH_PASSWORD == password;
+      if (!authOK) {
+        return loginFailed("Invalid credentials", username);
+      }
+
+      //
+      session.set("user", { username: username });
+      return redirect(routes.pages.dashboard);
     };
 
-    const body = await req.parseBody();
-    const { password, username } = body;
-
     //
-    if (typeof password !== "string" || typeof username !== "string") {
-      return loginFailed("Unexpected values for credentials");
-    }
-    if (!password || !username) {
-      return loginFailed("Missing username or password");
-    }
-
-    const authOK =
-      SERVICE_AUTH_USERNAME == username.trim() &&
-      SERVICE_AUTH_PASSWORD == password;
-    if (!authOK) {
-      return loginFailed("Invalid credentials", username);
-    }
-
-    //
-    session.set("user", { username: username });
-    return redirect(routes.pages.dashboard);
+    return await withLinger(login(), 300);
   });
 
   // Logout //
