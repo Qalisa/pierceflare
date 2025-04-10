@@ -38,7 +38,7 @@
     //
     {
       "label": "⚙️ Build",
-      "command": "bun",
+      "command": "pnpm",
       "args": ["build:dev"],
       "options": {
         "cwd": "${workspaceFolder}/service"
@@ -57,7 +57,7 @@
     },
     {
       "label": "⚙️ Drizzle: Generate Migration",
-      "command": "bun",
+      "command": "pnpm",
       "args": ["create-migration"],
       "options": {
         "cwd": "${workspaceFolder}/service"
@@ -85,7 +85,7 @@
     {
       "label": "🧶 Lint",
       "type": "shell",
-      "command": "bun",
+      "command": "pnpm",
       "args": ["run", "lint"],
       "problemMatcher": ["$tsc", "$eslint-stylish"],
       "options": {

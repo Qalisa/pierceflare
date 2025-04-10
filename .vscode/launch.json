@@ -22,7 +22,7 @@
       "name": "Debug: Vike /w Hono",
       "type": "node-terminal",
       "request": "launch",
-      "command": "bun dev",
+      "command": "pnpm dev",
       "env": {
         "SERVICE_DATABASE_FILES_PATH": "${workspaceFolder}/service/db"
       },
@@ -38,7 +38,7 @@
       "name": "Debug: Vike /w Hono (production)",
       "type": "node-terminal",
       "request": "launch",
-      "command": "bun prod",
+      "command": "pnpm prod",
       "cwd": "${workspaceFolder}/service",
       "serverReadyAction": {
         "action": "startDebugging",
