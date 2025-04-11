@@ -55,7 +55,7 @@ export class CloudflareDNSWorker {
       // cast
       map((flareAdded) => {
         //
-        logr.log("Processing", flareAdded);
+        logr.logD("Processing", flareAdded);
 
         //
         return { flareAdded } as CloudflareWorkerRequest;
@@ -92,7 +92,7 @@ export class CloudflareDNSWorker {
             count: request.retries || this.config.maxRetries,
             delay: (error, retryCount) => {
               const delayMs = this.calculateRetryDelay(error, retryCount);
-              logr.log(
+              logr.logD(
                 `Retrying request (${retryCount}/${request.retries || this.config.maxRetries}) after ${delayMs}ms`,
               );
               return timer(delayMs);
@@ -101,7 +101,7 @@ export class CloudflareDNSWorker {
           //
           tap({
             next: () =>
-              logr.log(
+              logr.logD(
                 `[flareId|${request.flareAdded.flareId}]`,
                 "Request completed",
               ),

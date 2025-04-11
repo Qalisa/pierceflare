@@ -190,20 +190,20 @@ const startServer = async () => {
     bearerAuth({
       verifyToken: async (token, { status, set }) => {
         //
-        const [{ ddnsForDomain }] = await getDb()
+        const foundTokens = await getDb()
           .select({ ddnsForDomain: flareKeys.ddnsForDomain })
           .from(flareKeys)
           .where(eq(flareKeys.apiKey, token))
           .limit(1);
 
         //
-        if (ddnsForDomain == null) {
+        if (foundTokens.length != 1) {
           status(403);
           return false;
         }
 
         //
-        set("apiContext", { ddnsForDomain });
+        set("apiContext", { ddnsForDomain: foundTokens[0].ddnsForDomain });
 
         //
         return true;

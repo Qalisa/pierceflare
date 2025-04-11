@@ -4,11 +4,10 @@ services:
     build:
       context: ../..
       dockerfile: ./cli/Dockerfile
-    environment:
-      PIERCEFLARE_SERVER_URL: http://localhost:3000
+    network_mode: host # so we can access localhost
     command: 
-      - ./pierceflare-cli.sh
       - --force-ping
     env_file:
       - ../../cli/.env
+      - ../../cli/.env.local
 

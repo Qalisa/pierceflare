@@ -1,25 +1,43 @@
-# Dockerfile.cli
-FROM alpine:latest
+# Étape de construction
+FROM golang:1.24-alpine AS builder
 
-# Install curl for making HTTP requests
-RUN apk update && apk add --no-cache curl
+# Installation des dépendances de build
+RUN apk update && apk add --no-cache git
 
-# Create a directory for the script
+# Configuration du répertoire de travail
 WORKDIR /app
 
-# Copy the client script into the image
+# Copie des fichiers de dépendances
+COPY ./cli/go.mod ./cli/go.sum* ./
+
+# Téléchargement des dépendances
+RUN go mod download
+
+# Copie du code source
 COPY ./cli .
 
-# Make the script executable
-RUN chmod +x pierceflare-cli.sh
+# Construction de l'application
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o pierceflare-cli ./cmd/pierceflare-cli
 
-# Set environment variables (defaults, can be overridden at runtime)
-# These MUST be provided when running the container
+# Étape finale avec une image minimale
+FROM alpine:latest
+
+# Installation de CA certificates pour les requêtes HTTPS
+RUN apk update && apk add --no-cache ca-certificates
+
+# Configuration du répertoire de travail
+WORKDIR /app
+
+# Copie du binaire compilé depuis l'étape de construction
+COPY --from=builder /app/pierceflare-cli .
+
+# Variables d'environnement (valeurs par défaut, peuvent être remplacées au runtime)
+# Ces variables DOIVENT être fournies lors de l'exécution du conteneur
 # ENV PIERCEFLARE_API_KEY=""
 # ENV PIERCEFLARE_SERVER_URL=""
 
-# Optional: Default check interval is 5 minutes (300 seconds)
+# Intervalle de vérification par défaut : 5 minutes (300 secondes)
 ENV PIERCEFLARE_CHECK_INTERVAL="300"
 
-# Run the script when the container starts
-CMD ["./pierceflare-cli.sh"]
+# Définition du point d'entrée
+ENTRYPOINT ["/app/pierceflare-cli"]

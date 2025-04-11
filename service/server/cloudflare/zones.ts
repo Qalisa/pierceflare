@@ -11,6 +11,8 @@ export const getZones = async (cfCli: Cloudflare) => {
   if (zones.result.length == 0) {
     const issue =
       "No zones are allowed for supplied CloudFlare API Key. Please update its permissions.";
+
+    //
     logr.error(issue);
     throw new Error(issue);
   }
