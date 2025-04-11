@@ -143,12 +143,26 @@ func processIPCheck(log *logger.Logger, apiClient *api.Client, ipRetriever *ip.R
 
 	log.Debug("Vérification de l'IP: actuelle=%s, dernière=%s", currentIP, *lastSentIP)
 
-	// Vérification si l'IP a changé ou si le mode de mises à jour factices est activé
-	cfg, _ := config.New() // Récupérer la configuration pour vérifier l'option DummyUpdates
+	// Récupérer la configuration pour vérifier l'option DummyUpdates
+	cfg, _ := config.New()
+
+	// Si DummyUpdates est activé, on envoie systématiquement une mise à jour factice
+	if cfg.DummyUpdates {
+		log.Info("Envoi d'une mise à jour de test (mode PIERCEFLARE_DUMMY_UPDATES activé)")
+
+		// Envoi d'une mise à jour dummy (test)
+		if err := apiClient.SendIPUpdate(currentIP, true); err != nil {
+			log.Error("Échec de la mise à jour de test sur le serveur: %v", err)
+			return
+		}
+
+		log.Info("Mise à jour de test effectuée avec succès")
+		return
+	}
+
+	// Vérification si l'IP a changé
 	ipChanged := currentIP != *lastSentIP
 
-	// Si l'IP a changé, on envoie toujours une vraie mise à jour
-	// Si l'IP n'a pas changé mais que DummyUpdates est activé, on envoie une mise à jour factice (dummy=true)
 	if ipChanged {
 		if *lastSentIP != "" {
 			log.Info("Adresse IP modifiée: %s -> %s", *lastSentIP, currentIP)
@@ -164,16 +178,6 @@ func processIPCheck(log *logger.Logger, apiClient *api.Client, ipRetriever *ip.R
 
 		*lastSentIP = currentIP
 		log.Info("Mise à jour IP effectuée avec succès")
-	} else if cfg.DummyUpdates {
-		log.Info("Envoi d'une mise à jour de test (mode PIERCEFLARE_DUMMY_UPDATES activé)")
-
-		// Envoi d'une mise à jour dummy (test)
-		if err := apiClient.SendIPUpdate(currentIP, true); err != nil {
-			log.Error("Échec de la mise à jour de test sur le serveur: %v", err)
-			return
-		}
-
-		log.Info("Mise à jour de test effectuée avec succès")
 	} else {
 		// Log périodique pour indiquer que tout fonctionne normalement
 		log.LogSuccess("IP inchangée (%s) - Connexion avec le serveur PierceFlare maintenue", currentIP)
