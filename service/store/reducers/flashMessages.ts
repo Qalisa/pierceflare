@@ -43,7 +43,7 @@ const flashMessagesSlice = createSlice({
         ...state.flashMessages,
         {
           msgType: "success",
-          message: message,
+          message,
           id: new Date().toISOString(),
         },
       ];

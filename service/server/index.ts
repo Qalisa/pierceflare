@@ -140,7 +140,7 @@ const startServer = async () => {
       }
 
       //
-      session.set("user", { username: username });
+      session.set("user", { username });
       return redirect(routes.pages.dashboard);
     };
 

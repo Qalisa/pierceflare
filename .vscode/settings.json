@@ -5,5 +5,5 @@
     "terminal.integrated.cwd": "${workspaceFolder}/service",
     "files.associations": {
       "*.css": "tailwindcss"
-  },
+    },
 }
