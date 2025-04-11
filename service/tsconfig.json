@@ -8,7 +8,7 @@
     "sourceMap": true,
     "module": "ESNext",
     "noEmit": true,
-    "moduleResolution": "Bundler",
+    "moduleResolution": "bundler",
     "target": "ES2022",
     "lib": [
       "DOM",

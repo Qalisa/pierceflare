@@ -6,7 +6,7 @@
 # PierceFlare server when changes are detected.
 ##############################################################################
 
-# --- Static vars ---
+# --- Static Variables ---
 
 readonly LOG_TAG="[PierceFlare CLI]"
 readonly ENDPOINT_PUT_FLARE="/api/flare"
@@ -24,6 +24,20 @@ log() {
 logT() {
   local text="$1"
   echo "$LOG_TAG - $(date '+%Y-%m-%d %H:%M:%S') - $text"
+}
+
+# --- Helper Functions ---
+
+# Validate if the given string is a valid IPv4 or IPv6 address
+is_valid_ip() {
+  local ip="$1"
+  if echo "$ip" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' > /dev/null; then
+    return 0 # IPv4
+  elif echo "$ip" | grep -E '^[0-9a-fA-F:]+$' > /dev/null && echo "$ip" | grep ':' > /dev/null; then
+    return 0 # IPv6
+  else
+    return 1
+  fi
 }
 
 # --- Configuration ---
@@ -68,8 +82,8 @@ make_request() {
   
   logT "Making $method request to: $full_url"
   
-  # Base curl command with common options
-  local curl_cmd="curl -s -w '\n%{http_code}' -X $method"
+  # Base curl command with common options and timeout
+  local curl_cmd="curl -s --max-time 10 -w '\n%{http_code}' -X $method"
   
   # Add authorization header
   curl_cmd="$curl_cmd -H 'Authorization: Bearer $API_KEY'"
@@ -156,7 +170,7 @@ get_current_ip() {
   for service in "https://ifconfig.me" "https://api.ipify.org" "https://icanhazip.com"; do
     logT "Trying to get IP from $service"
     ip=$(curl -s --max-time 5 "$service")
-    if [ -n "$ip" ] && echo "$ip" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' > /dev/null; then
+    if [ -n "$ip" ] && is_valid_ip "$ip"; then
       logT "Retrieved IP: $ip"
       echo "$ip"
       return 0
@@ -176,7 +190,7 @@ GET_infos() {
   parse_response "$response"
   
   if [ $? -eq 0 ]; then
-    logT "Token valid for [$RESPONSE_BODY]."
+    logT "Token valid."
     return 0
   else
     logT "Could not assert validity of supplied token (HTTP $RESPONSE_CODE): $RESPONSE_BODY"
