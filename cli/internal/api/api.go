@@ -46,7 +46,7 @@ func NewClient(apiKey, serverURL string, logger *logger.Logger) *Client {
 // makeRequest effectue une requête HTTP vers l'API
 func (c *Client) makeRequest(method, endpoint string, body interface{}) (*Response, error) {
 	url := c.serverURL + endpoint
-	c.logger.LogT("Préparation de la requête %s vers: %s", method, url)
+	c.logger.Debug("Préparation de la requête %s vers: %s", method, url)
 
 	var req *http.Request
 	var err error
@@ -72,7 +72,7 @@ func (c *Client) makeRequest(method, endpoint string, body interface{}) (*Respon
 	// Ajout de l'en-tête d'autorisation
 	req.Header.Set("Authorization", "Bearer "+c.apiKey)
 
-	c.logger.LogT("Exécution de la requête...")
+	c.logger.Debug("Exécution de la requête...")
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("échec de la requête: %w", err)
@@ -84,7 +84,7 @@ func (c *Client) makeRequest(method, endpoint string, body interface{}) (*Respon
 		return nil, fmt.Errorf("erreur lors de la lecture de la réponse: %w", err)
 	}
 
-	c.logger.LogT("Code de réponse HTTP: %d", resp.StatusCode)
+	c.logger.Debug("Code de réponse HTTP: %d", resp.StatusCode)
 
 	response := &Response{
 		StatusCode: resp.StatusCode,
@@ -92,9 +92,9 @@ func (c *Client) makeRequest(method, endpoint string, body interface{}) (*Respon
 	}
 
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		c.logger.LogT("Requête réussie (HTTP %d)", resp.StatusCode)
+		c.logger.Debug("Requête réussie (HTTP %d)", resp.StatusCode)
 	} else {
-		c.logger.LogT("Échec de la requête (HTTP %d): %s", resp.StatusCode, string(respBody))
+		c.logger.Error("Échec de la requête (HTTP %d): %s", resp.StatusCode, string(respBody))
 	}
 
 	return response, nil
@@ -102,7 +102,7 @@ func (c *Client) makeRequest(method, endpoint string, body interface{}) (*Respon
 
 // CheckTokenValidity vérifie la validité du token API
 func (c *Client) CheckTokenValidity() error {
-	c.logger.LogT("Vérification de la validité du token...")
+	c.logger.Debug("Vérification de la validité du token...")
 
 	resp, err := c.makeRequest("GET", EndpointGetInfos, nil)
 	if err != nil {
@@ -113,20 +113,29 @@ func (c *Client) CheckTokenValidity() error {
 		return fmt.Errorf("impossible de valider le token (HTTP %d): %s", resp.StatusCode, resp.Body)
 	}
 
-	c.logger.LogT("Token valide.")
+	c.logger.Debug("Token valide.")
 	return nil
 }
 
 // IPUpdateRequest représente une demande de mise à jour d'IP
 type IPUpdateRequest struct {
-	IP string `json:"ip"`
+	IP    string `json:"ip"`
+	Dummy bool   `json:"dummy,omitempty"` // Indique si c'est une requête de test
 }
 
 // SendIPUpdate envoie une mise à jour d'adresse IP au serveur
-func (c *Client) SendIPUpdate(ipAddress string) error {
-	c.logger.LogT("Envoi de la mise à jour IP: %s", ipAddress)
+func (c *Client) SendIPUpdate(ipAddress string, isDummy bool) error {
+	if isDummy {
+		c.logger.Debug("Envoi d'une mise à jour IP de test (dummy): %s", ipAddress)
+	} else {
+		c.logger.Debug("Envoi de la mise à jour IP: %s", ipAddress)
+	}
 
-	req := IPUpdateRequest{IP: ipAddress}
+	req := IPUpdateRequest{
+		IP:    ipAddress,
+		Dummy: isDummy,
+	}
+
 	resp, err := c.makeRequest("PUT", EndpointPutFlare, req)
 	if err != nil {
 		return err
@@ -136,6 +145,11 @@ func (c *Client) SendIPUpdate(ipAddress string) error {
 		return fmt.Errorf("échec de la mise à jour (HTTP %d): %s", resp.StatusCode, resp.Body)
 	}
 
-	c.logger.LogT("Mise à jour réussie (HTTP %d): %s", resp.StatusCode, resp.Body)
+	if isDummy {
+		c.logger.Debug("Mise à jour de test réussie (HTTP %d): %s", resp.StatusCode, resp.Body)
+	} else {
+		c.logger.Debug("Mise à jour réussie (HTTP %d): %s", resp.StatusCode, resp.Body)
+	}
+
 	return nil
 }

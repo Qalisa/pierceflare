@@ -39,11 +39,11 @@ func IsValidIP(ip string) bool {
 // GetCurrentIP tente d'obtenir l'adresse IP externe actuelle
 func (r *Retriever) GetCurrentIP() (string, error) {
 	for _, service := range ipServices {
-		r.logger.LogT("Tentative de récupération d'IP depuis %s", service)
+		r.logger.Debug("Tentative de récupération d'IP depuis %s", service)
 
 		resp, err := r.client.Get(service)
 		if err != nil {
-			r.logger.LogT("Erreur lors de la connexion à %s: %v", service, err)
+			r.logger.Debug("Erreur lors de la connexion à %s: %v", service, err)
 			continue
 		}
 
@@ -51,18 +51,18 @@ func (r *Retriever) GetCurrentIP() (string, error) {
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			r.logger.LogT("Erreur lors de la lecture de la réponse: %v", err)
+			r.logger.Debug("Erreur lors de la lecture de la réponse: %v", err)
 			continue
 		}
 
 		ip := string(body)
 		if IsValidIP(ip) {
-			r.logger.LogT("IP récupérée: %s", ip)
+			r.logger.Debug("IP récupérée: %s", ip)
 			return ip, nil
 		}
 	}
 
-	r.logger.LogT("Échec de la récupération d'IP depuis tous les services")
+	r.logger.Error("Échec de la récupération d'IP depuis tous les services")
 	return "", ErrNoIPFound
 }
 
