@@ -25,8 +25,10 @@ type InjectingPageContext = SessionDataTypes & {
   };
   //
   trpcUrl: string;
-  //
-  availableCloudflareDomains: string[];
+  cloudflare: {
+    workerState: "disabled" | "starting" | "running";
+    availableDomains: string[];
+  };
 };
 
 export type PageContextInjection = {

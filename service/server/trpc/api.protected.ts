@@ -45,7 +45,7 @@ const apiProtected = {
     .query(
       async ({ ctx, input: { cloudFlareDomain, description, subdomain } }) => {
         //
-        if (!ctx.availableCloudflareDomains.includes(cloudFlareDomain)) {
+        if (!ctx.cloudflare.availableDomains.includes(cloudFlareDomain)) {
           throw new TRPCError({
             code: "UNPROCESSABLE_CONTENT",
             message: `Chosen "${cloudFlareDomain}" domain is not allowed`,

@@ -1,5 +1,6 @@
 import { usePageContext } from "vike-react/usePageContext";
 
+import cloudflareLogo from "#/assets/images/cloudflare.svg";
 import appLogo from "#/assets/images/logo.webp";
 import swaggerLogo from "#/assets/images/swagger.svg";
 
@@ -41,16 +42,20 @@ const Footer = () => {
           {title} - Copyright © {new Date().getFullYear()} - All right reserved
         </p>
         <p className="text-secondary text-center text-xs">
-          <span>{version}</span>{" "}
+          <span>{version}</span>
           <span>
             ({imageVersion}/{imageRevision})
           </span>
         </p>
       </aside>
-      <nav className="grid-flow-col gap-2 md:place-self-center md:justify-self-end">
-        <SwaggerIconBtn />
-        <GithubIconBtn />
-      </nav>
+      <div className="grid-flow-col gap-4 items-center md:place-self-center md:justify-self-end">
+        <nav className="flex gap-2">
+          <SwaggerIconBtn />
+          <GithubIconBtn />
+        </nav>
+        <span>-</span>
+        <CloudflareWorkerState />
+      </div>
     </footer>
   );
 };
@@ -58,6 +63,36 @@ const Footer = () => {
 //
 //
 //
+
+//
+const CloudflareWorkerState = () => {
+  //
+  const {
+    injected: {
+      cloudflare: { workerState },
+    },
+  } = usePageContext();
+
+  //
+  const { className, text } = (() => {
+    switch (workerState) {
+      case "disabled":
+        return { text: "Disabled", className: "status-neutral" };
+      case "starting":
+        return { text: "Starting...", className: "status-warning" };
+      case "running":
+        return { text: "Running", className: "status-success" };
+    }
+  })();
+
+  return (
+    <div className="flex items-center justify-center gap-2">
+      <img src={cloudflareLogo} width={16} />
+      <span>{text}</span>
+      <div aria-label="status" className={`status ${className}`}></div>
+    </div>
+  );
+};
 
 //
 const SwaggerIconBtn = () => {

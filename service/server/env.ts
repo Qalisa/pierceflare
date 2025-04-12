@@ -57,10 +57,7 @@ export const SERVICE_DATABASE_FILES_PATH = env
   .required()
   .asString();
 
-export const CLOUDFLARE_API_TOKEN = env
-  .get("CLOUDFLARE_API_TOKEN")
-  .required()
-  .asString();
+export const CLOUDFLARE_API_TOKEN = env.get("CLOUDFLARE_API_TOKEN").asString();
 
 //
 const _PORT = env.get("PORT").default("3000");

@@ -1,10 +1,11 @@
 import { TRPCError, initTRPC } from "@trpc/server";
 
 import { withLinger } from "#/helpers/withLinger";
+import type { PageContextInjection } from "#/server/types";
 
 export type HonoContext = {
   userLogged?: boolean;
-  availableCloudflareDomains: string[];
+  cloudflare: PageContextInjection["injected"]["cloudflare"];
 };
 
 const t = initTRPC.context<HonoContext>().create();

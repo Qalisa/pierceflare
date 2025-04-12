@@ -5,6 +5,11 @@ APP_NAME = pierceflare-cli
 APP_DIR = ./cmd/pierceflare-cli
 DOCKER_TAG = pierceflare-cli
 BUILD_DIR = ./bin
+SERVICE_DIR = ../service
+SWAGGER_OUTPUT_DIR = ./internal/gen/api
+SWAGGER_SPEC_FILE = $(SWAGGER_OUTPUT_DIR)/swagger.json
+SERVICE_PORT = 3000
+SERVICE_URL = http://localhost:$(SERVICE_PORT)
 
 # Compilation locale
 .PHONY: build
@@ -39,11 +44,32 @@ run: build
 	@echo "Exécution du CLI en mode continu..."
 	$(BUILD_DIR)/$(APP_NAME)
 
+# Génération des classes Go à partir de la documentation OpenAPI
+.PHONY: gen-api
+gen-api:
+	@echo "Génération des classes Go à partir de la documentation OpenAPI..."
+	@mkdir -p $(SWAGGER_OUTPUT_DIR)
+	@cd $(SERVICE_DIR) && pnpm install
+	@cd $(SERVICE_DIR) && CANONICAL_URL=$(SERVICE_URL) SERVICE_AUTH_USERNAME=temp SERVICE_AUTH_PASSWORD=temp SERVICE_DATABASE_FILES_PATH=./db pnpm run dev & \
+	PID=$$! && \
+	echo "Service démarré avec PID: $$PID" && \
+	echo "Attente du démarrage du service..." && \
+	until curl -s $(SERVICE_URL)/swagger/doc > /dev/null; do sleep 1; done && \
+	echo "Service disponible, extraction du document OpenAPI..." && \
+	curl -s $(SERVICE_URL)/swagger/doc > $(SWAGGER_SPEC_FILE) && \
+	kill $$PID && \
+	echo "Document OpenAPI extrait: $(SWAGGER_SPEC_FILE)"
+	@echo "Génération du code Go avec Swag..."
+	@which swag > /dev/null || go install github.com/swaggo/swag/cmd/swag@latest
+	@swag generate client -f $(SWAGGER_SPEC_FILE) -g api.gen.go -d $(SWAGGER_OUTPUT_DIR) -q
+	@echo "Génération des classes Go terminée"
+
 # Nettoyage
 .PHONY: clean
 clean:
 	@echo "Nettoyage des fichiers générés..."
 	rm -rf $(BUILD_DIR)
+	rm -rf $(SWAGGER_OUTPUT_DIR)
 	@echo "Nettoyage terminé"
 
 # Aide
@@ -55,5 +81,6 @@ help:
 	@echo "  make docker-build  - Construit l'image Docker"
 	@echo "  make run           - Exécute le CLI en mode continu"
 	@echo "  make run-oneshot   - Exécute le CLI en mode one-shot"
+	@echo "  make gen-api       - Génère les classes Go à partir de la documentation OpenAPI"
 	@echo "  make clean         - Nettoie les fichiers générés"
 	@echo "  make help          - Affiche cette aide"

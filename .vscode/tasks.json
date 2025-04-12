@@ -47,13 +47,31 @@
       "problemMatcher": []
     },
     {
-      "label": "One-shot Pierceflare CLI",
+      "label": "🧩 Generate API Client from OpenAPI",
+      "type": "shell",
+      "command": "make",
+      "args": ["gen-api"],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/cli"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new",
+        "focus": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "🚀 One-shot Pierceflare CLI",
       "command": "docker",
       "args": ["compose", "up", "--build"],
       "options": {
         "cwd": "${workspaceFolder}/.dev/cli"
       }
-
     },
     {
       "label": "⚙️ Drizzle: Generate Migration",

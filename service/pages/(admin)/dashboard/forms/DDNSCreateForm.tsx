@@ -46,7 +46,9 @@ const DDNSCreateForm = ({
 
   //
   const {
-    injected: { availableCloudflareDomains },
+    injected: {
+      cloudflare: { availableDomains },
+    },
   } = usePageContext();
 
   const button = (
@@ -126,7 +128,7 @@ const DDNSCreateForm = ({
               disabled={isSubmitting}
               required
             >
-              {availableCloudflareDomains.map((cloudflareDomain) => (
+              {availableDomains.map((cloudflareDomain) => (
                 <option key={cloudflareDomain}>{cloudflareDomain}</option>
               ))}
             </select>

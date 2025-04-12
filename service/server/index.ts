@@ -45,9 +45,22 @@ import type { PageContextInjection, SessionDataTypes } from "#/server/types";
 //
 const startServer = async () => {
   /** we do not need available domains right await for UI, just pass them empty until filled */
-  let availableCloudflareDomains: string[] = [];
+  const cloudflareState: PageContextInjection["injected"]["cloudflare"] = {
+    availableDomains: [],
+    workerState: "running",
+  };
 
+  //
   const cfWorkerPromise = (async () => {
+    //
+    if (CLOUDFLARE_API_TOKEN == undefined || CLOUDFLARE_API_TOKEN == "") {
+      const message =
+        "CLOUDFLARE_API_TOKEN is not set, disabling Cloudflare DNS Worker.";
+      logr.error(message);
+      cloudflareState.workerState = "disabled";
+      throw message;
+    }
+
     //
     const cloudflareCli = new Cloudflare({
       apiToken: CLOUDFLARE_API_TOKEN,
@@ -55,7 +68,7 @@ const startServer = async () => {
 
     //
     const zones = await getZones(cloudflareCli);
-    availableCloudflareDomains = zones.map(([_id, name]) => name);
+    cloudflareState.availableDomains = zones.map(([_id, name]) => name);
 
     //
     const cfWorker = new CloudflareDNSWorker(dbRequestsEE, {
@@ -328,7 +341,7 @@ const startServer = async () => {
         //
         return {
           ...(c.get("session").get("user") != null ? { userLogged: true } : {}),
-          availableCloudflareDomains,
+          cloudflare: cloudflareState,
         } satisfies HonoContext;
       },
     }),
@@ -351,7 +364,7 @@ const startServer = async () => {
         injected: {
           ...(authFailure ? { authFailure } : {}),
           ...(user ? { user } : {}),
-          availableCloudflareDomains,
+          cloudflare: cloudflareState,
           trpcUrl,
           k8sApp: {
             imageRevision,
@@ -392,9 +405,10 @@ const startServer = async () => {
   //
 
   cfWorkerPromise.then((e) => {
-    //
     logr.log("Starting Cloudflare DNS Worker.");
-    return lastValueFrom(e.cfWorker.flow);
+    const run = lastValueFrom(e.cfWorker.flow);
+    cloudflareState.workerState = "running";
+    return run;
   });
 
   //
