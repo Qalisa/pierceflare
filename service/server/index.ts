@@ -10,7 +10,7 @@ import { type HttpBindings } from "@hono/node-server";
 import { trpcServer } from "@hono/trpc-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
 
-import { getDb } from "#/db";
+import { defineDbCharacteristics, getDb } from "#/db";
 import { dbRequestsEE } from "#/db/requests";
 import { CloudflareDNSWorker } from "#/server/cloudflare/worker";
 import { getZones } from "#/server/cloudflare/zones";
@@ -18,10 +18,13 @@ import {
   CANONICAL_URL,
   CLOUDFLARE_API_TOKEN,
   PORT,
+  SERVICE_AUTH_PASSWORD,
+  SERVICE_AUTH_USERNAME,
+  SERVICE_DATABASE_FILES_PATH,
   imageRevision,
   imageVersion,
   version,
-} from "#/server/helpers/env";
+} from "#/server/env";
 import logr from "#/server/helpers/loggers";
 import { routes } from "#/server/helpers/routes";
 import type {
@@ -61,6 +64,19 @@ export type AppServer = ReturnType<typeof createServer>;
 
 //
 const startServer = async () => {
+  //
+  //
+  //
+
+  //
+  defineDbCharacteristics({
+    dbFilePath: SERVICE_DATABASE_FILES_PATH,
+  });
+
+  //
+  //
+  //
+
   /** we do not need available domains right await for UI, just pass them empty until filled */
   const cloudflareState: PageContextInjection["injected"]["cloudflare"] = {
     availableDomains: [],
@@ -131,13 +147,18 @@ const startServer = async () => {
   // AUTH
   //
 
-  addLogin(app);
+  addLogin(app, {
+    expectedCredentials: {
+      password: SERVICE_AUTH_PASSWORD,
+      username: SERVICE_AUTH_USERNAME,
+    },
+  });
 
   //
   // API
   //
 
-  setupAPI(app);
+  setupAPI(app, { apiVersion: version });
   addApiRoutes(app);
 
   //
