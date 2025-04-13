@@ -1,24 +1,24 @@
 import type { z } from "zod";
 
-type FetchEnvFrom = "process" | "importMeta" | "all";
+type EnvZSource = "process" | "importMeta" | "all";
 
 // Définition de l'entrée d'environnement comme un tuple [schema, source?]
 // avec "all" comme comportement par défaut
-type EnvEntry<T extends z.ZodType> = [schema: T, source?: FetchEnvFrom];
+type EnvZEntry<T extends z.ZodType> = [schema: T, source?: EnvZSource];
 
 // Type pour la map des entrées d'environnement
-export type EnvEntries = Record<string, EnvEntry<z.ZodType>>;
+export type EnvZ = Record<string, EnvZEntry<z.ZodType>>;
 
 //
 const _getPropertyFromSource = (
   propertyName: string,
-  source: FetchEnvFrom,
+  source: EnvZSource,
 ): string | undefined => {
   switch (source) {
     case "process":
       return process.env[propertyName];
     case "importMeta":
-      return import.meta.env.x.serverOnly[propertyName];
+      return import.meta.env.z.serverOnly[propertyName];
     case "all":
       return (
         _getPropertyFromSource(propertyName, "importMeta") ??
@@ -28,7 +28,7 @@ const _getPropertyFromSource = (
 };
 
 //
-export const mapEnvFromSources = <T extends EnvEntries>(
+export const mapEnvFromSources = <T extends EnvZ>(
   envEntries: T,
 ): { [K in keyof T]: z.infer<T[K][0]> } => {
   //

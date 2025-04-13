@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { EnvEntries } from "./lib";
+import type { EnvZ } from "./lib";
 import { mapEnvFromSources } from "./lib";
 
 export const envSchema = {
@@ -20,9 +20,9 @@ export const envSchema = {
   CLOUDFLARE_API_TOKEN: [z.string().optional()],
   //
   PORT: [z.coerce.number().default(3000), "process"],
-} satisfies EnvEntries;
+} satisfies EnvZ;
 
-// Récupérer et valider les variables d'environnement avec leurs schémas respectifs
-const getEnv = () => mapEnvFromSources(envSchema);
+/** recover server-side parsed and validated environment variables */
+const getEnvZ = () => mapEnvFromSources(envSchema);
 
-export default getEnv;
+export default getEnvZ;

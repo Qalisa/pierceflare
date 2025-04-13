@@ -14,7 +14,7 @@ import { defineDbCharacteristics, getDb } from "#/db";
 import { dbRequestsEE } from "#/db/requests";
 import { CloudflareDNSWorker } from "#/server/cloudflare/worker";
 import { getZones } from "#/server/cloudflare/zones";
-import getEnv from "#/server/env";
+import getEnvZ from "#/server/env";
 import logr from "#/server/helpers/loggers";
 import { routes } from "#/server/helpers/routes";
 import type {
@@ -58,7 +58,8 @@ const startServer = async () => {
   //
   //
 
-  const env = getEnv();
+  //
+  const env = getEnvZ();
 
   //
   defineDbCharacteristics({

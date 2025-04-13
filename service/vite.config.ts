@@ -11,7 +11,7 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 
 import { envSchema } from "./server/env";
-import type { EnvEntries } from "./server/env/lib";
+import type { EnvZ } from "./server/env/lib";
 
 //
 //
@@ -39,9 +39,9 @@ const copyDrizzlePlugin: Plugin = {
   },
 };
 
-const serverEnvPlugin = ({ envSchema }: { envSchema: EnvEntries }): Plugin => {
+const serverEnvPlugin = ({ envSchema }: { envSchema: EnvZ }): Plugin => {
   return {
-    name: "server-env-injector",
+    name: "vike-plugin-envz",
     config: (_, { mode }) => {
       const envAll = loadEnv(mode, process.cwd(), "");
       const envFrom = Object.fromEntries(
@@ -51,7 +51,7 @@ const serverEnvPlugin = ({ envSchema }: { envSchema: EnvEntries }): Plugin => {
       //
       return {
         define: {
-          "import.meta.env.x.serverOnly": {
+          "import.meta.env.z.serverOnly": {
             ...envFrom,
           },
         },
