@@ -5,8 +5,8 @@ import { mkdirSync } from "fs";
 import { createClient } from "@libsql/client/node";
 
 import { title } from "#/helpers/static";
-import { SERVICE_DATABASE_FILES_PATH } from "#/server/env";
-import logr from "#/server/loggers";
+import { SERVICE_DATABASE_FILES_PATH } from "#/server/helpers/env";
+import logr from "#/server/helpers/loggers";
 
 //
 const readyingDB = () => {

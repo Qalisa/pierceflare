@@ -16,7 +16,7 @@ import FlareGeneratorCommandBelt from "#/components/FlareGeneratorCommandBelt";
 import ThemeToggler from "#/components/ThemeToggle";
 import { title } from "#/helpers/static";
 import { useTRPC } from "#/helpers/trpc";
-import { routes } from "#/server/routes";
+import { routes } from "#/server/helpers/routes";
 import type { RootState } from "#/store/reducers";
 import { incrementUnseenCount } from "#/store/reducers/unseenUpdates";
 

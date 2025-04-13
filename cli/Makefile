@@ -10,6 +10,7 @@ SWAGGER_OUTPUT_DIR = ./internal/gen/api
 SWAGGER_SPEC_FILE = $(SWAGGER_OUTPUT_DIR)/swagger.json
 SERVICE_PORT = 3000
 SERVICE_URL = http://localhost:$(SERVICE_PORT)
+OPENAPI_GENERATOR_VERSION = latest
 
 # Compilation locale
 .PHONY: build
@@ -44,9 +45,22 @@ run: build
 	@echo "Exécution du CLI en mode continu..."
 	$(BUILD_DIR)/$(APP_NAME)
 
+# Installation de oapi-codegen
+.PHONY: install-oapi-codegen
+install-oapi-codegen:
+	@echo "Vérification de l'installation de oapi-codegen..."
+	@if ! which oapi-codegen > /dev/null; then \
+		echo "Installation de oapi-codegen $(OPENAPI_GENERATOR_VERSION)..."; \
+		go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@$(OPENAPI_GENERATOR_VERSION); \
+		echo "oapi-codegen installé avec succès"; \
+	else \
+		echo "oapi-codegen déjà installé"; \
+	fi
+
 # Génération des classes Go à partir de la documentation OpenAPI
+# https://github.com/oapi-codegen/oapi-codegen?tab=readme-ov-file#for-go-124
 .PHONY: gen-api
-gen-api:
+gen-api: install-oapi-codegen
 	@echo "Génération des classes Go à partir de la documentation OpenAPI..."
 	@mkdir -p $(SWAGGER_OUTPUT_DIR)
 	@cd $(SERVICE_DIR) && pnpm install
@@ -56,12 +70,11 @@ gen-api:
 	echo "Attente du démarrage du service..." && \
 	until curl -s $(SERVICE_URL)/swagger/doc > /dev/null; do sleep 1; done && \
 	echo "Service disponible, extraction du document OpenAPI..." && \
-	curl -s $(SERVICE_URL)/swagger/doc > $(SWAGGER_SPEC_FILE) && \
+	curl -s $(SERVICE_URL)/swagger/doc?pretty > $(SWAGGER_SPEC_FILE) && \
 	kill $$PID && \
 	echo "Document OpenAPI extrait: $(SWAGGER_SPEC_FILE)"
-	@echo "Génération du code Go avec Swag..."
-	@which swag > /dev/null || go install github.com/swaggo/swag/cmd/swag@latest
-	@swag generate client -f $(SWAGGER_SPEC_FILE) -g api.gen.go -d $(SWAGGER_OUTPUT_DIR) -q
+	@echo "Génération du code Go avec oapi-codegen..."
+	@oapi-codegen -package api -generate client,types $(SWAGGER_SPEC_FILE) > $(SWAGGER_OUTPUT_DIR)/api.gen.go
 	@echo "Génération des classes Go terminée"
 
 # Nettoyage

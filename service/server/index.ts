@@ -1,42 +1,59 @@
 import Cloudflare from "cloudflare";
-import { eq } from "drizzle-orm";
-import { rateLimiter } from "hono-rate-limiter";
 import type { Session } from "hono-sessions";
 import { MemoryStore, sessionMiddleware } from "hono-sessions";
-import { bearerAuth } from "hono/bearer-auth";
 import { compress } from "hono/compress";
 import { lastValueFrom } from "rxjs";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 
 import { type HttpBindings } from "@hono/node-server";
-import { getConnInfo } from "@hono/node-server/conninfo";
-import { swaggerUI } from "@hono/swagger-ui";
 import { trpcServer } from "@hono/trpc-server";
-import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
+import { OpenAPIHono } from "@hono/zod-openapi";
 
 import { getDb } from "#/db";
-import { dbRequestsEE, eeRequests } from "#/db/requests";
-import { flareKeys } from "#/db/schema";
-import { title } from "#/helpers/static";
-import { withLinger } from "#/helpers/withLinger";
+import { dbRequestsEE } from "#/db/requests";
 import { CloudflareDNSWorker } from "#/server/cloudflare/worker";
 import { getZones } from "#/server/cloudflare/zones";
 import {
   CANONICAL_URL,
   CLOUDFLARE_API_TOKEN,
   PORT,
-  SERVICE_AUTH_PASSWORD,
-  SERVICE_AUTH_USERNAME,
   imageRevision,
   imageVersion,
   version,
-} from "#/server/env";
-import logr from "#/server/loggers";
-import { routes } from "#/server/routes";
+} from "#/server/helpers/env";
+import logr from "#/server/helpers/loggers";
+import { routes } from "#/server/helpers/routes";
+import type {
+  PageContextInjection,
+  SessionDataTypes,
+} from "#/server/helpers/types";
 import type { HonoContext } from "#/server/trpc/_base";
 import { appRouter } from "#/server/trpc/router";
-import type { PageContextInjection, SessionDataTypes } from "#/server/types";
+
+import setupAPI from "./api";
+import { addApiRoutes } from "./api/routes";
+import addLogin from "./features/login";
+
+//
+//
+//
+
+//
+const createServer = () => {
+  return new OpenAPIHono<{
+    Variables: {
+      session: Session<SessionDataTypes>;
+      session_key_rotation: boolean;
+      apiContext: {
+        ddnsForDomain: string;
+      };
+      Bindings: HttpBindings;
+    };
+  }>();
+};
+
+export type AppServer = ReturnType<typeof createServer>;
 
 //
 //
@@ -91,16 +108,7 @@ const startServer = async () => {
   //
 
   //
-  const app = new OpenAPIHono<{
-    Variables: {
-      session: Session<SessionDataTypes>;
-      session_key_rotation: boolean;
-      apiContext: {
-        ddnsForDomain: string;
-      };
-      Bindings: HttpBindings;
-    };
-  }>();
+  const app = createServer();
 
   //
   // COMPRESSION
@@ -123,209 +131,14 @@ const startServer = async () => {
   // AUTH
   //
 
-  // Login //
-  app.post(routes.pages.login, async ({ req, get, redirect }) => {
-    //
-    const login = async () => {
-      //
-      const session = get("session");
-      const loginFailed = async (message: string, username?: string) => {
-        session.flash("authFailure", { message, username });
-        return redirect(routes.pages.login);
-      };
-
-      const body = await req.parseBody();
-      const { password, username } = body;
-
-      //
-      if (typeof password !== "string" || typeof username !== "string") {
-        return loginFailed("Unexpected values for credentials");
-      }
-      if (!password || !username) {
-        return loginFailed("Missing username or password");
-      }
-
-      const authOK =
-        SERVICE_AUTH_USERNAME == username.trim() &&
-        SERVICE_AUTH_PASSWORD == password;
-      if (!authOK) {
-        return loginFailed("Invalid credentials", username);
-      }
-
-      //
-      session.set("user", { username });
-      return redirect(routes.pages.dashboard);
-    };
-
-    //
-    return await withLinger(login(), 300);
-  });
-
-  // Logout //
-  app.post(routes.appApi.logout, async ({ get, redirect }) => {
-    const session = get("session");
-    session.deleteSession();
-    return redirect(routes.default);
-  });
+  addLogin(app);
 
   //
   // API
   //
 
-  /// Middlewares ///
-
-  app.use(
-    `${routes.api.root}/*`,
-    //
-    // << ADD RATE LIMITER
-    //
-    rateLimiter({
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
-      standardHeaders: "draft-6", // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
-      keyGenerator: (c) => {
-        const {
-          remote: { address },
-        } = getConnInfo(c);
-
-        // Default: use IP address from request
-        // const ip =
-        //   c.req.header("cf-connecting-ip") ||
-        //   c.req.header("x-forwarded-for") ||
-        //   c.req.raw.headers.get("x-real-ip");
-        return address || "unknown";
-      },
-      // store: ... , // Redis, MemoryStore, etc. See below.
-    }),
-    //
-    // CHECKS FOR TOKEN
-    //
-    bearerAuth({
-      verifyToken: async (token, { status, set }) => {
-        //
-        const foundTokens = await getDb()
-          .select({ ddnsForDomain: flareKeys.ddnsForDomain })
-          .from(flareKeys)
-          .where(eq(flareKeys.apiKey, token))
-          .limit(1);
-
-        //
-        if (foundTokens.length != 1) {
-          status(403);
-          return false;
-        }
-
-        //
-        set("apiContext", { ddnsForDomain: foundTokens[0].ddnsForDomain });
-
-        //
-        return true;
-      },
-    }),
-  );
-
-  /// Swagger UI ///
-
-  app.get(
-    routes.swagger.ui,
-    swaggerUI({
-      url: routes.swagger.doc,
-    }),
-  );
-
-  app.doc(routes.swagger.doc, {
-    info: {
-      title,
-      version,
-      description:
-        "All requests require an authentication token generated by the Pierceflare server, associated with a DDNS domain.",
-    },
-    openapi: "3.1.0",
-  });
-
-  /// API Routes ///
-
-  app.openapi(
-    createRoute({
-      method: "get",
-      path: routes.api.infos,
-      description: "Gives back to requester its associated domain.",
-      responses: {
-        200: {
-          description: "Domain associated with CLI Token",
-          content: {
-            "text/plain": {
-              schema: z.string(),
-              example: "whatever.pierceflare.com",
-            },
-          },
-        },
-      },
-    }),
-    (c) => {
-      const { ddnsForDomain } = c.get("apiContext");
-      return c.text(ddnsForDomain, 200);
-    },
-  );
-
-  app.openapi(
-    createRoute({
-      method: "put",
-      path: routes.api.flare,
-      description:
-        "Allows to notify the server that your IP address changed, so that Cloudflare's DDNS entry definition can change accordingly.",
-      responses: {
-        200: {
-          description: "When flare request has been successfully acknoledged",
-          content: {
-            "text/plain": {
-              schema: z.literal("OK"),
-            },
-          },
-        },
-        500: {
-          description: "Remote IP of flare emitter is unresolvable.",
-          content: {
-            "application/json": {
-              schema: z.object({
-                code: z.enum(["UNRESOLVABLE"] as const),
-                message: z.string(),
-              }),
-            },
-          },
-        },
-      },
-    }),
-    (c) => {
-      //
-      const {
-        remote: { addressType, address },
-      } = getConnInfo(c);
-
-      //
-      if (!address) {
-        return c.json(
-          {
-            code: "UNRESOLVABLE" as const,
-            message: "Remote IP of flare emitter is unresolvable.",
-          },
-          500,
-        );
-      }
-
-      //
-      const { ddnsForDomain } = c.get("apiContext");
-      eeRequests.queueFlareForProcessing("batch", {
-        flaredIPv6: addressType === "IPv6" ? address : undefined,
-        flaredIPv4: addressType === "IPv4" ? address : undefined,
-        ofDomain: ddnsForDomain,
-        receivedAt: new Date(),
-      });
-
-      //
-      return c.text("OK", 200);
-    },
-  );
+  setupAPI(app);
+  addApiRoutes(app);
 
   //
   // tRPC middleware (API + Websockets)

@@ -17,7 +17,7 @@ import {
 import type { DbRequestsEvents } from "#/db/requests";
 import { dbRequestsEE, eeRequests } from "#/db/requests";
 import { randomIntFromInterval } from "#/helpers/random";
-import logr from "#/server/loggers";
+import logr from "#/server/helpers/loggers";
 
 import type { CloudflareConfig, CloudflareWorkerRequest } from "./types";
 import type { Zones } from "./zones";

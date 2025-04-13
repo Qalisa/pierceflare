@@ -1,4 +1,4 @@
-import type { PageContextInjection } from "#/server/types";
+import type { PageContextInjection } from "#/server/helpers/types";
 import type { getRootStore } from "#/store/index";
 import { type RootState } from "#/store/reducers/index";
 

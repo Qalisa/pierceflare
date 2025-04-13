@@ -1,6 +1,7 @@
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import { count, eq } from "drizzle-orm";
 import EventEmitter from "events";
+import { z } from "zod";
 
 import { produceRandomKey } from "#/helpers/random";
 
@@ -15,7 +16,8 @@ import { flareKeys } from "./schema";
  * - `"batch"`: Executes a batch of operations in a single request.
  * - `"dummy"`: A placeholder operation used for testing or no-op scenarios.
  */
-type RemoteOperation = "batch" | "dummy";
+export const RemoteOperation$ = z.enum(["batch", "dummy"]);
+type RemoteOperation = z.infer<typeof RemoteOperation$>;
 
 type FlareType = InferSelectModel<typeof flares>;
 type DomainType = InferSelectModel<typeof flareDomains>;

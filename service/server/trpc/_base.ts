@@ -1,7 +1,7 @@
 import { TRPCError, initTRPC } from "@trpc/server";
 
 import { withLinger } from "#/helpers/withLinger";
-import type { PageContextInjection } from "#/server/types";
+import type { PageContextInjection } from "#/server/helpers/types";
 
 export type HonoContext = {
   userLogged?: boolean;

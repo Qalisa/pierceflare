@@ -3,7 +3,7 @@ import { usePageContext } from "vike-react/usePageContext";
 
 import appLogo from "#/assets/images/logo.webp";
 
-import { routes } from "#/server/routes";
+import { routes } from "#/server/helpers/routes";
 
 const IndexPage = () => {
   const { injected } = usePageContext();

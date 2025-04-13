@@ -7,7 +7,7 @@ import swaggerLogo from "#/assets/images/swagger.svg";
 import FlashMessages from "#/components/FlashMessages";
 import FlashMessagesBelt from "#/components/FlashMessagesBelt";
 import { githubRepoUrl, title } from "#/helpers/static";
-import { routes } from "#/server/routes";
+import { routes } from "#/server/helpers/routes";
 
 import "#/style/global.css";
 import "#/style/tailwind.css";
