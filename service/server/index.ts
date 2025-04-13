@@ -9,12 +9,12 @@ import { serve } from "vike-server/hono/serve";
 import { type HttpBindings } from "@hono/node-server";
 import { trpcServer } from "@hono/trpc-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { getEnvZ } from "@qalisa/vike-envz";
 
 import { defineDbCharacteristics, getDb } from "#/db";
 import { dbRequestsEE } from "#/db/requests";
 import { CloudflareDNSWorker } from "#/server/cloudflare/worker";
 import { getZones } from "#/server/cloudflare/zones";
-import getEnvZ from "#/server/env";
 import logr from "#/server/helpers/loggers";
 import { routes } from "#/server/helpers/routes";
 import type {
@@ -26,6 +26,7 @@ import { appRouter } from "#/server/trpc/router";
 
 import setupAPI from "./api";
 import { addApiRoutes } from "./api/routes";
+import { envSchema } from "./envZ";
 import addLogin from "./features/login";
 
 //
@@ -59,7 +60,7 @@ const startServer = async () => {
   //
 
   //
-  const env = getEnvZ();
+  const env = getEnvZ(import.meta.env, envSchema);
 
   //
   defineDbCharacteristics({

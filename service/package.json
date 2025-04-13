@@ -55,7 +55,8 @@
     "vike-react": "^0.6.1",
     "vike-server": "^1.0.14",
     "vite": "^6.2.5",
-    "zod": "^3.24.2"
+    "zod": "^3.24.2",
+    "@qalisa/vike-envz": "^1.0.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.24.0",
