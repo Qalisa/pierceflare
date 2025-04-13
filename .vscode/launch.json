@@ -50,7 +50,7 @@
         "NODE_ENV": "production",
         "SERVICE_DATABASE_FILES_PATH": "${workspaceFolder}/service/db"
       },
-      "preLaunchTask": "Generate Bundle"
+      "preLaunchTask": "⚙️ Build"
     },
     {
       "name": "Debug: Docker Compose (production)",

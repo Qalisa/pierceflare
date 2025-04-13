@@ -1,9 +1,9 @@
 import { z } from "zod";
 
+import type { EnvEntries } from "./lib";
 import { mapEnvFromSources } from "./lib";
 
-// Récupérer et valider les variables d'environnement avec leurs schémas respectifs
-const env = mapEnvFromSources({
+export const envSchema = {
   // Par défaut, la source est "all" si non spécifiée
   K8S_APP__VERSION: [z.string().nonempty(), "importMeta"],
   CANONICAL_URL: [z.string().url().nonempty(), "importMeta"],
@@ -20,6 +20,9 @@ const env = mapEnvFromSources({
   CLOUDFLARE_API_TOKEN: [z.string().optional()],
   //
   PORT: [z.coerce.number().default(3000), "process"],
-});
+} satisfies EnvEntries;
 
-export default env;
+// Récupérer et valider les variables d'environnement avec leurs schémas respectifs
+const getEnv = () => mapEnvFromSources(envSchema);
+
+export default getEnv;

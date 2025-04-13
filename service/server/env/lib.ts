@@ -7,7 +7,10 @@ type FetchEnvFrom = "process" | "importMeta" | "all";
 type EnvEntry<T extends z.ZodType> = [schema: T, source?: FetchEnvFrom];
 
 // Type pour la map des entrées d'environnement
-type EnvEntries = Record<string, EnvEntry<z.ZodType>>;
+export type EnvEntries = Record<string, EnvEntry<z.ZodType>>;
+
+//
+const importMeta = import.meta.env.serverOnly;
 
 //
 const _getPropertyFromSource = (
@@ -18,7 +21,7 @@ const _getPropertyFromSource = (
     case "process":
       return process.env[propertyName];
     case "importMeta":
-      return import.meta.env[propertyName];
+      return importMeta[propertyName];
     case "all":
       return (
         _getPropertyFromSource(propertyName, "importMeta") ??
@@ -27,10 +30,14 @@ const _getPropertyFromSource = (
   }
 };
 
+//
 export const mapEnvFromSources = <T extends EnvEntries>(
   envEntries: T,
 ): { [K in keyof T]: z.infer<T[K][0]> } => {
-  const rawValues = {} as Record<string, unknown>;
+  //
+  const rawValues = {} as {
+    [K in keyof T]: ReturnType<typeof _getPropertyFromSource>;
+  };
   const result = {} as { [K in keyof T]: z.infer<T[K][0]> };
 
   // Récupérer les valeurs brutes à partir des sources définies
