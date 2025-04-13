@@ -39,16 +39,10 @@ const copyDrizzlePlugin: Plugin = {
   },
 };
 
-const serverEnvPlugin = ({
-  envSchema,
-  mode,
-}: {
-  envSchema: EnvEntries;
-  mode: string;
-}): Plugin => {
+const serverEnvPlugin = ({ envSchema }: { envSchema: EnvEntries }): Plugin => {
   return {
     name: "server-env-injector",
-    config: () => {
+    config: (_, { mode }) => {
       const envAll = loadEnv(mode, process.cwd(), "");
       const envFrom = Object.fromEntries(
         Object.keys(envSchema).map((e) => [e, envAll[e]]),
@@ -57,7 +51,7 @@ const serverEnvPlugin = ({
       //
       return {
         define: {
-          "import.meta.env.serverOnly": {
+          "import.meta.env.x.serverOnly": {
             ...envFrom,
           },
         },
@@ -67,19 +61,17 @@ const serverEnvPlugin = ({
 };
 
 // //
-export default defineConfig(({ mode }) => {
-  return {
-    plugins: [
-      copyDrizzlePlugin,
-      serverEnvPlugin({ mode, envSchema }),
-      vike(),
-      react(),
-      tailwindcss(),
-    ],
-    resolve: {
-      alias: {
-        "#": fileURLToPath(new URL("./", import.meta.url)),
-      },
+export default defineConfig({
+  plugins: [
+    copyDrizzlePlugin,
+    serverEnvPlugin({ envSchema }),
+    vike(),
+    react(),
+    tailwindcss(),
+  ],
+  resolve: {
+    alias: {
+      "#": fileURLToPath(new URL("./", import.meta.url)),
     },
-  };
+  },
 });

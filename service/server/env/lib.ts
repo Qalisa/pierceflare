@@ -10,9 +10,6 @@ type EnvEntry<T extends z.ZodType> = [schema: T, source?: FetchEnvFrom];
 export type EnvEntries = Record<string, EnvEntry<z.ZodType>>;
 
 //
-const importMeta = import.meta.env.serverOnly;
-
-//
 const _getPropertyFromSource = (
   propertyName: string,
   source: FetchEnvFrom,
@@ -21,7 +18,7 @@ const _getPropertyFromSource = (
     case "process":
       return process.env[propertyName];
     case "importMeta":
-      return importMeta[propertyName];
+      return import.meta.env.x.serverOnly[propertyName];
     case "all":
       return (
         _getPropertyFromSource(propertyName, "importMeta") ??
