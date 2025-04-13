@@ -2,10 +2,9 @@ import type { z } from "zod";
 
 type FetchEnvFrom = "process" | "importMeta" | "all";
 
-// Définition de l'entrée d'environnement comme soit un schéma Zod, soit un tuple
-type EnvEntry<T extends z.ZodType> =
-  | T
-  | readonly [schema: T, source?: FetchEnvFrom];
+// Définition de l'entrée d'environnement comme un tuple [schema, source?]
+// avec "all" comme comportement par défaut
+type EnvEntry<T extends z.ZodType> = [schema: T, source?: FetchEnvFrom];
 
 // Type pour la map des entrées d'environnement
 type EnvEntries = Record<string, EnvEntry<z.ZodType>>;
@@ -28,33 +27,27 @@ const _getPropertyFromSource = (
   }
 };
 
-// Type helper pour extraire le type de retour
-type EnvValuesReturn<T extends EnvEntries> = {
-  [K in keyof T]: T[K] extends z.ZodType<infer U>
-    ? U
-    : T[K] extends readonly [z.ZodType<infer V>, FetchEnvFrom?]
-      ? V
-      : never;
-};
-
 export const mapEnvFromSources = <T extends EnvEntries>(
   envEntries: T,
-): EnvValuesReturn<T> => {
-  const rawValues: Record<string, unknown> = {};
-  const result = {} as EnvValuesReturn<T>;
+): { [K in keyof T]: z.infer<T[K][0]> } => {
+  const rawValues = {} as Record<string, unknown>;
+  const result = {} as { [K in keyof T]: z.infer<T[K][0]> };
 
   // Récupérer les valeurs brutes à partir des sources définies
   for (const key in envEntries) {
-    const entry = envEntries[key];
-    const source = Array.isArray(entry) ? (entry[1] ?? "all") : "all";
+    const [, source = "all"] = envEntries[key];
     rawValues[key] = _getPropertyFromSource(key, source);
   }
 
   // Valider chaque valeur avec son schéma correspondant
   for (const key in envEntries) {
-    const entry = envEntries[key];
-    const schema = Array.isArray(entry) ? entry[0] : entry;
-    result[key as keyof T] = schema.parse(rawValues[key]);
+    const [schema] = envEntries[key];
+    const { success, data, error } = schema.safeParse(rawValues[key]);
+    if (success) {
+      result[key] = data;
+    } else {
+      throw new Error(`Error while checking for "${key}" from env: ${error}`);
+    }
   }
 
   return result;
