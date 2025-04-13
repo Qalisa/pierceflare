@@ -1,6 +1,14 @@
+import type { z } from "zod";
+
 type FetchEnvFrom = "process" | "importMeta" | "all";
 
-type Envs = Record<string, FetchEnvFrom>;
+// Définition de l'entrée d'environnement comme soit un schéma Zod, soit un tuple
+type EnvEntry<T extends z.ZodType> =
+  | T
+  | readonly [schema: T, source?: FetchEnvFrom];
+
+// Type pour la map des entrées d'environnement
+type EnvEntries = Record<string, EnvEntry<z.ZodType>>;
 
 //
 const _getPropertyFromSource = (
@@ -20,13 +28,34 @@ const _getPropertyFromSource = (
   }
 };
 
-export const mapEnvFromSources = <T extends Envs>(
-  envs: T,
-): { [K in keyof T]: string | undefined } => {
-  const result = {} as { [K in keyof T]: string | undefined };
-  for (const key in envs) {
-    const source = envs[key];
-    result[key] = _getPropertyFromSource(key, source);
+// Type helper pour extraire le type de retour
+type EnvValuesReturn<T extends EnvEntries> = {
+  [K in keyof T]: T[K] extends z.ZodType<infer U>
+    ? U
+    : T[K] extends readonly [z.ZodType<infer V>, FetchEnvFrom?]
+      ? V
+      : never;
+};
+
+export const mapEnvFromSources = <T extends EnvEntries>(
+  envEntries: T,
+): EnvValuesReturn<T> => {
+  const rawValues: Record<string, unknown> = {};
+  const result = {} as EnvValuesReturn<T>;
+
+  // Récupérer les valeurs brutes à partir des sources définies
+  for (const key in envEntries) {
+    const entry = envEntries[key];
+    const source = Array.isArray(entry) ? (entry[1] ?? "all") : "all";
+    rawValues[key] = _getPropertyFromSource(key, source);
   }
+
+  // Valider chaque valeur avec son schéma correspondant
+  for (const key in envEntries) {
+    const entry = envEntries[key];
+    const schema = Array.isArray(entry) ? entry[0] : entry;
+    result[key as keyof T] = schema.parse(rawValues[key]);
+  }
+
   return result;
 };
