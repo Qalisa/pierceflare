@@ -1,10 +1,19 @@
 import { withLinger } from "#/helpers/withLinger";
 import type { AppServer } from "#/server";
-import { SERVICE_AUTH_PASSWORD, SERVICE_AUTH_USERNAME } from "#/server/helpers/env";
 import { routes } from "#/server/helpers/routes";
 
 //
-const addLogin = (server: AppServer) => {
+const addLogin = (
+  server: AppServer,
+  {
+    expectedCredentials,
+  }: {
+    expectedCredentials: {
+      username: string;
+      password: string;
+    };
+  },
+) => {
   // Login //
   server.post(routes.pages.login, async ({ req, get, redirect }) => {
     //
@@ -28,8 +37,8 @@ const addLogin = (server: AppServer) => {
       }
 
       const authOK =
-        SERVICE_AUTH_USERNAME == username.trim() &&
-        SERVICE_AUTH_PASSWORD == password;
+        expectedCredentials.username == username.trim() &&
+        expectedCredentials.password == password;
       if (!authOK) {
         return loginFailed("Invalid credentials", username);
       }

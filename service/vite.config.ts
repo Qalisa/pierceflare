@@ -5,8 +5,11 @@ import vike from "vike/plugin";
 import type { Plugin } from "vite";
 import { defineConfig } from "vite";
 
+import envZ from "@qalisa/vike-envz/plugin";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+
+import { envSchema } from "./server/envZ";
 
 //
 //
@@ -34,9 +37,15 @@ const copyDrizzlePlugin: Plugin = {
   },
 };
 
-//
+// //
 export default defineConfig({
-  plugins: [copyDrizzlePlugin, vike(), react(), tailwindcss()],
+  plugins: [
+    copyDrizzlePlugin,
+    envZ({ envSchema }),
+    vike(),
+    react(),
+    tailwindcss(),
+  ],
   resolve: {
     alias: {
       "#": fileURLToPath(new URL("./", import.meta.url)),

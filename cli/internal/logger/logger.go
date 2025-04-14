@@ -9,29 +9,29 @@ import (
 
 const LogTag = "[PierceFlare CLI]"
 
-// LogLevel définit le niveau de verbosité des logs
+// LogLevel defines the verbosity level of logs
 type LogLevel int
 
 const (
-	// LogLevelError n'affiche que les erreurs
+	// LogLevelError only displays errors
 	LogLevelError LogLevel = iota
-	// LogLevelInfo affiche les informations générales et les erreurs
+	// LogLevelInfo displays general information and errors
 	LogLevelInfo
-	// LogLevelDebug affiche tous les détails, y compris les messages de débogage
+	// LogLevelDebug displays all details, including debug messages
 	LogLevelDebug
 )
 
-// Logger est une structure pour gérer les journaux de l'application
+// Logger is a structure for managing application logs
 type Logger struct {
 	logger        *log.Logger
 	timestamped   bool
 	level         LogLevel
-	successPeriod int       // Nombre d'exécutions réussies entre chaque log de succès (0 = log chaque succès)
-	successCount  int       // Compteur d'exécutions réussies
-	lastLogTime   time.Time // Dernière fois qu'un message a été journalisé
+	successPeriod int       // Number of successful executions between each success log (0 = log every success)
+	successCount  int       // Counter of successful executions
+	lastLogTime   time.Time // Last time a message was logged
 }
 
-// New crée une nouvelle instance de Logger
+// New creates a new Logger instance
 func New(timestamped bool, level LogLevel, successPeriod int) *Logger {
 	return &Logger{
 		logger:        log.New(os.Stdout, "", 0),
@@ -43,7 +43,7 @@ func New(timestamped bool, level LogLevel, successPeriod int) *Logger {
 	}
 }
 
-// ShouldLogSuccess détermine si un message de succès doit être loggé
+// ShouldLogSuccess determines if a success message should be logged
 func (l *Logger) ShouldLogSuccess() bool {
 	l.successCount++
 	if l.successPeriod == 0 {
@@ -52,12 +52,12 @@ func (l *Logger) ShouldLogSuccess() bool {
 	return l.successCount >= l.successPeriod
 }
 
-// ResetSuccessCounter réinitialise le compteur de succès
+// ResetSuccessCounter resets the success counter
 func (l *Logger) ResetSuccessCounter() {
 	l.successCount = 0
 }
 
-// formatMessage formate un message avec l'horodatage si nécessaire
+// formatMessage formats a message with timestamp if needed
 func (l *Logger) formatMessage(message string) string {
 	if l.timestamped {
 		now := time.Now().Format("2006-01-02 15:04:05")
@@ -66,19 +66,19 @@ func (l *Logger) formatMessage(message string) string {
 	return fmt.Sprintf("%s - %s", LogTag, message)
 }
 
-// Log enregistre un message sans vérifier le niveau de verbosité
+// Log records a message without checking verbosity level
 func (l *Logger) Log(format string, args ...interface{}) {
 	message := fmt.Sprintf(format, args...)
 	l.logger.Println(l.formatMessage(message))
 }
 
-// Error enregistre un message d'erreur (niveau LogLevelError)
+// Error records an error message (level LogLevelError)
 func (l *Logger) Error(format string, args ...interface{}) {
 	message := fmt.Sprintf(format, args...)
-	l.logger.Println(l.formatMessage("ERREUR: " + message))
+	l.logger.Println(l.formatMessage("ERROR: " + message))
 }
 
-// Info enregistre un message d'information si le niveau est >= LogLevelInfo
+// Info records an information message if level is >= LogLevelInfo
 func (l *Logger) Info(format string, args ...interface{}) {
 	if l.level >= LogLevelInfo {
 		message := fmt.Sprintf(format, args...)
@@ -86,7 +86,7 @@ func (l *Logger) Info(format string, args ...interface{}) {
 	}
 }
 
-// Debug enregistre un message de débogage si le niveau est LogLevelDebug
+// Debug records a debug message if level is LogLevelDebug
 func (l *Logger) Debug(format string, args ...interface{}) {
 	if l.level >= LogLevelDebug {
 		message := fmt.Sprintf(format, args...)
@@ -94,7 +94,7 @@ func (l *Logger) Debug(format string, args ...interface{}) {
 	}
 }
 
-// LogSuccess enregistre un message de succès périodique si le compteur atteint la période définie
+// LogSuccess records a periodic success message if the counter reaches the defined period
 func (l *Logger) LogSuccess(format string, args ...interface{}) {
 	if l.level >= LogLevelInfo && l.ShouldLogSuccess() {
 		message := fmt.Sprintf(format, args...)
@@ -103,7 +103,7 @@ func (l *Logger) LogSuccess(format string, args ...interface{}) {
 	}
 }
 
-// LogT enregistre un message avec horodatage si activé (pour compatibilité avec l'ancien code)
+// LogT records a message with timestamp if enabled (for compatibility with old code)
 func (l *Logger) LogT(format string, args ...interface{}) {
 	message := fmt.Sprintf(format, args...)
 	if l.level >= LogLevelInfo {

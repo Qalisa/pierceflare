@@ -9,19 +9,12 @@ import { serve } from "vike-server/hono/serve";
 import { type HttpBindings } from "@hono/node-server";
 import { trpcServer } from "@hono/trpc-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { getEnvZ_S } from "@qalisa/vike-envz";
 
-import { getDb } from "#/db";
+import { defineDbCharacteristics, getDb } from "#/db";
 import { dbRequestsEE } from "#/db/requests";
 import { CloudflareDNSWorker } from "#/server/cloudflare/worker";
 import { getZones } from "#/server/cloudflare/zones";
-import {
-  CANONICAL_URL,
-  CLOUDFLARE_API_TOKEN,
-  PORT,
-  imageRevision,
-  imageVersion,
-  version,
-} from "#/server/helpers/env";
 import logr from "#/server/helpers/loggers";
 import { routes } from "#/server/helpers/routes";
 import type {
@@ -33,6 +26,7 @@ import { appRouter } from "#/server/trpc/router";
 
 import setupAPI from "./api";
 import { addApiRoutes } from "./api/routes";
+import { envSchema } from "./envZ";
 import addLogin from "./features/login";
 
 //
@@ -61,6 +55,22 @@ export type AppServer = ReturnType<typeof createServer>;
 
 //
 const startServer = async () => {
+  //
+  //
+  //
+
+  //
+  const env = getEnvZ_S(import.meta.env, envSchema);
+
+  //
+  defineDbCharacteristics({
+    dbFilePath: env.SERVICE_DATABASE_FILES_PATH,
+  });
+
+  //
+  //
+  //
+
   /** we do not need available domains right await for UI, just pass them empty until filled */
   const cloudflareState: PageContextInjection["injected"]["cloudflare"] = {
     availableDomains: [],
@@ -70,7 +80,10 @@ const startServer = async () => {
   //
   const cfWorkerPromise = (async () => {
     //
-    if (CLOUDFLARE_API_TOKEN == undefined || CLOUDFLARE_API_TOKEN == "") {
+    if (
+      env.CLOUDFLARE_API_TOKEN == undefined ||
+      env.CLOUDFLARE_API_TOKEN == ""
+    ) {
       const message =
         "CLOUDFLARE_API_TOKEN is not set, disabling Cloudflare DNS Worker.";
       logr.error(message);
@@ -80,7 +93,7 @@ const startServer = async () => {
 
     //
     const cloudflareCli = new Cloudflare({
-      apiToken: CLOUDFLARE_API_TOKEN,
+      apiToken: env.CLOUDFLARE_API_TOKEN,
     });
 
     //
@@ -131,13 +144,18 @@ const startServer = async () => {
   // AUTH
   //
 
-  addLogin(app);
+  addLogin(app, {
+    expectedCredentials: {
+      password: env.SERVICE_AUTH_PASSWORD,
+      username: env.SERVICE_AUTH_USERNAME,
+    },
+  });
 
   //
   // API
   //
 
-  setupAPI(app);
+  setupAPI(app, { apiVersion: env.K8S_APP__VERSION });
   addApiRoutes(app);
 
   //
@@ -170,7 +188,7 @@ const startServer = async () => {
       const session = c.get("session") as Session<SessionDataTypes>;
       const user = session.get("user");
       const authFailure = session.get("authFailure");
-      const trpcUrl = `${CANONICAL_URL.origin}${routes.trpc.root}`;
+      const trpcUrl = `${new URL(env.CANONICAL_URL).origin}${routes.trpc.root}`;
 
       //
       const injecting: PageContextInjection = {
@@ -180,9 +198,9 @@ const startServer = async () => {
           cloudflare: cloudflareState,
           trpcUrl,
           k8sApp: {
-            imageRevision,
-            imageVersion,
-            version,
+            imageRevision: env.K8S_APP__IMAGE_REVISION,
+            imageVersion: env.K8S_APP__IMAGE_VERSION,
+            version: env.K8S_APP__VERSION,
           },
         },
       };
@@ -230,9 +248,11 @@ const startServer = async () => {
 
   //
   return serve(app, {
-    port: PORT,
+    port: env.PORT,
     onReady() {
-      logr.log(`(${import.meta.env.MODE}) Server is ready on 0.0.0.0:${PORT}.`);
+      logr.log(
+        `(${import.meta.env.MODE}) Server is ready on 0.0.0.0:${env.PORT}.`,
+      );
     },
   });
 };

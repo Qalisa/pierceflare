@@ -5,18 +5,25 @@ import { mkdirSync } from "fs";
 import { createClient } from "@libsql/client/node";
 
 import { title } from "#/helpers/static";
-import { SERVICE_DATABASE_FILES_PATH } from "#/server/helpers/env";
 import logr from "#/server/helpers/loggers";
 
 //
-const readyingDB = () => {
+const readyingDB = (dbFilePath: string | null) => {
+  //
+  if (!dbFilePath) {
+    const message =
+      "Call to defineDbCharacteristics is required before using database.";
+    logr.error(message);
+    throw new Error(message);
+  }
+
   //
   logr.log("Initiating DB...");
-  mkdirSync(SERVICE_DATABASE_FILES_PATH, { recursive: true });
+  mkdirSync(dbFilePath, { recursive: true });
 
   //
   const appDbName = title.toLowerCase();
-  const url = `file:${SERVICE_DATABASE_FILES_PATH}/${appDbName}.db`;
+  const url = `file:${dbFilePath}/${appDbName}.db`;
 
   //
   logr.log("Loading SQLite DB from", url);
@@ -38,6 +45,17 @@ const readyingDB = () => {
 //
 let db: ReturnType<typeof readyingDB> | null = null;
 
+//
+//
+//
+
+//
+let _dbFilePath: string | null = null;
+export const defineDbCharacteristics = (options: { dbFilePath: string }) => {
+  _dbFilePath = options.dbFilePath;
+};
+
+//
 export const getDb = () => {
-  return db ?? (db = readyingDB());
+  return db ?? (db = readyingDB(_dbFilePath));
 };

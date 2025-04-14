@@ -15,13 +15,13 @@ var ipServices = []string{
 	"https://icanhazip.com",
 }
 
-// Retriever gère la récupération des adresses IP externes
+// Retriever handles the retrieval of external IP addresses
 type Retriever struct {
 	logger *logger.Logger
 	client *http.Client
 }
 
-// NewRetriever crée une nouvelle instance de Retriever
+// NewRetriever creates a new instance of Retriever
 func NewRetriever(logger *logger.Logger) *Retriever {
 	return &Retriever{
 		logger: logger,
@@ -31,19 +31,19 @@ func NewRetriever(logger *logger.Logger) *Retriever {
 	}
 }
 
-// IsValidIP vérifie si une chaîne est une adresse IPv4 ou IPv6 valide
+// IsValidIP checks if a string is a valid IPv4 or IPv6 address
 func IsValidIP(ip string) bool {
 	return net.ParseIP(ip) != nil
 }
 
-// GetCurrentIP tente d'obtenir l'adresse IP externe actuelle
+// GetCurrentIP attempts to obtain the current external IP address
 func (r *Retriever) GetCurrentIP() (string, error) {
 	for _, service := range ipServices {
-		r.logger.Debug("Tentative de récupération d'IP depuis %s", service)
+		r.logger.Debug("Attempting to retrieve IP from %s", service)
 
 		resp, err := r.client.Get(service)
 		if err != nil {
-			r.logger.Debug("Erreur lors de la connexion à %s: %v", service, err)
+			r.logger.Debug("Error connecting to %s: %v", service, err)
 			continue
 		}
 
@@ -51,20 +51,20 @@ func (r *Retriever) GetCurrentIP() (string, error) {
 
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			r.logger.Debug("Erreur lors de la lecture de la réponse: %v", err)
+			r.logger.Debug("Error reading response: %v", err)
 			continue
 		}
 
 		ip := string(body)
 		if IsValidIP(ip) {
-			r.logger.Debug("IP récupérée: %s", ip)
+			r.logger.Debug("IP retrieved: %s", ip)
 			return ip, nil
 		}
 	}
 
-	r.logger.Error("Échec de la récupération d'IP depuis tous les services")
+	r.logger.Error("Failed to retrieve IP from all services")
 	return "", ErrNoIPFound
 }
 
-// ErrNoIPFound est renvoyé lorsqu'aucune adresse IP valide n'a pu être trouvée
-var ErrNoIPFound = net.InvalidAddrError("aucune adresse IP valide n'a pu être trouvée")
+// ErrNoIPFound is returned when no valid IP address could be found
+var ErrNoIPFound = net.InvalidAddrError("no valid IP address could be found")

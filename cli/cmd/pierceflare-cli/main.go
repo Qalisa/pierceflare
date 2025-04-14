@@ -13,18 +13,18 @@ import (
 	"github.com/qalisa/pierceflare/cli/internal/logger"
 )
 
-// validateArgs vérifie que les arguments passés sont valides
+// validateArgs checks that the passed arguments are valid
 func validateArgs() {
 	if len(os.Args) > 1 {
 		validArgs := map[string]bool{
 			"--force-ping": true,
 		}
 
-		// Vérifier chaque argument
+		// Check each argument
 		for i := 1; i < len(os.Args); i++ {
 			if !validArgs[os.Args[i]] {
-				fmt.Printf("[PierceFlare CLI] - Erreur: Argument non reconnu '%s'\n", os.Args[i])
-				fmt.Println("Arguments valides: --force-ping")
+				fmt.Printf("[PierceFlare CLI] - Error: Unrecognized argument '%s'\n", os.Args[i])
+				fmt.Println("Valid arguments: --force-ping")
 				os.Exit(1)
 			}
 		}
@@ -32,46 +32,46 @@ func validateArgs() {
 }
 
 func main() {
-	// Validation des arguments
+	// Validate arguments
 	validateArgs()
 
-	// Initialisation de la configuration
+	// Initialize configuration
 	cfg, err := config.New()
 	if err != nil {
-		fmt.Printf("[PierceFlare CLI] - Erreur: %v\n", err)
+		fmt.Printf("[PierceFlare CLI] - Error: %v\n", err)
 		os.Exit(1)
 	}
 
-	// Initialisation du logger
+	// Initialize logger
 	log := logger.New(cfg.LogTimestamp, cfg.LogLevel, cfg.SuccessPeriod)
 
-	// En mode verbose (info ou plus), on affiche les informations de démarrage
-	log.Info("Client en démarrage...")
-	log.Debug("URL du serveur: %s", cfg.ServerURL)
-	log.Debug("Intervalle de vérification: %s", cfg.CheckInterval)
-	log.Debug("Niveau de verbosité: %d", cfg.LogLevel)
-	log.Debug("Période des logs de succès: %d exécutions", cfg.SuccessPeriod)
+	// In verbose mode (info or higher), display startup information
+	log.Info("Client starting...")
+	log.Debug("Server URL: %s", cfg.ServerURL)
+	log.Debug("Check interval: %s", cfg.CheckInterval)
+	log.Debug("Verbosity level: %d", cfg.LogLevel)
+	log.Debug("Success log period: %d executions", cfg.SuccessPeriod)
 
-	// Affichage d'un message si le mode de mises à jour factices est activé
+	// Display a message if dummy updates mode is enabled
 	if cfg.DummyUpdates {
-		log.Info("Mode de mises à jour factices (PIERCEFLARE_DUMMY_UPDATES) activé - Des mises à jour seront envoyées même si l'IP ne change pas")
+		log.Info("Dummy updates mode (PIERCEFLARE_DUMMY_UPDATES) enabled - Updates will be sent even if the IP doesn't change")
 	}
 
-	// Initialisation du client API
+	// Initialize API client
 	apiClient := api.NewClient(cfg.APIKey, cfg.ServerURL, log)
 
-	// Vérification de la validité du token
+	// Check token validity
 	if err := apiClient.CheckTokenValidity(); err != nil {
-		log.Error("Erreur de validation du token: %v", err)
+		log.Error("Token validation error: %v", err)
 		os.Exit(1)
 	}
 
-	log.Debug("Token API valide")
+	log.Debug("API token valid")
 
-	// Initialisation du récupérateur d'IP
+	// Initialize IP retriever
 	ipRetriever := ip.NewRetriever(log)
 
-	// Mode d'exécution
+	// Execution mode
 	if cfg.OneShotMode || len(os.Args) > 1 && os.Args[1] == "--force-ping" {
 		runOneShot(log, apiClient, ipRetriever)
 	} else {
@@ -79,108 +79,108 @@ func main() {
 	}
 }
 
-// runOneShot exécute une seule vérification d'IP et mise à jour
+// runOneShot executes a single IP check and update
 func runOneShot(log *logger.Logger, apiClient *api.Client, ipRetriever *ip.Retriever) {
-	log.Info("Exécution en mode one-shot - envoi immédiat du ping")
+	log.Info("Running in one-shot mode - sending immediate ping")
 
 	currentIP, err := ipRetriever.GetCurrentIP()
 	if err != nil {
-		log.Error("Erreur lors de la récupération de l'adresse IP: %v", err)
+		log.Error("Error retrieving IP address: %v", err)
 		os.Exit(1)
 	}
 
-	log.Debug("Adresse IP actuelle: %s", currentIP)
+	log.Debug("Current IP address: %s", currentIP)
 
-	// En mode force-ping, on n'envoie jamais de requête dummy (toujours une mise à jour réelle)
+	// In force-ping mode, never send a dummy request (always a real update)
 	if err := apiClient.SendIPUpdate(currentIP, false); err != nil {
-		log.Error("Erreur lors de l'envoi de la mise à jour IP: %v", err)
+		log.Error("Error sending IP update: %v", err)
 		os.Exit(1)
 	}
 
-	log.Info("Mise à jour IP effectuée avec succès")
+	log.Info("IP update successful")
 }
 
-// runContinuous exécute une surveillance continue avec des mises à jour périodiques
+// runContinuous executes continuous monitoring with periodic updates
 func runContinuous(log *logger.Logger, apiClient *api.Client, ipRetriever *ip.Retriever, interval time.Duration) {
-	log.Info("Exécution en mode continu")
-	log.Debug("Intervalle entre vérifications: %s", interval)
+	log.Info("Running in continuous mode")
+	log.Debug("Interval between checks: %s", interval)
 
-	// Gestion des signaux pour une terminaison propre
+	// Signal handling for graceful termination
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	// Canal pour les vérifications périodiques
+	// Channel for periodic checks
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
-	// Dernière IP envoyée
+	// Last sent IP
 	var lastSentIP string
 
-	// Vérification initiale
+	// Initial check
 	processIPCheck(log, apiClient, ipRetriever, &lastSentIP)
 
-	// Boucle principale
+	// Main loop
 	for {
 		select {
 		case <-ticker.C:
-			// Vérification périodique
+			// Periodic check
 			processIPCheck(log, apiClient, ipRetriever, &lastSentIP)
 		case sig := <-sigChan:
-			// Terminaison propre
-			log.Info("Signal reçu: %v, arrêt en cours...", sig)
+			// Graceful termination
+			log.Info("Signal received: %v, shutting down...", sig)
 			return
 		}
 	}
 }
 
-// processIPCheck vérifie l'IP actuelle et l'envoie si elle a changé ou si les mises à jour factices sont activées
+// processIPCheck checks the current IP and sends it if it has changed or if dummy updates are enabled
 func processIPCheck(log *logger.Logger, apiClient *api.Client, ipRetriever *ip.Retriever, lastSentIP *string) {
 	currentIP, err := ipRetriever.GetCurrentIP()
 	if err != nil {
-		log.Error("Erreur lors de la récupération de l'adresse IP: %v", err)
+		log.Error("Error retrieving IP address: %v", err)
 		return
 	}
 
-	log.Debug("Vérification de l'IP: actuelle=%s, dernière=%s", currentIP, *lastSentIP)
+	log.Debug("IP check: current=%s, last=%s", currentIP, *lastSentIP)
 
-	// Récupérer la configuration pour vérifier l'option DummyUpdates
+	// Retrieve configuration to check DummyUpdates option
 	cfg, _ := config.New()
 
-	// Si DummyUpdates est activé, on envoie systématiquement une mise à jour factice
+	// If DummyUpdates is enabled, always send a dummy update
 	if cfg.DummyUpdates {
-		log.Info("Envoi d'une mise à jour de test (mode PIERCEFLARE_DUMMY_UPDATES activé)")
+		log.Info("Sending a test update (PIERCEFLARE_DUMMY_UPDATES mode enabled)")
 
-		// Envoi d'une mise à jour dummy (test)
+		// Send a dummy (test) update
 		if err := apiClient.SendIPUpdate(currentIP, true); err != nil {
-			log.Error("Échec de la mise à jour de test sur le serveur: %v", err)
+			log.Error("Failed to send test update to server: %v", err)
 			return
 		}
 
-		log.Info("Mise à jour de test effectuée avec succès")
+		log.Info("Test update successful")
 		return
 	}
 
-	// Vérification si l'IP a changé
+	// Check if the IP has changed
 	ipChanged := currentIP != *lastSentIP
 
 	if ipChanged {
 		if *lastSentIP != "" {
-			log.Info("Adresse IP modifiée: %s -> %s", *lastSentIP, currentIP)
+			log.Info("IP address changed: %s -> %s", *lastSentIP, currentIP)
 		} else {
-			log.Info("IP initiale détectée: %s", currentIP)
+			log.Info("Initial IP detected: %s", currentIP)
 		}
 
-		// Envoi d'une mise à jour réelle (not dummy)
+		// Send a real (not dummy) update
 		if err := apiClient.SendIPUpdate(currentIP, false); err != nil {
-			log.Error("Échec de la mise à jour de l'IP sur le serveur: %v", err)
+			log.Error("Failed to update IP on server: %v", err)
 			return
 		}
 
 		*lastSentIP = currentIP
-		log.Info("Mise à jour IP effectuée avec succès")
+		log.Info("IP update successful")
 	} else {
-		// Log périodique pour indiquer que tout fonctionne normalement
-		log.LogSuccess("IP inchangée (%s) - Connexion avec le serveur PierceFlare maintenue", currentIP)
-		log.Debug("Adresse IP inchangée (%s). Aucune mise à jour nécessaire.", currentIP)
+		// Periodic log to indicate everything is working normally
+		log.LogSuccess("IP unchanged (%s) - Connection with PierceFlare server maintained", currentIP)
+		log.Debug("IP address unchanged (%s). No update needed.", currentIP)
 	}
 }
