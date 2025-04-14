@@ -54,7 +54,7 @@ func main() {
 
 	// Display a message if dummy updates mode is enabled
 	if cfg.DummyUpdates {
-		log.Info("Dummy updates mode (PIERCEFLARE_DUMMY_UPDATES) enabled - Updates will be sent even if the IP doesn't change")
+		log.Info("Dummy updates mode (PIERCEFLARE_DUMMY_UPDATES) enabled - Updates will be sent to server with no intent to propagate to Cloudflare's API")
 	}
 
 	// Initialize API client
