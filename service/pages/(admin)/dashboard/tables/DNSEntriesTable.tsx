@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { KeyIcon, PlusCircleIcon } from "@heroicons/react/24/solid";
 import type { QueryClient } from "@tanstack/react-query";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { RowSelectionState } from "@tanstack/react-table";
 import {
   createColumnHelper,
@@ -55,6 +55,10 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
   const { data: domains } = useQuery(trpc.getFlareDomains.queryOptions());
   const { status, data: wsData } = useSubscription(
     trpc.onDomainUpdates.subscriptionOptions(),
+  );
+
+  const clearCachedIPsFromDDNSEntries = useMutation(
+    trpc.clearCachedIPsFromDDNSEntries.mutationOptions(),
   );
 
   useEffect(() => {
@@ -255,11 +259,22 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
             </button>
             <button
               onClick={() => {
-                dispatch(clearSelected());
-                getModal(modalIds.deleteDDNS).openModal();
+                const subdomains = selectedDomains;
+                clearCachedIPsFromDDNSEntries
+                  .mutateAsync({
+                    subdomains,
+                  })
+                  .then(() => {
+                    dispatch(clearSelected());
+                    invalidateFlareDomains(trpc, queryClient);
+                  });
               }}
+              disabled={clearCachedIPsFromDDNSEntries.isPending}
               className="join-item btn btn-outline btn-error btn-sm"
             >
+              {clearCachedIPsFromDDNSEntries.isPending && (
+                <span className="loading loading-spinner loading-xs"></span>
+              )}
               Clear cached IPs ({selectedCount})
             </button>
           </div>

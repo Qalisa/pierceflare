@@ -72,6 +72,16 @@ const apiProtected = {
       },
     ),
   //
+  clearCachedIPsFromDDNSEntries: protectedProcedure
+    .use(addLinger())
+    .input(z.object({ subdomains: z.string().array() }))
+    .mutation(async ({ input: { subdomains } }) => {
+      await getDb()
+        .update(flareDomains)
+        .set({ latestSyncedIPv4: null, latestSyncedIPv6: null })
+        .where(inArray(flareDomains.ddnsForDomain, subdomains));
+    }),
+  //
   deleteDDNSEntries: protectedProcedure
     .use(addLinger())
     .input(z.object({ subdomains: z.string().array() }))
