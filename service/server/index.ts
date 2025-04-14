@@ -9,7 +9,7 @@ import { serve } from "vike-server/hono/serve";
 import { type HttpBindings } from "@hono/node-server";
 import { trpcServer } from "@hono/trpc-server";
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { getEnvZ } from "@qalisa/vike-envz";
+import { getEnvZ_S } from "@qalisa/vike-envz";
 
 import { defineDbCharacteristics, getDb } from "#/db";
 import { dbRequestsEE } from "#/db/requests";
@@ -60,7 +60,7 @@ const startServer = async () => {
   //
 
   //
-  const env = getEnvZ(import.meta.env, envSchema);
+  const env = getEnvZ_S(import.meta.env, envSchema);
 
   //
   defineDbCharacteristics({
