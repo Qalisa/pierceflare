@@ -23,6 +23,8 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
+        with:
+          package_json_file: service/package.json
       - name: Enforce Generation of OpenAPI specs
         run: make gen-api
         working-directory: cli
