@@ -43,6 +43,16 @@ export const dbRequestsEE = new EventEmitter<DbRequestsEvents>();
 //
 
 export const eeRequests = {
+  getCachedIPs: async (ddnsFullName: string) => {
+    const [cachedIPs] = await getDb()
+      .select({
+        ipv4: flareDomains.latestSyncedIPv4,
+        ipv6: flareDomains.latestSyncedIPv6,
+      })
+      .from(flareDomains)
+      .where(eq(flareDomains.ddnsForDomain, ddnsFullName));
+    return cachedIPs;
+  },
   //
   queueFlareForProcessing: async (
     remoteOperation: RemoteOperation,

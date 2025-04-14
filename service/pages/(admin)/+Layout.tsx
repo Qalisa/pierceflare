@@ -36,7 +36,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
         {children}
       </div>
       {import.meta.env.DEV && (
-        <div className="absolute right-2/100 bottom-2/100">
+        <div className="fixed right-2/100 bottom-2/100">
           <FlareGeneratorCommandBelt />
         </div>
       )}

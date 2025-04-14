@@ -1,4 +1,5 @@
-import { from, fromEvent, of, throwError, timer } from "rxjs";
+import type Cloudflare from "cloudflare";
+import { from, fromEvent, of, timer } from "rxjs";
 import {
   bufferTime,
   catchError,
@@ -9,7 +10,6 @@ import {
   map,
   mergeMap,
   retry,
-  switchMap,
   tap,
   timeout,
 } from "rxjs/operators";
@@ -17,6 +17,7 @@ import {
 import type { DbRequestsEvents } from "#/db/requests";
 import { dbRequestsEE, eeRequests } from "#/db/requests";
 import { randomIntFromInterval } from "#/helpers/random";
+import { wait, withLinger } from "#/helpers/withLinger";
 import logr from "#/server/helpers/loggers";
 
 import type { CloudflareConfig, CloudflareWorkerRequest } from "./types";
@@ -32,7 +33,7 @@ export class CloudflareDNSWorker {
   private activeRequests = 0;
   private rateWindow: number[] = [];
   private dbRequestsEE: typeof dbRequestsEE;
-  public flow: ReturnType<typeof this.executeRequest>;
+  public flow: ReturnType<typeof this.initializeWorker>;
 
   constructor(
     dbRequestsEE: typeof this.dbRequestsEE,
@@ -86,7 +87,7 @@ export class CloudflareDNSWorker {
         this.rateWindow.push(Date.now());
 
         // Execute the API call
-        return this.executeRequest(request, zones).pipe(
+        return from(this.executeSingleRequest(request, zones)).pipe(
           timeout(this.config.timeout),
           retry({
             count: request.retries || this.config.maxRetries,
@@ -206,105 +207,156 @@ export class CloudflareDNSWorker {
   /**
    * Execute the Cloudflare API request using the Cloudflare client
    */
-  private executeRequest(
-    { flareAdded: flare, options }: CloudflareWorkerRequest,
+  private async executeSingleRequest(
+    request: CloudflareWorkerRequest,
     zones: Zones,
   ) {
-    const { ofDomain: fullName, remoteOperation } = flare;
-
-    //
-    const find = zones.find(([, name]) => fullName.endsWith(name));
-
-    //
-    if (find == undefined) {
-      return throwError(() => new Error(`Unknown zone ID for "${fullName}"`));
-    }
-
-    const [zone_id] = find;
-    const name = fullName.split(".").find(Boolean); // get first
-
-    //
-    if (name == undefined || name == "" || name == fullName) {
-      return throwError(
-        () => new Error(`Could not determine subdomain in "${fullName}"`),
-      );
-    }
-
-    //
-    const produceRemoteOperation = () => {
-      // Use the Cloudflare client to execute the request
-      switch (remoteOperation) {
-        case "dummy":
-          return timer(randomIntFromInterval(300, 1000)).pipe(
-            switchMap(() => {
-              const shouldError = Math.random() < 0.25; // 25% chance to throw
-              if (shouldError) {
-                return throwError(
-                  () => new Error("Random dummy error occurred!"),
-                );
-              }
-
-              //
-              return of(flare.flareId);
-            }),
-          );
-        case "batch":
-          return from(
-            this.config.cloudflareCli.dns.records.batch({
-              zone_id,
-              posts: [
-                {
-                  type: flare.flaredIPv4 ? "A" : "AAAA",
-                  name,
-                  content: flare.flaredIPv4 ?? flare.flaredIPv6!,
-                  ttl: options?.ttl || 1,
-                  proxied: options?.proxied,
-                },
-              ],
-            }),
-          ).pipe(map(() => flare.flareId));
-
-        default:
-          return throwError(
-            () => new Error(`Unknown operation: ${remoteOperation}`),
-          );
-      }
-    };
-
-    // update flare
-    return produceRemoteOperation().pipe(
-      catchError(async (err) => {
+    const { flareId } = request.flareAdded;
+    return await withLinger(_mayExec(this.config.cloudflareCli, request, zones))
+      .then((result) => eeRequests.markSyncStatusForFlare(flareId, result))
+      .then(() => flareId)
+      .catch(async (err) => {
         //
-        await eeRequests.markSyncStatusForFlare(flare.flareId, {
+        await eeRequests.markSyncStatusForFlare(flareId, {
           syncStatus: "error",
           statusDescr: err instanceof Error ? err.message : JSON.stringify(err),
           statusAt: new Date(),
         });
 
-        // rethrow to prevent followup
+        // rethrow
         throw err;
-      }),
-      // on non-errored scenarii
-      concatMap(async () => {
-        //
-        const date = new Date();
-
-        //
-        await eeRequests.markSyncStatusForFlare(flare.flareId, {
-          syncStatus: "ok",
-          statusDescr: null,
-          statusAt: date,
-        });
-
-        //
-        await eeRequests.mayUpdateFlareDomainSyncState({
-          ...flare,
-          statusAt: date,
-        });
-
-        //
-        return flare.flareId;
-      }),
-    );
+      });
   }
 }
+
+//
+//
+//
+
+//
+const _mayExec = async (
+  cloudflareCli: Cloudflare,
+  { flareAdded: flare, options }: CloudflareWorkerRequest,
+  zones: Zones,
+): Promise<Parameters<typeof eeRequests.markSyncStatusForFlare>[1]> => {
+  const { ofDomain: fullName, remoteOperation } = flare;
+
+  //
+  const find = zones.find(([, name]) => fullName.endsWith(name));
+
+  //
+  if (find == undefined) {
+    throw new Error(`Unknown zone ID for "${fullName}"`);
+  }
+
+  const [zone_id] = find;
+  const name = fullName.split(".").find(Boolean); // get first
+
+  //
+  if (name == undefined || name == "" || name == fullName) {
+    throw new Error(`Could not determine subdomain in "${fullName}"`);
+  }
+
+  const cachedIPs = await eeRequests.getCachedIPs(fullName);
+
+  // Si les IPs sont identiques à celles déjà en cache, pas besoin de mettre à jour
+  if (
+    (flare.flaredIPv4 && flare.flaredIPv4 === cachedIPs.ipv4) ||
+    (flare.flaredIPv6 && flare.flaredIPv6 === cachedIPs.ipv6)
+  ) {
+    logr.logD(
+      `[flareId|${flare.flareId}]`,
+      "Skipping update - IP hasn't changed",
+    );
+
+    // Mettre à jour le statut sans effectuer d'opération distante
+    return {
+      syncStatus: "noOp",
+      statusDescr: null,
+      statusAt: new Date(),
+    };
+  }
+
+  //
+  await _execRemote(
+    cloudflareCli,
+    remoteOperation,
+    flare,
+    zone_id,
+    name,
+    options,
+  );
+
+  //
+  const now = new Date();
+  await eeRequests.mayUpdateFlareDomainSyncState({
+    ...flare,
+    statusAt: now,
+  });
+
+  //
+  return {
+    syncStatus: "ok",
+    statusDescr: null,
+    statusAt: now,
+  };
+};
+
+//
+//
+//
+
+const _execRemote = async (
+  cloudflareCli: Cloudflare,
+  remoteOperation: string,
+  flare: CloudflareWorkerRequest["flareAdded"],
+  zone_id: string,
+  name: string,
+  options?: CloudflareWorkerRequest["options"],
+) => {
+  switch (remoteOperation) {
+    case "dummy":
+      await _exec_dummy();
+      break;
+    case "batch":
+      await _exec_batch(cloudflareCli, flare, zone_id, name, options);
+      break;
+    default:
+      throw new Error(`Unknown operation: ${remoteOperation}`);
+  }
+};
+
+//
+//
+//
+
+//
+const _exec_dummy = async () => {
+  const randomLinger = randomIntFromInterval(300, 1000);
+  const shouldError = Math.random() < 0.25; // 25% chance to throw
+  await wait(randomLinger);
+  if (shouldError) {
+    throw new Error("Random dummy error occurred!");
+  }
+};
+
+//
+const _exec_batch = (
+  cloudflareCli: Cloudflare,
+  flare: CloudflareWorkerRequest["flareAdded"],
+  zone_id: string,
+  name: string,
+  options?: CloudflareWorkerRequest["options"],
+) =>
+  cloudflareCli.dns.records.batch({
+    zone_id,
+    posts: [
+      {
+        type: flare.flaredIPv4 ? "A" : "AAAA",
+        name,
+        content: flare.flaredIPv4 ?? flare.flaredIPv6!,
+        ttl: (options?.ttl as number) || 1,
+        proxied: options?.proxied as boolean | undefined,
+      },
+    ],
+  });

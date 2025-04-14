@@ -35,7 +35,7 @@ const Footer = () => {
 
   //
   return (
-    <footer className="footer sm:footer-horizontal bg-neutral text-neutral-content items-center p-4">
+    <footer className="z-10 footer sm:footer-horizontal bg-neutral text-neutral-content items-center p-4">
       <aside className="grid-flow-col items-center">
         <img src={appLogo} width="40px" />
         <p>

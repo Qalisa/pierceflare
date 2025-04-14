@@ -65,8 +65,8 @@ const FlareGeneratorCommandBelt = () => {
           Generate Flare
         </button>
         <button
-          onClick={() => {
-            deleteAllFlares.mutate();
+          onClick={async () => {
+            await deleteAllFlares.mutateAsync();
             invalidateFlares();
           }}
           disabled={domains == undefined}

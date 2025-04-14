@@ -8,7 +8,7 @@ const FlashMessagesBelt = () => {
   const dispatch = useDispatch();
 
   return (
-    <div className="absolute bottom-2/100 left-2/100">
+    <div className="fixed bottom-2/100 left-2/100">
       <button
         className="btn btn-secondary btn-sm"
         onClick={() =>
