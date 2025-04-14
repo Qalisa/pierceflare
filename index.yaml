@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   pierceflare:
   - apiVersion: v2
+    appVersion: 1.1.0
+    created: "2025-04-14T16:25:22.174274931Z"
+    description: Dashboard, API and CLI for secure Cloudflare DDNS
+    digest: 1d748684b7a6ecf0dd921cc4753aab7c1accd9c0c20c31222ed7ccddedb067cf
+    name: pierceflare
+    type: application
+    urls:
+    - https://github.com/Qalisa/pierceflare/releases/download/pierceflare-0.2.0/pierceflare-0.2.0.tgz
+    version: 0.2.0
+  - apiVersion: v2
     appVersion: 1.0.1
     created: "2025-04-10T09:42:14.340959587Z"
     description: Dashboard, API and CLI for secure Cloudflare DDNS
@@ -13,6 +23,16 @@ entries:
     version: 0.1.1
   pierceflare-cli:
   - apiVersion: v2
+    appVersion: 1.2.0
+    created: "2025-04-14T16:25:22.29649433Z"
+    description: CLI that interacts with a Pierceflare server to notify IP updates
+    digest: 097eda2c0ef2816f855ba67811ac661f7a00d07e27823ad00e206daefcc310bc
+    name: pierceflare-cli
+    type: application
+    urls:
+    - https://github.com/Qalisa/pierceflare/releases/download/pierceflare-cli-0.1.2/pierceflare-cli-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
     appVersion: 1.0.0
     created: "2025-04-10T09:42:14.476645315Z"
     description: CLI that interacts with a Pierceflare server to notify IP updates
@@ -22,4 +42,4 @@ entries:
     urls:
     - https://github.com/Qalisa/pierceflare/releases/download/pierceflare-cli-0.1.1/pierceflare-cli-0.1.1.tgz
     version: 0.1.1
-generated: "2025-04-10T09:42:14.476650975Z"
+generated: "2025-04-14T16:25:22.296529295Z"
