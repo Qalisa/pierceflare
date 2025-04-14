@@ -1,5 +1,5 @@
 import { withLinger } from "#/helpers/withLinger";
-import type { AppServer } from "#/server";
+import type { AppServer } from "#/server/helpers/definition";
 import { routes } from "#/server/helpers/routes";
 
 //

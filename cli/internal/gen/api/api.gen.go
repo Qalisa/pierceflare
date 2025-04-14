@@ -280,7 +280,11 @@ type ClientWithResponsesInterface interface {
 type PutApiFlareResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
-	JSON500      *struct {
+	JSON200      *struct {
+		Op         RemoteOperation `json:"op"`
+		ResolvedIp string          `json:"resolvedIp"`
+	}
+	JSON500 *struct {
 		ErrCode ErrCode `json:"errCode"`
 		Message string  `json:"message"`
 	}
@@ -363,6 +367,16 @@ func ParsePutApiFlareResponse(rsp *http.Response) (*PutApiFlareResponse, error) 
 	}
 
 	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest struct {
+			Op         RemoteOperation `json:"op"`
+			ResolvedIp string          `json:"resolvedIp"`
+		}
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest struct {
 			ErrCode ErrCode `json:"errCode"`

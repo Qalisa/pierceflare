@@ -9,7 +9,8 @@
     "eslint": "eslint . --max-warnings 0",
     "lint": "pnpm check && pnpm eslint",
     "prod": "tsx dist/server/index.standalone.mjs",
-    "sort": "sort-package-json"
+    "sort": "sort-package-json",
+    "gen:openapi": "tsx server/openapi.ts"
   },
   "prettier": {
     "importOrder": ["^@(.*)$", "^#/assets/(.*)$", "^#/(.*)$", "^[./]"],

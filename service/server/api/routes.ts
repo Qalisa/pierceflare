@@ -4,7 +4,7 @@ import { getConnInfo } from "@hono/node-server/conninfo";
 import { createRoute } from "@hono/zod-openapi";
 
 import { RemoteOperation$, eeRequests } from "#/db/requests";
-import type { AppServer } from "#/server";
+import type { AppServer } from "#/server/helpers/definition";
 import { routes } from "#/server/helpers/routes";
 
 //
@@ -56,8 +56,11 @@ export const addApiRoutes = (server: AppServer) => {
         200: {
           description: "When flare request has been successfully acknoledged",
           content: {
-            "text/plain": {
-              schema: RemoteOperation$.openapi("RemoteOperation"),
+            "application/json": {
+              schema: z.object({
+                op: RemoteOperation$.openapi("RemoteOperation"),
+                resolvedIp: z.string(),
+              }),
             },
           },
         },
@@ -80,7 +83,7 @@ export const addApiRoutes = (server: AppServer) => {
         remote: { addressType, address },
       } = getConnInfo(c);
 
-      const { dummy, ip } = c.req.valid("json");
+      const { dummy, ip: _clientResolvedIp } = c.req.valid("json");
 
       //
       if (!address) {
@@ -94,11 +97,11 @@ export const addApiRoutes = (server: AppServer) => {
       }
 
       //
-      const remoteOperation = dummy ? "dummy" : "batch";
+      const remoteOp = dummy ? ("dummy" as const) : ("batch" as const);
 
       //
       const { ddnsForDomain } = c.get("apiContext");
-      eeRequests.queueFlareForProcessing(remoteOperation, {
+      eeRequests.queueFlareForProcessing(remoteOp, {
         flaredIPv6: addressType === "IPv6" ? address : undefined,
         flaredIPv4: addressType === "IPv4" ? address : undefined,
         ofDomain: ddnsForDomain,
@@ -106,7 +109,7 @@ export const addApiRoutes = (server: AppServer) => {
       });
 
       //
-      return c.text(remoteOperation, 200);
+      return c.json({ op: remoteOp, resolvedIp: address }, 200);
     },
   );
 };

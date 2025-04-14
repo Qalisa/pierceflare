@@ -6,9 +6,7 @@ import { lastValueFrom } from "rxjs";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";
 
-import { type HttpBindings } from "@hono/node-server";
 import { trpcServer } from "@hono/trpc-server";
-import { OpenAPIHono } from "@hono/zod-openapi";
 import { getEnvZ_S } from "@qalisa/vike-envz";
 
 import { defineDbCharacteristics, getDb } from "#/db";
@@ -28,26 +26,7 @@ import setupAPI from "./api";
 import { addApiRoutes } from "./api/routes";
 import { envSchema } from "./envZ";
 import addLogin from "./features/login";
-
-//
-//
-//
-
-//
-const createServer = () => {
-  return new OpenAPIHono<{
-    Variables: {
-      session: Session<SessionDataTypes>;
-      session_key_rotation: boolean;
-      apiContext: {
-        ddnsForDomain: string;
-      };
-      Bindings: HttpBindings;
-    };
-  }>();
-};
-
-export type AppServer = ReturnType<typeof createServer>;
+import { createServer } from "./helpers/definition";
 
 //
 //

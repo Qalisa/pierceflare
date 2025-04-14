@@ -57,7 +57,7 @@ jobs:
           type=raw,value=${{ steps.data-from-helm.outputs.appVersion }},enable=${{ github.ref == 'refs/heads/main' }}
           type=raw,value=${{ github.ref_name }}-${{ steps.data-from-helm.outputs.appVersion }}
           type=raw,value=${{ steps.data-from-helm.outputs.appVersion }}-${{ github.ref_name }}
-    
+
     #
     - name: Build and push
       id: build_image

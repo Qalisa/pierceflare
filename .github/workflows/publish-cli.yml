@@ -21,6 +21,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Enforce Generation of OpenAPI specs
+        run: make gen-api
+        working-directory: cli
+
       - name: Log in to the GitHub Container Registry
         uses: docker/login-action@v3
         with:
