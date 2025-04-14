@@ -24,6 +24,7 @@ import { getModal, modalIds } from "#/helpers/modals";
 import { useTRPC } from "#/helpers/trpc";
 import type { RootState } from "#/store/reducers";
 import {
+  clearSelected,
   defineSelected,
   defineSelectedAsToBeDeleted,
   manageAPIKeyOf,
@@ -242,15 +243,26 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
         </button>
 
         {selectedCount > 0 && (
-          <button
-            onClick={() => {
-              dispatch(defineSelectedAsToBeDeleted());
-              getModal(modalIds.deleteDDNS).openModal();
-            }}
-            className="btn btn-outline btn-error btn-sm"
-          >
-            Delete Selected ({selectedCount})
-          </button>
+          <div className="join">
+            <button
+              onClick={() => {
+                dispatch(defineSelectedAsToBeDeleted());
+                getModal(modalIds.deleteDDNS).openModal();
+              }}
+              className="join-item btn btn-outline btn-error btn-sm"
+            >
+              Delete Selected ({selectedCount})
+            </button>
+            <button
+              onClick={() => {
+                dispatch(clearSelected());
+                getModal(modalIds.deleteDDNS).openModal();
+              }}
+              className="join-item btn btn-outline btn-error btn-sm"
+            >
+              Clear cached IPs ({selectedCount})
+            </button>
+          </div>
         )}
         <ReloadButton
           className="ml-auto"

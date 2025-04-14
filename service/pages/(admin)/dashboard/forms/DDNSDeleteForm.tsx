@@ -3,10 +3,10 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { TrashIcon } from "@heroicons/react/24/solid";
 import { Bars3BottomRightIcon } from "@heroicons/react/24/solid";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { getModal, modalIds } from "#/helpers/modals";
-import { useTRPC, useTRPCClient } from "#/helpers/trpc";
+import { useTRPC } from "#/helpers/trpc";
 import type { RootState } from "#/store/reducers";
 import { clearSelected } from "#/store/reducers/ddnsEntries";
 import {
@@ -24,8 +24,11 @@ const DDNSDeleteForm = ({
 }) => {
   //
   const trpc = useTRPC();
-  const trpcCli = useTRPCClient();
   const queryClient = useQueryClient();
+
+  const deleteDDNSEntries = useMutation(
+    trpc.deleteDDNSEntries.mutationOptions(),
+  );
 
   //
   const {
@@ -78,8 +81,8 @@ const DDNSDeleteForm = ({
         id={formId}
         className="card"
         onSubmit={handleSubmit(async () =>
-          trpcCli.deleteDDNSEntries
-            .query({ subdomains: selectedForDeletion })
+          deleteDDNSEntries
+            .mutateAsync({ subdomains: selectedForDeletion })
             .then(async () => {
               dispatch(clearSelected());
               dispatch(

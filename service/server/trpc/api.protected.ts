@@ -18,7 +18,7 @@ const apiProtected = {
   createAPIKeyFor: protectedProcedure
     .use(addLinger())
     .input(z.object({ ddnsForDomain: z.string().nonempty() }))
-    .query(async ({ input: { ddnsForDomain } }) => {
+    .mutation(async ({ input: { ddnsForDomain } }) => {
       //
       const apiKey = await produceUnusedAPIKey();
 
@@ -42,7 +42,7 @@ const apiProtected = {
         description: z.string().nonempty(),
       }),
     )
-    .query(
+    .mutation(
       async ({ ctx, input: { cloudFlareDomain, description, subdomain } }) => {
         //
         if (!ctx.cloudflare.availableDomains.includes(cloudFlareDomain)) {
@@ -75,7 +75,7 @@ const apiProtected = {
   deleteDDNSEntries: protectedProcedure
     .use(addLinger())
     .input(z.object({ subdomains: z.string().array() }))
-    .query(async ({ input: { subdomains } }) => {
+    .mutation(async ({ input: { subdomains } }) => {
       await getDb()
         .delete(flareDomains)
         .where(inArray(flareDomains.ddnsForDomain, subdomains));
@@ -83,7 +83,7 @@ const apiProtected = {
   //
   sendTestFlare: protectedProcedure
     .input(z.object({ ofDomain: z.string().nonempty() }))
-    .query(({ input: { ofDomain } }) => {
+    .mutation(({ input: { ofDomain } }) => {
       eeRequests.queueFlareForProcessing("dummy", {
         ofDomain,
         receivedAt: new Date(),

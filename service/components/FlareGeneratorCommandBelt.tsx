@@ -1,15 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { TrashIcon } from "@heroicons/react/24/solid";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useTRPC, useTRPCClient } from "#/helpers/trpc";
+import { useTRPC } from "#/helpers/trpc";
 
 //
 const FlareGeneratorCommandBelt = () => {
   //
   const trpc = useTRPC();
-  const trpcCli = useTRPCClient();
   const queryClient = useQueryClient();
 
   //
@@ -25,6 +24,9 @@ const FlareGeneratorCommandBelt = () => {
   const [selectedOption, setSelectedOption] = useState<string | undefined>(
     undefined,
   );
+
+  const deleteAllFlares = useMutation(trpc.deleteAllFlares.mutationOptions());
+  const sendTestFlare = useMutation(trpc.sendTestFlare.mutationOptions());
 
   //
   useEffect(() => {
@@ -56,15 +58,15 @@ const FlareGeneratorCommandBelt = () => {
         <button
           className="btn btn-xs join-item flex-auto"
           disabled={domains == undefined || domains.length == 0}
-          onClick={async () => {
-            await trpcCli.sendTestFlare.query({ ofDomain: selectedOption! });
+          onClick={() => {
+            sendTestFlare.mutate({ ofDomain: selectedOption! });
           }}
         >
           Generate Flare
         </button>
         <button
-          onClick={async () => {
-            await trpcCli.deleteAllFlares.mutate();
+          onClick={() => {
+            deleteAllFlares.mutate();
             invalidateFlares();
           }}
           disabled={domains == undefined}

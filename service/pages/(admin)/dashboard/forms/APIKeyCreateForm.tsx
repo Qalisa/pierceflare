@@ -4,11 +4,12 @@ import { useDispatch, useSelector } from "react-redux";
 
 import { CheckCircleIcon, PlusIcon } from "@heroicons/react/24/solid";
 import { Bars3BottomRightIcon } from "@heroicons/react/24/solid";
+import { useMutation } from "@tanstack/react-query";
 
 import CopyToClipboardButton from "#/components/CopyToClipboardButton";
 import { getModal, modalIds } from "#/helpers/modals";
 import { apiKeyCliEnvVariableName, cliTitle } from "#/helpers/static";
-import { useTRPCClient } from "#/helpers/trpc";
+import { useTRPC } from "#/helpers/trpc";
 import type { RootState } from "#/store/reducers";
 import { addErrorMessage } from "#/store/reducers/flashMessages";
 
@@ -21,8 +22,6 @@ const APIKeyCreateForm = ({
   submitButtonOutside: boolean;
 }) => {
   //
-  const trpc = useTRPCClient();
-  //
   const {
     handleSubmit,
     formState: { isSubmitting },
@@ -31,6 +30,9 @@ const APIKeyCreateForm = ({
     shouldUseNativeValidation: true,
     reValidateMode: "onChange",
   });
+
+  const trpc = useTRPC();
+  const createAPIKeyFor = useMutation(trpc.createAPIKeyFor.mutationOptions());
 
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
   const keyCreated = generatedKey != null;
@@ -92,8 +94,8 @@ const APIKeyCreateForm = ({
       id={formId}
       className="card"
       onSubmit={handleSubmit(async () =>
-        trpc.createAPIKeyFor
-          .query({ ddnsForDomain: generateApiKeyFor! })
+        createAPIKeyFor
+          .mutateAsync({ ddnsForDomain: generateApiKeyFor! })
           .then(setGeneratedKey)
           .catch((e: Error) => {
             dispatch(

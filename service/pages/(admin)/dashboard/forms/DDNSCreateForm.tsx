@@ -4,10 +4,10 @@ import { usePageContext } from "vike-react/usePageContext";
 
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { getModal, modalIds } from "#/helpers/modals";
-import { useTRPC, useTRPCClient } from "#/helpers/trpc";
+import { useTRPC } from "#/helpers/trpc";
 import {
   addErrorMessage,
   addSuccessMessage,
@@ -25,8 +25,8 @@ const DDNSCreateForm = ({
 }) => {
   //
   const trpc = useTRPC();
-  const trpcCli = useTRPCClient();
   const queryClient = useQueryClient();
+  const submitDDNSEntry = useMutation(trpc.submitDDNSEntry.mutationOptions({}));
 
   //
   const {
@@ -97,8 +97,8 @@ const DDNSCreateForm = ({
             };
 
             //
-            await trpcCli.submitDDNSEntry
-              .query({ subdomain, cloudFlareDomain, description })
+            await submitDDNSEntry
+              .mutateAsync({ subdomain, cloudFlareDomain, description })
               .then(onSuccess)
               .catch((e: Error) => {
                 dispatch(
