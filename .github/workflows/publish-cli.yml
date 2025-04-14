@@ -21,11 +21,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
       - name: Enforce Generation of OpenAPI specs
-        run: | 
-          corepack enable pnpm
-          corepack use pnpm@latest
-          make gen-api
+        run: make gen-api
         working-directory: cli
 
       - name: Log in to the GitHub Container Registry

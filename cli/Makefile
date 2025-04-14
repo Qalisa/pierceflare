@@ -52,7 +52,7 @@ install-oapi-codegen:
 	@echo "Checking oapi-codegen installation..."
 	@if ! which oapi-codegen > /dev/null; then \
 		echo "Installing oapi-codegen $(OPENAPI_GENERATOR_VERSION)..."; \
-		go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@$(OPENAPI_GENERATOR_VERSION); \
+		go get -tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@$(OPENAPI_GENERATOR_VERSION); \
 		echo "oapi-codegen successfully installed"; \
 	else \
 		echo "oapi-codegen already installed"; \
@@ -70,7 +70,7 @@ gen-api: install-oapi-codegen
 	@cd $(SERVICE_DIR) && OPENAPI_VERSION=${OPENAPI_VERSION} pnpm run --silent gen:openapi > $(SWAGGER_SPEC_FILE)
 	@echo "OpenAPI document generated: $(SWAGGER_SPEC_FILE)"
 	@echo "Generating Go code with oapi-codegen..."
-	@oapi-codegen -package api -generate client,types $(SWAGGER_SPEC_FILE) > $(SWAGGER_OUTPUT_DIR)/api.gen.go
+	@go tool oapi-codegen -package api -generate client,types $(SWAGGER_SPEC_FILE) > $(SWAGGER_OUTPUT_DIR)/api.gen.go
 	@echo "Go classes generation completed"
 
 # Cleanup
