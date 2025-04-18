@@ -2,8 +2,8 @@
 replicaCount: 1
 
 # required
-secret:
-  pierceflare:
+secrets:
+  env:
     PIERCEFLARE_API_KEY: "" # required
 
 config:
