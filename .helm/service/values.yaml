@@ -11,6 +11,10 @@ secret:
         SERVICE_AUTH_USERNAME: ""
         SERVICE_AUTH_PASSWORD: ""
 
+config:
+  env:
+    SERVICE_DATABASE_FILES_PATH: "/db"
+
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:

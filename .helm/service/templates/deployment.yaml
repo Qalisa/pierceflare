@@ -45,6 +45,8 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ .Values.secret.pierceflare.secretName }}
+            - configMapRef:
+                name: {{ include "helpers.fullname" . }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}
@@ -62,10 +64,15 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
+            - name: db
+              mountPath: {{ .Values.config.env.SERVICE_DATABASE_FILES_PATH | quote }}
           {{- with .Values.volumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
       volumes:
+        - name: db
+          persistentVolumeClaim:
+            claimName: {{ include "helpers.fullname" . }}
       {{- with .Values.volumes }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
