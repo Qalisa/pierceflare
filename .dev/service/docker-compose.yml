@@ -18,6 +18,9 @@ services:
       SERVICE_AUTH_USERNAME: root
       SERVICE_AUTH_PASSWORD: root
       SERVICE_DATABASE_FILES_PATH: /db
+      #
+      K8S_APP__IMAGE_VERSION: pnpm-prod
+      K8S_APP__IMAGE_REVISION: 2200000000432122000000004321
     env_file:
       - ../../service/.env
     volumes:

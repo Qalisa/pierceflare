@@ -1,3 +1,4 @@
+import ip from "ip";
 import { z } from "zod";
 
 import { getConnInfo } from "@hono/node-server/conninfo";
@@ -78,15 +79,16 @@ export const addApiRoutes = (server: AppServer) => {
       },
     }),
     (c) => {
+      // first, check validity
+      const { dummy, ip: clientResolvedIp } = c.req.valid("json");
+
       //
       const {
-        remote: { addressType, address },
+        remote: { address: detectedAddress },
       } = getConnInfo(c);
 
-      const { dummy, ip: _clientResolvedIp } = c.req.valid("json");
-
       //
-      if (!address) {
+      if (!detectedAddress) {
         return c.json(
           {
             errCode: "UNRESOLVABLE" as const,
@@ -97,19 +99,25 @@ export const addApiRoutes = (server: AppServer) => {
       }
 
       //
+      const isPrivate = ip.isPrivate(detectedAddress);
+      const addressToUse =
+        isPrivate && clientResolvedIp ? clientResolvedIp : detectedAddress;
+      const addressToUseType = ip.isV4Format(addressToUse) ? "IPv6" : "IPv4";
+
+      //
       const remoteOp = dummy ? ("dummy" as const) : ("batch" as const);
 
       //
       const { ddnsForDomain } = c.get("apiContext");
       eeRequests.queueFlareForProcessing(remoteOp, {
-        flaredIPv6: addressType === "IPv6" ? address : undefined,
-        flaredIPv4: addressType === "IPv4" ? address : undefined,
+        flaredIPv6: addressToUseType === "IPv6" ? addressToUse : undefined,
+        flaredIPv4: addressToUseType === "IPv4" ? addressToUse : undefined,
         ofDomain: ddnsForDomain,
         receivedAt: new Date(),
       });
 
       //
-      return c.json({ op: remoteOp, resolvedIp: address }, 200);
+      return c.json({ op: remoteOp, resolvedIp: addressToUse }, 200);
     },
   );
 };

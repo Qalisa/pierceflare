@@ -7,15 +7,20 @@
     "create-migration": "drizzle-kit generate",
     "dev": "vike dev",
     "eslint": "eslint . --max-warnings 0",
+    "gen:openapi": "tsx server/openapi.ts",
     "lint": "pnpm check && pnpm eslint",
     "prod": "tsx dist/server/index.standalone.mjs",
-    "sort": "sort-package-json",
-    "gen:openapi": "tsx server/openapi.ts"
+    "sort": "sort-package-json"
   },
   "prettier": {
-    "importOrder": ["^@(.*)$", "^#/assets/(.*)$", "^#/(.*)$", "^[./]"],
-    "importOrderSideEffects": false,
+    "importOrder": [
+      "^@(.*)$",
+      "^#/assets/(.*)$",
+      "^#/(.*)$",
+      "^[./]"
+    ],
     "importOrderSeparation": true,
+    "importOrderSideEffects": false,
     "importOrderSortSpecifiers": true,
     "plugins": [
       "prettier-plugin-tailwindcss",
@@ -30,6 +35,7 @@
     "@hono/zod-openapi": "^0.19.4",
     "@hookform/resolvers": "^5.0.1",
     "@libsql/client": "^0.15.2",
+    "@qalisa/vike-envz": "^1.0.5",
     "@reduxjs/toolkit": "^2.6.1",
     "@tanstack/react-query": "^5.71.10",
     "@tanstack/react-table": "^8.21.2",
@@ -43,6 +49,7 @@
     "hono": "^4.7.5",
     "hono-rate-limiter": "^0.4.2",
     "hono-sessions": "^0.7.2",
+    "ip": "^2.0.1",
     "motion": "^12.6.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -55,13 +62,13 @@
     "vike-react": "^0.6.1",
     "vike-server": "^1.0.14",
     "vite": "^6.2.5",
-    "zod": "^3.24.2",
-    "@qalisa/vike-envz": "^1.0.5"
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.24.0",
     "@tailwindcss/vite": "^4.1.3",
     "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@types/ip": "^1.1.3",
     "@types/node": "^22.14.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
@@ -82,13 +89,13 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.29.0"
   },
+  "packageManager": "pnpm@10.8.0+sha512.0e82714d1b5b43c74610193cb20734897c1d00de89d0e18420aebc5977fa13d780a9cb05734624e81ebd81cc876cd464794850641c48b9544326b5622ca29971",
   "pnpm": {
-    "overrides": {
-      "rollup": "4.38.0"
-    },
     "onlyBuiltDependencies": [
       "esbuild"
-    ]
-  },
-  "packageManager": "pnpm@10.8.0+sha512.0e82714d1b5b43c74610193cb20734897c1d00de89d0e18420aebc5977fa13d780a9cb05734624e81ebd81cc876cd464794850641c48b9544326b5622ca29971"
+    ],
+    "overrides": {
+      "rollup": "4.38.0"
+    }
+  }
 }
