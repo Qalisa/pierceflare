@@ -102,7 +102,7 @@ export const addApiRoutes = (server: AppServer) => {
       const isPrivate = ip.isPrivate(detectedAddress);
       const addressToUse =
         isPrivate && clientResolvedIp ? clientResolvedIp : detectedAddress;
-      const addressToUseType = ip.isV4Format(addressToUse) ? "IPv6" : "IPv4";
+      const addressToUseType = ip.isV4Format(addressToUse) ? "IPv4" : "IPv6";
 
       //
       const remoteOp = dummy ? ("dummy" as const) : ("batch" as const);
