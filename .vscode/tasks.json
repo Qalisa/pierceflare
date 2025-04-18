@@ -8,7 +8,7 @@
       "id": "project"
     },
     {
-      "description": ".helm/.helm-values/values.<Branch>.yaml",
+      "description": ".helm-values/<Project>/values.<Branch>.yaml",
       "type": "promptString",
       "default": "main",
       "id": "branch"
@@ -92,7 +92,7 @@
         "template",
         "${input:project}",
         "-f",
-        ".helm-values/values.${input:branch}.yaml",
+        "../.helm-values/${input:project}/values.${input:branch}.yaml",
         "--debug"
       ],
       "options": {
