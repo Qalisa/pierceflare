@@ -10,7 +10,6 @@ import { trpcServer } from "@hono/trpc-server";
 import { getEnvZ_S } from "@qalisa/vike-envz";
 
 import { defineDbCharacteristics, getDb } from "#/db";
-import { dbRequestsEE } from "#/db/requests";
 import { CloudflareDNSWorker } from "#/server/cloudflare/worker";
 import { getZones } from "#/server/cloudflare/zones";
 import logr from "#/server/helpers/loggers";
@@ -80,7 +79,7 @@ const startServer = async () => {
     cloudflareState.availableDomains = zones.map(([_id, name]) => name);
 
     //
-    const cfWorker = new CloudflareDNSWorker(dbRequestsEE, {
+    const cfWorker = new CloudflareDNSWorker({
       zones,
       cloudflareCli,
       rateLimit: 1200, // Cloudflare's rate limit is 1200 requests per 5 minutes

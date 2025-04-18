@@ -32,15 +32,10 @@ export class CloudflareDNSWorker {
   private config: CloudflareConfig;
   private activeRequests = 0;
   private rateWindow: number[] = [];
-  private dbRequestsEE: typeof dbRequestsEE;
   public flow: ReturnType<typeof this.initializeWorker>;
 
-  constructor(
-    dbRequestsEE: typeof this.dbRequestsEE,
-    config: CloudflareConfig,
-  ) {
+  constructor(config: CloudflareConfig) {
     this.config = config;
-    this.dbRequestsEE = dbRequestsEE;
     this.flow = this.initializeWorker(config.zones);
   }
 
@@ -51,7 +46,7 @@ export class CloudflareDNSWorker {
     // Process requests in order, respecting rate limits and concurrency
     const flow = fromEvent<CloudflareWorkerRequest["flareAdded"]>(
       dbRequestsEE,
-      "flareAdded" satisfies keyof DbRequestsEvents,
+      "flareAdded" as const satisfies keyof DbRequestsEvents,
     ).pipe(
       // cast
       map((flareAdded) => {
