@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "helpers.fullname" . }}
+data:
+  PIERCEFLARE_SERVER_URL: {{ .Values.config.env.PIERCEFLARE_SERVER_URL }}
+  PIERCEFLARE_CHECK_INTERVAL: {{ .Values.config.env.PIERCEFLARE_CHECK_INTERVAL }}
+  PIERCEFLARE_DUMMY_UPDATES: {{ .Values.config.env.PIERCEFLARE_DUMMY_UPDATES }}
+  PIERCEFLARE_LOG_LEVEL: {{ .Values.config.env.PIERCEFLARE_LOG_LEVEL }}
+  PIERCEFLARE_SUCCESS_LOG_PERIOD: {{ .Values.config.env.PIERCEFLARE_SUCCESS_LOG_PERIOD }}

@@ -4,8 +4,15 @@ replicaCount: 1
 # required
 secret:
   pierceflare:
-    PIERCEFLARE_API_KEY: ""
-    PIERCEFLARE_SERVER_URL: ""
+    PIERCEFLARE_API_KEY: "" # required
+
+config:
+  env:
+    PIERCEFLARE_SERVER_URL: https://pierceflare.qalisa.fr
+    PIERCEFLARE_CHECK_INTERVAL: "300"
+    PIERCEFLARE_DUMMY_UPDATES: "false" # if true, would disable forwarding of sent flares to Cloudflare's API
+    PIERCEFLARE_LOG_LEVEL: "info" #error|info|debug
+    PIERCEFLARE_SUCCESS_LOG_PERIOD: "10" # (par défaut: 10, où N est le nombre d'exécutions réussies entre chaque message)
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:

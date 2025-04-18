@@ -48,6 +48,8 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ include "helpers.fullname" . }}
+            - configMapRef:
+                name: {{ include "helpers.fullname" . }}
           {{- with .Values.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
