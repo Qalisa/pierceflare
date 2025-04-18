@@ -52,8 +52,6 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository_owner }}/pierceflare-cli # Adjust image name if needed
           tags: |
-            type=sha,prefix= # Git SHA as tag
-            type=raw,value=latest,enable={{is_default_branch}} # 'latest' tag only for the default branch
             type=ref,event=branch
             type=raw,value=${{ steps.data-from-helm.outputs.appVersion }},enable=${{ github.ref == 'refs/heads/main' }}
             type=raw,value=${{ github.ref_name }}-${{ steps.data-from-helm.outputs.appVersion }}
