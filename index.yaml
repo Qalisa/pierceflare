@@ -24,6 +24,16 @@ entries:
   pierceflare-cli:
   - apiVersion: v2
     appVersion: 1.2.0
+    created: "2025-04-18T05:41:54.362716593Z"
+    description: CLI that interacts with a Pierceflare server to notify IP updates
+    digest: b3b938c9f618f22caaa329e9db70028dcd0e55a3c168ab3c9e39038858759573
+    name: pierceflare-cli
+    type: application
+    urls:
+    - https://github.com/Qalisa/pierceflare/releases/download/pierceflare-cli-0.1.4/pierceflare-cli-0.1.4.tgz
+    version: 0.1.4
+  - apiVersion: v2
+    appVersion: 1.2.0
     created: "2025-04-18T05:24:14.65994337Z"
     description: CLI that interacts with a Pierceflare server to notify IP updates
     digest: e1a7b9904b7ebc17eb141372b14c03a3961f7e7de6fad9123cb175352fce2251
@@ -52,4 +62,4 @@ entries:
     urls:
     - https://github.com/Qalisa/pierceflare/releases/download/pierceflare-cli-0.1.1/pierceflare-cli-0.1.1.tgz
     version: 0.1.1
-generated: "2025-04-18T05:24:14.659962706Z"
+generated: "2025-04-18T05:41:54.362764031Z"
