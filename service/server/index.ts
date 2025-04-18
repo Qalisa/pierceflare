@@ -56,7 +56,7 @@ const startServer = async () => {
   };
 
   //
-  const cfWorkerPromise = (async () => {
+  const getCfWorker = (async () => {
     //
     if (
       env.CLOUDFLARE_API_TOKEN == undefined ||
@@ -213,11 +213,14 @@ const startServer = async () => {
   // Init CF Worker
   //
 
-  cfWorkerPromise.then((e) => {
+  const _workerRun = getCfWorker.then(({ cfWorker }) => {
+    //
+    cfWorker.setupShutdownHandler();
+
+    //
     logr.log("Starting Cloudflare DNS Worker.");
-    const run = lastValueFrom(e.cfWorker.flow);
     cloudflareState.workerState = "running";
-    return run;
+    return lastValueFrom(cfWorker.flow);
   });
 
   //

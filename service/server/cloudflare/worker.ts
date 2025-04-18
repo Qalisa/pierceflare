@@ -1,5 +1,5 @@
 import type Cloudflare from "cloudflare";
-import { from, fromEvent, of, timer } from "rxjs";
+import { Subject, from, fromEvent, of, timer } from "rxjs";
 import {
   bufferTime,
   catchError,
@@ -10,6 +10,7 @@ import {
   map,
   mergeMap,
   retry,
+  takeUntil,
   tap,
   timeout,
 } from "rxjs/operators";
@@ -33,6 +34,8 @@ export class CloudflareDNSWorker {
   private activeRequests = 0;
   private rateWindow: number[] = [];
   public flow: ReturnType<typeof this.initializeWorker>;
+  private shutdownSignal = new Subject<void>();
+  private isShuttingDown = false;
 
   constructor(config: CloudflareConfig) {
     this.config = config;
@@ -48,6 +51,7 @@ export class CloudflareDNSWorker {
       dbRequestsEE,
       "flareAdded" as const satisfies keyof DbRequestsEvents,
     ).pipe(
+      takeUntil(this.shutdownSignal), // Stops processing during shutdown
       // cast
       map((flareAdded) => {
         //
@@ -67,6 +71,11 @@ export class CloudflareDNSWorker {
       concatMap((batch) => from(batch)),
       // Respect concurrency limits
       mergeMap((request) => {
+        // If we are shutting down, don't accept new requests
+        if (this.isShuttingDown) {
+          logr.logD("Skipping request - system is shutting down");
+          return of(); // Don't continue with this request
+        }
         // Check if we're under rate limits and concurrency limits
         if (this.canMakeRequest()) {
           return of(request);
@@ -122,6 +131,11 @@ export class CloudflareDNSWorker {
             this.rateWindow = this.rateWindow.filter(
               (time) => now - time < 300000,
             ); // 5 minutes
+
+            // If we are in shutdown mode and there are no active requests, we can complete
+            if (this.isShuttingDown && this.activeRequests === 0) {
+              this.completeShutdown();
+            }
           }),
         );
       }),
@@ -132,9 +146,72 @@ export class CloudflareDNSWorker {
   }
 
   /**
+   * Configure system shutdown event listeners
+   */
+  public setupShutdownHandler(): void {
+    // Listen for system shutdown signals
+    process.on("SIGINT", () => this.handleShutdown("SIGINT"));
+    process.on("SIGTERM", () => this.handleShutdown("SIGTERM"));
+    process.on("SIGHUP", () => this.handleShutdown("SIGHUP"));
+  }
+
+  /**
+   * Handle graceful worker shutdown
+   */
+  private handleShutdown(signal: string): void {
+    if (this.isShuttingDown) return; // Avoid multiple calls
+
+    this.isShuttingDown = true;
+    logr.logD(`Received ${signal} signal. Starting graceful shutdown...`);
+
+    // If no requests are active, we can close immediately
+    if (this.activeRequests === 0) {
+      this.completeShutdown();
+      return;
+    }
+
+    // Allow time to complete in-progress requests
+    logr.logD(
+      `Waiting for ${this.activeRequests} active requests to complete...`,
+    );
+
+    // Set a timeout to force shutdown if necessary
+    const forceShutdownTimeout = setTimeout(() => {
+      logr.logD("Force shutdown: Some requests did not complete in time");
+      this.completeShutdown();
+    }, 30000); // 30 seconds maximum delay
+
+    // Clean up the timeout if we finish normally
+    this.shutdownSignal
+      .pipe(finalize(() => clearTimeout(forceShutdownTimeout)))
+      .subscribe();
+  }
+
+  /**
+   * Complete the shutdown process
+   */
+  private completeShutdown(): void {
+    logr.logD(
+      "All requests completed or timeout reached. Shutting down worker.",
+    );
+
+    // Close the event stream
+    this.shutdownSignal.next();
+    this.shutdownSignal.complete();
+
+    // Notify other components that we've finished cleanup
+    logr.logD("Worker shutdown completed.");
+  }
+
+  /**
    * Check if we can make a request based on rate limits and concurrency
    */
   private canMakeRequest(): boolean {
+    // Don't accept new requests if we're shutting down
+    if (this.isShuttingDown) {
+      return false;
+    }
+
     // Check concurrency
     if (this.activeRequests >= this.config.maxConcurrent) {
       return false;
@@ -254,7 +331,7 @@ const _mayExec = async (
 
   const cachedIPs = await eeRequests.getCachedIPs(fullName);
 
-  // Si les IPs sont identiques à celles déjà en cache, pas besoin de mettre à jour
+  // If the IPs are identical to those already cached, no need to update
   if (
     (flare.flaredIPv4 && flare.flaredIPv4 === cachedIPs.ipv4) ||
     (flare.flaredIPv6 && flare.flaredIPv6 === cachedIPs.ipv6)
@@ -264,7 +341,7 @@ const _mayExec = async (
       "Skipping update - IP hasn't changed",
     );
 
-    // Mettre à jour le statut sans effectuer d'opération distante
+    // Update the status without performing remote operation
     return {
       syncStatus: "noOp",
       statusDescr: null,
