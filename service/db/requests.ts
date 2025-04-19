@@ -48,6 +48,7 @@ export const eeRequests = {
       .select({
         ipv4: flareDomains.latestSyncedIPv4,
         ipv6: flareDomains.latestSyncedIPv6,
+        proxied: flareDomains.proxied,
       })
       .from(flareDomains)
       .where(eq(flareDomains.ddnsForDomain, ddnsFullName));

@@ -40,10 +40,14 @@ const apiProtected = {
         subdomain: z.string().nonempty(),
         cloudFlareDomain: z.string().nonempty(),
         description: z.string().nonempty(),
+        proxied: z.boolean(),
       }),
     )
     .mutation(
-      async ({ ctx, input: { cloudFlareDomain, description, subdomain } }) => {
+      async ({
+        ctx,
+        input: { cloudFlareDomain, description, subdomain, proxied },
+      }) => {
         //
         if (!ctx.cloudflare.availableDomains.includes(cloudFlareDomain)) {
           throw new TRPCError({
@@ -68,6 +72,7 @@ const apiProtected = {
             ddnsForDomain: `${subdomain}.${cloudFlareDomain}`,
             description,
             createdAt: new Date(),
+            proxied,
           });
       },
     ),

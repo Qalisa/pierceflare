@@ -5,6 +5,9 @@ import { z } from "zod";
 //
 //
 
+export const willDomainBeCFProxiedByDefault = true;
+
+//
 export const flareDomains = sqliteTable("flare_domains", {
   ddnsForDomain: text().primaryKey(),
   createdAt: integer({ mode: "timestamp_ms" }).notNull(),
@@ -13,6 +16,10 @@ export const flareDomains = sqliteTable("flare_domains", {
   syncedIpAt: integer({ mode: "timestamp_ms" }),
   latestSyncedIPv6: text(),
   latestSyncedIPv4: text(),
+  //
+  proxied: integer({ mode: "boolean" })
+    .notNull()
+    .default(willDomainBeCFProxiedByDefault),
 });
 
 //

@@ -15,6 +15,8 @@ import {
 } from "@tanstack/react-table";
 import { type inferOutput, useSubscription } from "@trpc/tanstack-react-query";
 
+import cloudflareLogo from "#/assets/images/cloudflare.svg";
+
 import { domainNameFormatter } from "#/components/DomainCellFormater";
 import { ipAddressFormatter } from "#/components/IPCellFormater";
 import ReloadButton from "#/components/ReloadButton";
@@ -142,6 +144,23 @@ const DNSEntriesTable = ({ noData }: { noData: JSX.Element }) => {
         columnHelper.accessor("createdAt", {
           header: "Created At",
           cell: timeAgoFormatter,
+        }),
+        columnHelper.accessor("proxied", {
+          header: () => (
+            <img
+              src={cloudflareLogo}
+              width={16}
+              title="Is Proxied by Cloudflare ?"
+            />
+          ),
+          cell: ({ cell }) => (
+            <input
+              type="checkbox"
+              className="checkbox checkbox-sm"
+              checked={cell.getValue()}
+              disabled={true}
+            />
+          ),
         }),
         columnHelper.accessor("ddnsForDomain", {
           header: "Domain",

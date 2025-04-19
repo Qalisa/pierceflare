@@ -17,6 +17,7 @@ import {
 
 import type { DbRequestsEvents } from "#/db/requests";
 import { dbRequestsEE, eeRequests } from "#/db/requests";
+import { willDomainBeCFProxiedByDefault } from "#/db/schema";
 import { randomIntFromInterval } from "#/helpers/random";
 import { wait, withLinger } from "#/helpers/withLinger";
 import logr from "#/server/helpers/loggers";
@@ -36,6 +37,11 @@ export class CloudflareDNSWorker {
   public flow: ReturnType<typeof this.initializeWorker>;
   private shutdownSignal = new Subject<void>();
   private isShuttingDown = false;
+  private shutdownHandlers = {
+    SIGINT: () => this.handleShutdown("SIGINT"),
+    SIGTERM: () => this.handleShutdown("SIGTERM"),
+    SIGHUP: () => this.handleShutdown("SIGHUP"),
+  };
 
   constructor(config: CloudflareConfig) {
     this.config = config;
@@ -150,9 +156,9 @@ export class CloudflareDNSWorker {
    */
   public setupShutdownHandler(): void {
     // Listen for system shutdown signals
-    process.on("SIGINT", () => this.handleShutdown("SIGINT"));
-    process.on("SIGTERM", () => this.handleShutdown("SIGTERM"));
-    process.on("SIGHUP", () => this.handleShutdown("SIGHUP"));
+    process.on("SIGINT", this.shutdownHandlers.SIGINT);
+    process.on("SIGTERM", this.shutdownHandlers.SIGTERM);
+    process.on("SIGHUP", this.shutdownHandlers.SIGHUP);
   }
 
   /**
@@ -198,6 +204,11 @@ export class CloudflareDNSWorker {
     // Close the event stream
     this.shutdownSignal.next();
     this.shutdownSignal.complete();
+
+    // Remove all process signal listeners to prevent memory leaks
+    process.removeListener("SIGINT", this.shutdownHandlers.SIGINT);
+    process.removeListener("SIGTERM", this.shutdownHandlers.SIGTERM);
+    process.removeListener("SIGHUP", this.shutdownHandlers.SIGHUP);
 
     // Notify other components that we've finished cleanup
     logr.logD("Worker shutdown completed.");
@@ -329,12 +340,16 @@ const _mayExec = async (
     throw new Error(`Could not determine subdomain in "${fullName}"`);
   }
 
-  const cachedIPs = await eeRequests.getCachedIPs(fullName);
+  const {
+    ipv4: cachedIPv4,
+    ipv6: cachedIPv6,
+    proxied,
+  } = await eeRequests.getCachedIPs(fullName);
 
   // If the IPs are identical to those already cached, no need to update
   if (
-    (flare.flaredIPv4 && flare.flaredIPv4 === cachedIPs.ipv4) ||
-    (flare.flaredIPv6 && flare.flaredIPv6 === cachedIPs.ipv6)
+    (flare.flaredIPv4 && flare.flaredIPv4 === cachedIPv4) ||
+    (flare.flaredIPv6 && flare.flaredIPv6 === cachedIPv6)
   ) {
     logr.logD(
       `[flareId|${flare.flareId}]`,
@@ -350,14 +365,10 @@ const _mayExec = async (
   }
 
   //
-  await _execRemote(
-    cloudflareCli,
-    remoteOperation,
-    flare,
-    zone_id,
-    name,
-    options,
-  );
+  await _execRemote(cloudflareCli, remoteOperation, flare, zone_id, name, {
+    ...options,
+    proxied,
+  });
 
   //
   const now = new Date();
@@ -427,8 +438,8 @@ const _exec_batch = (
         type: flare.flaredIPv4 ? "A" : "AAAA",
         name,
         content: flare.flaredIPv4 ?? flare.flaredIPv6!,
-        ttl: (options?.ttl as number) || 1,
-        proxied: options?.proxied as boolean | undefined,
+        ttl: options?.ttl || 1,
+        proxied: options?.proxied || willDomainBeCFProxiedByDefault,
       },
     ],
   });

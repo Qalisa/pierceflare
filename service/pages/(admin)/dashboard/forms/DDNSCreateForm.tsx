@@ -6,6 +6,9 @@ import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import cloudflareLogo from "#/assets/images/cloudflare.svg";
+
+import { willDomainBeCFProxiedByDefault } from "#/db/schema";
 import { getModal, modalIds } from "#/helpers/modals";
 import { useTRPC } from "#/helpers/trpc";
 import {
@@ -36,6 +39,9 @@ const DDNSCreateForm = ({
     resetField,
   } = useForm({
     resolver: zodResolver(expectedInput$),
+    defaultValues: {
+      proxied: true,
+    },
     shouldFocusError: true,
     shouldUseNativeValidation: true,
     reValidateMode: "onChange",
@@ -75,7 +81,7 @@ const DDNSCreateForm = ({
         id={formId}
         className="card-body"
         onSubmit={handleSubmit(
-          async ({ subdomain, cloudFlareDomain, description }) => {
+          async ({ subdomain, cloudFlareDomain, description, proxied }) => {
             //
             const onSuccess = () => {
               getModal(modalIds.createDDNS).closeModal({
@@ -98,7 +104,12 @@ const DDNSCreateForm = ({
 
             //
             await submitDDNSEntry
-              .mutateAsync({ subdomain, cloudFlareDomain, description })
+              .mutateAsync({
+                subdomain,
+                cloudFlareDomain,
+                description,
+                proxied: proxied ?? willDomainBeCFProxiedByDefault,
+              })
               .then(onSuccess)
               .catch((e: Error) => {
                 dispatch(
@@ -133,6 +144,19 @@ const DDNSCreateForm = ({
               ))}
             </select>
           </div>
+        </fieldset>
+        <fieldset className="fieldset w-full">
+          <legend className="fieldset-legend">
+            <img src={cloudflareLogo} width={16} /> Use Cloudflare proxy
+            features ?
+          </legend>
+          <input
+            {...register("proxied")}
+            type="checkbox"
+            className="checkbox"
+            placeholder="Describe what this subdomain is used for"
+            disabled={isSubmitting}
+          />
         </fieldset>
         <fieldset className="fieldset w-full">
           <legend className="fieldset-legend">Description</legend>

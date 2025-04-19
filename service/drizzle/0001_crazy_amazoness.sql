@@ -1,0 +1,1 @@
+ALTER TABLE `flare_domains` ADD `proxied` integer DEFAULT true NOT NULL;
