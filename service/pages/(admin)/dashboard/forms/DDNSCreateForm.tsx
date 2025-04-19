@@ -40,7 +40,7 @@ const DDNSCreateForm = ({
   } = useForm({
     resolver: zodResolver(expectedInput$),
     defaultValues: {
-      proxied: true,
+      proxied: willDomainBeCFProxiedByDefault,
     },
     shouldFocusError: true,
     shouldUseNativeValidation: true,
