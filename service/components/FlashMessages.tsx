@@ -107,7 +107,7 @@ const FlashMessages = () => {
                   className={`alert ${availableAlertTypes[msgType]} mx-4`}
                 >
                   {icon}
-                  <span className="text-sm mr-1">{message}</span>
+                  <span className="mr-1 text-sm">{message}</span>
                   <CopyToClipboardButton
                     size="xs"
                     tobeCopied={message}

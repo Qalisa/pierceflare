@@ -1,3 +1,5 @@
+import cloudflareLogo from "#/assets/images/cloudflare.svg";
+
 import { useForm } from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { usePageContext } from "vike-react/usePageContext";
@@ -5,8 +7,6 @@ import { usePageContext } from "vike-react/usePageContext";
 import { PlusCircleIcon } from "@heroicons/react/24/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-import cloudflareLogo from "#/assets/images/cloudflare.svg";
 
 import { willDomainBeCFProxiedByDefault } from "#/db/schema";
 import { getModal, modalIds } from "#/helpers/modals";

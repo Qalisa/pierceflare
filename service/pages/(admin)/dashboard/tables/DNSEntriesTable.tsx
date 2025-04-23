@@ -1,3 +1,5 @@
+import cloudflareLogo from "#/assets/images/cloudflare.svg";
+
 import { AnimatePresence, motion } from "motion/react";
 import type { JSX } from "react";
 import { useEffect, useMemo } from "react";
@@ -14,8 +16,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { type inferOutput, useSubscription } from "@trpc/tanstack-react-query";
-
-import cloudflareLogo from "#/assets/images/cloudflare.svg";
 
 import { domainNameFormatter } from "#/components/DomainCellFormater";
 import { ipAddressFormatter } from "#/components/IPCellFormater";

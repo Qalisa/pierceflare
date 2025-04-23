@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { createRoute } from "@hono/zod-openapi";
 
-import { RemoteOperation$, eeRequests } from "#/db/requests";
+import { eeRequests, RemoteOperation$ } from "#/db/requests";
 import type { AppServer } from "#/server/helpers/definition";
 import { routes } from "#/server/helpers/routes";
 

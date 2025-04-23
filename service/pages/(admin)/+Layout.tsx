@@ -1,7 +1,9 @@
+import appLogo from "#/assets/images/logo.webp";
+
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { usePageContext } from "vike-react/usePageContext";
 import { navigate } from "vike/client/router";
+import { usePageContext } from "vike-react/usePageContext";
 
 import {
   ArrowsUpDownIcon,
@@ -9,8 +11,6 @@ import {
   PowerIcon,
 } from "@heroicons/react/24/solid";
 import { useSubscription } from "@trpc/tanstack-react-query";
-
-import appLogo from "#/assets/images/logo.webp";
 
 import FlareGeneratorCommandBelt from "#/components/FlareGeneratorCommandBelt";
 import ThemeToggler from "#/components/ThemeToggle";

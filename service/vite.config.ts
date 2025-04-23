@@ -1,6 +1,6 @@
 import { cpSync, existsSync } from "fs";
 import { resolve } from "path";
-import { URL, fileURLToPath } from "url";
+import { fileURLToPath, URL } from "url";
 import vike from "vike/plugin";
 import type { Plugin } from "vite";
 import { defineConfig } from "vite";

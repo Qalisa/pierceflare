@@ -1,7 +1,7 @@
 import Cloudflare from "cloudflare";
+import { compress } from "hono/compress";
 import type { Session } from "hono-sessions";
 import { MemoryStore, sessionMiddleware } from "hono-sessions";
-import { compress } from "hono/compress";
 import { lastValueFrom } from "rxjs";
 import { apply } from "vike-server/hono";
 import { serve } from "vike-server/hono/serve";

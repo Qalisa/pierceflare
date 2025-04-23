@@ -1,23 +1,43 @@
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import reactPlugin from "eslint-plugin-react";
 import reactRefresh from "eslint-plugin-react-refresh";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
 import globals from "globals";
-// Import resolver for handling aliases and static assets
-import { resolve as pathResolve } from "path";
 import tseslint from "typescript-eslint";
-import { fileURLToPath } from "url";
 
 import eslint from "@eslint/js";
 import tsParser from "@typescript-eslint/parser";
-
-const __dirname = pathResolve(fileURLToPath(import.meta.url), "..");
 
 export default tseslint.config(
   eslint.configs.recommended,
   tseslint.configs.recommended,
   eslintPluginPrettierRecommended,
   {
+    plugins: { "simple-import-sort": simpleImportSort },
     rules: {
+      "simple-import-sort/imports": [
+        "error",
+        {
+          groups: [
+            // Asset imports
+            ["^#/assets/"],
+            // Side effect imports.
+            ["^\\u0000"],
+            // Packages.
+            // Things that start with a letter (or digit or underscore), or `@` followed by a letter.
+            ["^\\w"],
+            // Packages.
+            // Things that start with a letter (or digit or underscore), or `@` followed by a letter.
+            ["^@\\w"],
+            // Absolute imports and other imports such as Vue-style `@/foo`.
+            // Anything not matched in another group.
+            ["^"],
+            // Relative imports.
+            // Anything that starts with a dot.
+            ["^\\."],
+          ],
+        },
+      ],
       "prettier/prettier": [
         "error",
         {
@@ -32,7 +52,7 @@ export default tseslint.config(
     ignores: ["dist/*"],
   },
   {
-    ignores: ["*.cjs", "*.js"],
+    ignores: ["*.cjs"],
   },
   {
     files: ["**/*.ts", "**/*.tsx"],
@@ -55,10 +75,6 @@ export default tseslint.config(
       parser: tsParser,
       ecmaVersion: "latest",
       sourceType: "module",
-      parserOptions: {
-        project: true,
-        tsconfigRootDir: __dirname,
-      },
     },
     settings: {
       react: {
@@ -66,7 +82,6 @@ export default tseslint.config(
       },
     },
     rules: {
-      "object-shorthand": ["warn", "always"],
       "react-refresh/only-export-components": "warn",
       "@typescript-eslint/no-namespace": "off",
       "@typescript-eslint/ban-ts-comment": "off",

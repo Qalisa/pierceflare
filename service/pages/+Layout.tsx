@@ -1,16 +1,16 @@
-import { usePageContext } from "vike-react/usePageContext";
-
 import cloudflareLogo from "#/assets/images/cloudflare.svg";
 import appLogo from "#/assets/images/logo.webp";
 import swaggerLogo from "#/assets/images/swagger.svg";
+
+import "#/style/global.css";
+import "#/style/tailwind.css";
+
+import { usePageContext } from "vike-react/usePageContext";
 
 import FlashMessages from "#/components/FlashMessages";
 import FlashMessagesBelt from "#/components/FlashMessagesBelt";
 import { githubRepoUrl, title } from "#/helpers/static";
 import { routes } from "#/server/helpers/routes";
-
-import "#/style/global.css";
-import "#/style/tailwind.css";
 
 //
 const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -35,7 +35,7 @@ const Footer = () => {
 
   //
   return (
-    <footer className="z-10 footer sm:footer-horizontal bg-neutral text-neutral-content items-center p-4">
+    <footer className="footer sm:footer-horizontal bg-neutral text-neutral-content z-10 items-center p-4">
       <aside className="grid-flow-col items-center">
         <img src={appLogo} width="40px" />
         <p>
@@ -48,7 +48,7 @@ const Footer = () => {
           </span>
         </p>
       </aside>
-      <div className="grid-flow-col gap-4 items-center md:place-self-center md:justify-self-end">
+      <div className="grid-flow-col items-center gap-4 md:place-self-center md:justify-self-end">
         <nav className="flex gap-2">
           <SwaggerIconBtn />
           <GithubIconBtn />

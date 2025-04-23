@@ -1,8 +1,8 @@
+import appLogo from "#/assets/images/logo.webp";
+
+import type { Config } from "vike/types";
 import vikeReact from "vike-react/config";
 import vikeServer from "vike-server/config";
-import type { Config } from "vike/types";
-
-import appLogo from "#/assets/images/logo.webp";
 
 import { title } from "#/helpers/static";
 

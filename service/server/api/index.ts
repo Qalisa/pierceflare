@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
-import { rateLimiter } from "hono-rate-limiter";
 import { bearerAuth } from "hono/bearer-auth";
 import { prettyJSON } from "hono/pretty-json";
+import { rateLimiter } from "hono-rate-limiter";
 
 import { getConnInfo } from "@hono/node-server/conninfo";
 import { swaggerUI } from "@hono/swagger-ui";
