@@ -437,13 +437,21 @@ const _findExec = async (
 ) => {
   const found = await cloudflareCli.dns.records.list({
     zone_id,
-    name: { exact: name },
+    name: { exact: flare.ofDomain },
     type: _getOperationTypeFrom(flare),
   });
 
+  let allAccounts: Cloudflare.DNS.Records.RecordResponse[] = [];
+  for await (const account of found.iterPages()) {
+    allAccounts = [...allAccounts, ...account.result];
+  }
+
   //
-  if (found.result.length === 1) {
+  if (found.result.length > 0) {
+    // update the first one
     const record_id = found.result[0].id;
+
+    //
     return _exec_single(
       cloudflareCli,
       flare,
