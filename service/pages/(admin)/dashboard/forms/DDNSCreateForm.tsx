@@ -139,6 +139,7 @@ const DDNSCreateForm = ({
               disabled={isSubmitting}
               required
             >
+              <option value="">Pick a domain...</option>
               {availableDomains.map((cloudflareDomain) => (
                 <option key={cloudflareDomain}>{cloudflareDomain}</option>
               ))}
