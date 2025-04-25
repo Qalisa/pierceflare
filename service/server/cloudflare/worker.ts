@@ -402,7 +402,7 @@ const _execRemote = async (
       await _exec_dummy();
       break;
     case "batch":
-      await _exec_batch(cloudflareCli, flare, zone_id, name, options);
+      await _findExec(cloudflareCli, flare, zone_id, name, options);
       break;
     default:
       throw new Error(`Unknown operation: ${remoteOperation}`);
@@ -414,6 +414,10 @@ const _execRemote = async (
 //
 
 //
+const _getOperationTypeFrom = (flare: CloudflareWorkerRequest["flareAdded"]) =>
+  flare.flaredIPv4 ? "A" : "AAAA";
+
+//
 const _exec_dummy = async () => {
   const randomLinger = randomIntFromInterval(300, 1000);
   const shouldError = Math.random() < 0.25; // 25% chance to throw
@@ -422,6 +426,54 @@ const _exec_dummy = async () => {
     throw new Error("Random dummy error occurred!");
   }
 };
+
+//
+const _findExec = async (
+  cloudflareCli: Cloudflare,
+  flare: CloudflareWorkerRequest["flareAdded"],
+  zone_id: string,
+  name: string,
+  options?: CloudflareWorkerRequest["options"],
+) => {
+  const found = await cloudflareCli.dns.records.list({
+    zone_id,
+    name: { exact: name },
+    type: _getOperationTypeFrom(flare),
+  });
+
+  //
+  if (found.result.length === 1) {
+    const record_id = found.result[0].id;
+    return _exec_single(
+      cloudflareCli,
+      flare,
+      zone_id,
+      record_id,
+      name,
+      options,
+    );
+  } else {
+    return _exec_batch(cloudflareCli, flare, zone_id, name, options);
+  }
+};
+
+//
+const _exec_single = (
+  cloudflareCli: Cloudflare,
+  flare: CloudflareWorkerRequest["flareAdded"],
+  zone_id: string,
+  record_id: string,
+  name: string,
+  options?: CloudflareWorkerRequest["options"],
+) =>
+  cloudflareCli.dns.records.update(record_id, {
+    zone_id,
+    type: _getOperationTypeFrom(flare),
+    name,
+    content: flare.flaredIPv4 ?? flare.flaredIPv6!,
+    ttl: options?.ttl || 1,
+    proxied: options?.proxied || willDomainBeCFProxiedByDefault,
+  });
 
 //
 const _exec_batch = (
@@ -435,7 +487,7 @@ const _exec_batch = (
     zone_id,
     posts: [
       {
-        type: flare.flaredIPv4 ? "A" : "AAAA",
+        type: _getOperationTypeFrom(flare),
         name,
         content: flare.flaredIPv4 ?? flare.flaredIPv6!,
         ttl: options?.ttl || 1,
