@@ -9,7 +9,7 @@ import { serve } from "vike-server/hono/serve";
 import { trpcServer } from "@hono/trpc-server";
 import { getEnvZ_S } from "@qalisa/vike-envz";
 
-import { defineDbCharacteristics, getDb } from "#/db";
+import { readyingDB } from "#/db";
 import { CloudflareDNSWorker } from "#/server/cloudflare/worker";
 import { getZones } from "#/server/cloudflare/zones";
 import logr from "#/server/helpers/loggers";
@@ -40,8 +40,8 @@ const startServer = async () => {
   //
   const env = getEnvZ_S(import.meta.env, envSchema);
 
-  //
-  defineDbCharacteristics({
+  // Pre-warm
+  await readyingDB({
     dbFilePath: env.SERVICE_DATABASE_FILES_PATH,
   });
 
@@ -187,27 +187,6 @@ const startServer = async () => {
       return injecting;
     },
   });
-
-  //
-  // workers
-  //
-
-  //
-  if (import.meta.env.PROD) {
-    //
-    logr.log("Pre-warming...");
-
-    //
-    await Promise.all([
-      // Database
-      new Promise((resolve) => {
-        resolve(getDb());
-      }),
-    ]);
-
-    //
-    logr.log("Pre-warm OK.");
-  }
 
   //
   // Init CF Worker
