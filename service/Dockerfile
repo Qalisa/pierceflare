@@ -44,11 +44,12 @@ COPY --from=prerelease /usr/src/app/drizzle ./drizzle
 # required binaries
 COPY --from=prerelease /usr/src/app/node_modules/@libsql* ./node_modules/@libsql/
 
-
+## expected env variables to be set from container
 # ENV SERVICE_AUTH_USERNAME=""
 # ENV SERVICE_AUTH_PASSWORD=""
 ENV SERVICE_DATABASE_FILES_PATH=/usr/src/app/db
 
+#
 ENV NODE_ENV=production \
     PORT=80
 
