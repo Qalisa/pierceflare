@@ -87,14 +87,6 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-cloudflare:
-  zeroTrustAccess:
-    enabled: false
-    namespace: zero-trust-system
-    policies:
-      - groupId: ldap-users
-        description: Allow domain LDAP users
-
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
