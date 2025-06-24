@@ -1,6 +1,3 @@
 ingress:
   hosts:
     - pierceflare-dev.qalisa.fr
-cloudflare:
-  zeroTrustAccess:
-    enabled: true
