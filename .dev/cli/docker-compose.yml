@@ -2,8 +2,7 @@ services:
   pierceflare-cli:
     image: pierceflare-cli
     build:
-      context: ../..
-      dockerfile: ./cli/Dockerfile
+      context: ../../cli
     network_mode: host # so we can access localhost
     command: 
       - --force-ping

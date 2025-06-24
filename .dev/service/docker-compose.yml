@@ -7,8 +7,7 @@ services:
   pierceflare:
     image: pierceflare
     build:
-      context: ../..
-      dockerfile: ./service/Dockerfile
+      context: ../../service
       args:
         - K8S_APP__VERSION=debug-0.0.1-docker
         - CANONICAL_URL=http://localhost:3000

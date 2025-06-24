@@ -16,7 +16,7 @@ RUN corepack enable
 
 #
 WORKDIR /usr/src/app
-COPY ./service/package.json ./
+COPY ./package.json ./
 
 # required to prevent symlinking of @libsql for Docker image dependency copying
 RUN echo "node-linker=hoisted" >  .npmrc
@@ -24,7 +24,7 @@ RUN echo "node-linker=hoisted" >  .npmrc
 RUN pnpm install
 
 #
-COPY ./service .
+COPY . .
 ENV NODE_ENV=production
 RUN pnpm run build
 

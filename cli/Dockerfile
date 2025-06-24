@@ -8,13 +8,13 @@ RUN apk update && apk add --no-cache git
 WORKDIR /app
 
 # Copie des fichiers de dépendances
-COPY ./cli/go.mod ./cli/go.sum* ./
+COPY ./go.mod ./go.sum* ./
 
 # Téléchargement des dépendances
 RUN go mod download
 
 # Copie du code source
-COPY ./cli .
+COPY . .
 
 # Construction de l'application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o pierceflare-cli ./cmd/pierceflare-cli
