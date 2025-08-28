@@ -2,6 +2,17 @@ apiVersion: v1
 entries:
   pierceflare:
   - apiVersion: v2
+    appVersion: 1.4.3
+    created: "2025-08-28T06:45:33.445728215Z"
+    description: Chriurgically, securely and automatically synchronize specific sub-domains
+      IPs linked to your Cloudflare managed DNs (https://github.com/Qalisa/pierceflare).
+    digest: 5c45685a1977432895ca9ca73ed354d3f81c9618d4b20ddf79fa87330de678a7
+    name: pierceflare
+    type: application
+    urls:
+    - https://github.com/Qalisa/pierceflare/releases/download/pierceflare-0.3.2/pierceflare-0.3.2.tgz
+    version: 0.3.2
+  - apiVersion: v2
     appVersion: 1.4.2
     created: "2025-06-24T08:15:47.066048345Z"
     description: Dashboard, API and CLI for secure Cloudflare DDNS
@@ -32,6 +43,16 @@ entries:
     - https://github.com/Qalisa/pierceflare/releases/download/pierceflare-0.1.1/pierceflare-0.1.1.tgz
     version: 0.1.1
   pierceflare-cli:
+  - apiVersion: v2
+    appVersion: 1.2.0
+    created: "2025-08-28T06:45:33.575935947Z"
+    description: Synchronizer CLI, part of the Pierceflare suite (https://github.com/Qalisa/pierceflare).
+    digest: c2e4563bcd81894b2277a2d67cccb8963bc8c3aacbd08b0fe7bdd10ddcee58c8
+    name: pierceflare-cli
+    type: application
+    urls:
+    - https://github.com/Qalisa/pierceflare/releases/download/pierceflare-cli-0.3.1/pierceflare-cli-0.3.1.tgz
+    version: 0.3.1
   - apiVersion: v2
     appVersion: 1.2.0
     created: "2025-04-18T06:20:25.397975475Z"
@@ -92,4 +113,4 @@ entries:
     urls:
     - https://github.com/Qalisa/pierceflare/releases/download/pierceflare-cli-0.1.1/pierceflare-cli-0.1.1.tgz
     version: 0.1.1
-generated: "2025-06-24T08:15:47.066069064Z"
+generated: "2025-08-28T06:45:33.575989918Z"
