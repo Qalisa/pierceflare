@@ -2,7 +2,7 @@ ARG K8S_APP__VERSION="[unknown-from-docker]"
 ARG CANONICAL_URL="[define-me-pls]"
 
 #
-FROM node:slim AS prerelease
+FROM node:22-slim AS prerelease
 ARG K8S_APP__VERSION
 ARG CANONICAL_URL
 
